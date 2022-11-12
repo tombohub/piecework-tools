@@ -1,1 +1,1 @@
-web: gunicorn appliku_start.wsgi --log-file -
+web: gunicorn piecework_tools.wsgi
