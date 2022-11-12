@@ -1,0 +1,41 @@
+{% extends 'time_tracker/base.html' %}
+
+{% block body %}
+<div class="container pt-4">
+    {% if current_action %}
+    <p>Current action: <strong>{{current_action | capfirst}}</strong></p>
+    <p>Started: {{current_action.start}}</p>
+    {% else %}
+    <p>There is no current action</p>
+    {% endif %}
+    <div class="vstack gap-4">
+
+        <form action="{% url 'start-action' %} ">
+            <div class="vstack gap-3">
+                <select name="unit" class="form-select">
+                    {% for unit in active_units %}
+                    <option value="{{unit}}">{{unit}}</option>
+                    {% endfor %}
+                </select>
+                {# buttons for starting an action #}
+                {% for action in actions %}
+                <button class="btn btn-lg btn-dark" name="action"
+                    value="{{action.name}}">{{action.name|capfirst}}</button>
+                {% endfor %}
+            </div>
+        </form>
+
+        {# button for stopping action #}
+        <form action="{% url 'stop-action' %}">
+            <div class="d-grid">
+                <button class="btn btn-primary btn-lg btn">STOP</button>
+            </div>
+        </form>
+        {% for m in data %}
+        {{m.ko}} <br>
+        {% endfor %}
+
+    </div>
+
+</div>
+{% endblock body %}
