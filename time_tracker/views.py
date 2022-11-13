@@ -1,17 +1,47 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from django.views import View
-from .models import Action, ActionTime, Unit
+from .models import ActionTime, Unit, Action
 import datetime as dt
-from dataclasses import dataclass
-from ninja import NinjaAPI
+from dataclasses import dataclass, asdict
+from ninja import NinjaAPI, Schema
+from typing import List
 
 api = NinjaAPI()
+
+
+class ActionDTO(Schema):
+    name: str
+    current_action: str | None
 
 
 @api.get("/hello")
 def hello(request):
     return {"hello": "hello man"}
+
+
+@dataclass
+class Mo:
+    ko: str
+
+
+@api.get("/actions")
+def actions(request) -> List[ActionDTO]:
+    actions = Action.objects.all()
+    exists_current_action = ActionTime.objects.filter(is_current=True).exists()
+    if exists_current_action:
+        current_action = ActionTime.objects.get(is_current=True)
+    else:
+        current_action = None
+
+    active_units = Unit.objects.filter(is_finished=False)
+
+    data = {
+        "actions": list(actions.values("name")),
+        "current_action": str(current_action),
+        "active_units": list(active_units.values("number")),
+    }
+    return data
 
 
 def index(request):
@@ -27,8 +57,8 @@ def index(request):
     active_units = Unit.objects.filter(is_finished=False)
     context = {
         "actions": actions,
-        "active_units": active_units,
         "current_action": current_action,
+        "active_units": active_units,
     }
 
     return render(request, "time_tracker/index.html", context)
