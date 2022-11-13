@@ -11,7 +11,7 @@ api = NinjaAPI()
 
 @api.get("/hello")
 def hello(request):
-    return ActionTime.objects.all()
+    return {"hello": "hello man"}
 
 
 def index(request):
