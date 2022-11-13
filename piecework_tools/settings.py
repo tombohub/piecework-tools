@@ -46,12 +46,12 @@ INSTALLED_APPS = [
     "django_extensions",
     "debug_toolbar",
     "ninja",
-    "corsheaders",
+    # "corsheaders",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
+    # "corsheaders.middleware.CorsMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -142,4 +142,4 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # cors settings
 # https://pypi.org/project/django-cors-headers/
-CORS_ALLOW_ALL_ORIGINS = True
+# CORS_ALLOW_ALL_ORIGINS = True
