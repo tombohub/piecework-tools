@@ -2,3 +2,4 @@
 staticfiles
 typings
 .vscode
+*.pyc
