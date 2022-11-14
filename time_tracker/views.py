@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.views import View
 from .models import ActionTime, Unit, Action
 import datetime as dt
@@ -42,7 +42,7 @@ def actions(request) -> List[ActionsDTO]:
         "current_action": str(current_action),
         "active_units": list(active_units.values("number")),
     }
-    return json.dumps(data)
+    return JsonResponse(data)
 
 
 def index(request):
