@@ -3,21 +3,17 @@ from django.http import HttpResponse
 from django.views import View
 from .models import ActionTime, Unit, Action
 import datetime as dt
-from dataclasses import dataclass, asdict
 from ninja import NinjaAPI, Schema
 from typing import List
+from pydantic.dataclasses import dataclass
+import json
 
 api = NinjaAPI()
 
 
-class ActionDTO(Schema):
+class ActionsDTO(Schema):
     name: str
     current_action: str | None
-
-
-@api.get("/hello")
-def hello(request):
-    return {"hello": "hello man"}
 
 
 @dataclass
@@ -25,8 +21,13 @@ class Mo:
     ko: str
 
 
+@api.get("/hello")
+def hello(request):
+    return Mo(ko="dsdsd")
+
+
 @api.get("/actions")
-def actions(request) -> List[ActionDTO]:
+def actions(request) -> List[ActionsDTO]:
     actions = Action.objects.all()
     exists_current_action = ActionTime.objects.filter(is_current=True).exists()
     if exists_current_action:
@@ -41,7 +42,7 @@ def actions(request) -> List[ActionDTO]:
         "current_action": str(current_action),
         "active_units": list(active_units.values("number")),
     }
-    return data
+    return json.dumps(data)
 
 
 def index(request):
