@@ -5,13 +5,12 @@
     <div class="pt-2 d-flex justify-content-between align-items-end">
         {% if current_action %}
         <div>
-            Current action: <strong>{{current_action | capfirst}}</strong><br>
+            Current action: <strong>{{current_action.name|capfirst}}</strong><br>
             Started: {{current_action.start}}
         </div>
-        {% if current_action.action.name == 'board' %}
-        <form action="" class="">
-            <button class="btn btn-outline-secondary">Start sprint</button>
-        </form>
+        {% if current_action == 'board' %}
+        {% include 'time_tracker/sprint-option.html' %}
+
         {% endif %}
         {% else %}
         <div>
@@ -30,8 +29,7 @@
                 </select>
                 {# buttons for starting an action #}
                 {% for action in actions %}
-                <button class="btn btn-lg btn-dark" name="action"
-                    value="{{action.name}}">{{action.name|capfirst}}</button>
+                <button class="btn btn-lg btn-dark" name="action" value="{{action}}">{{action|capfirst}}</button>
                 {% endfor %}
             </div>
         </form>
@@ -47,6 +45,8 @@
         {% endfor %}
 
     </div>
-
+    {% for momo in momos %}
+    {{momo.ko}}
+    {% endfor %}
 </div>
 {% endblock body %}

@@ -2,66 +2,24 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, JsonResponse
 from django.views import View
 from .models import ActionTime, Unit, Action
+from . import contexts
 import datetime as dt
 from ninja import NinjaAPI, Schema
 from typing import List
-from pydantic.dataclasses import dataclass
 import json
+from dataclasses import dataclass
 
 api = NinjaAPI()
 
 
-class ActionsDTO(Schema):
-    name: str
-    current_action: str | None
-
-
-@dataclass
-class Mo:
-    ko: str
-
-
-@api.get("/hello")
-def hello(request):
-    return Mo(ko="dsdsd")
-
-
-@api.get("/actions")
-def actions(request) -> List[ActionsDTO]:
-    actions = Action.objects.all()
-    exists_current_action = ActionTime.objects.filter(is_current=True).exists()
-    if exists_current_action:
-        current_action = ActionTime.objects.get(is_current=True)
-    else:
-        current_action = None
-
-    active_units = Unit.objects.filter(is_finished=False)
-
-    data = {
-        "actions": list(actions.values("name")),
-        "current_action": str(current_action),
-        "active_units": list(active_units.values("number")),
-    }
-    return JsonResponse(data)
+@api.get("/index")
+def api_index(request):
+    data = contexts.index_context()
+    return data
 
 
 def index(request):
-
-    actions = Action.objects.all()
-
-    exists_current_action = ActionTime.objects.filter(is_current=True).exists()
-    if exists_current_action:
-        current_action = ActionTime.objects.get(is_current=True)
-    else:
-        current_action = None
-
-    active_units = Unit.objects.filter(is_finished=False)
-    context = {
-        "actions": actions,
-        "current_action": current_action,
-        "active_units": active_units,
-    }
-
+    context = contexts.index_context()
     return render(request, "time_tracker/index.html", context)
 
 

@@ -33,11 +33,12 @@ class Unit(models.Model):
 
 
 class ActionTime(models.Model):
-    action = models.ForeignKey(Action, on_delete=models.DO_NOTHING)
+    action = models.ForeignKey(Action, on_delete=models.PROTECT)
     start = models.DateTimeField()
     end = models.DateTimeField(null=True, blank=True)
-    unit = models.ForeignKey(Unit, on_delete=models.DO_NOTHING)
+    unit = models.ForeignKey(Unit, on_delete=models.PROTECT)
     is_current = models.BooleanField(default=True)
+    is_boarding = models.BooleanField(default=False)
 
     def __str__(self) -> str:
         return str(self.action)
@@ -56,7 +57,8 @@ class SprintTime(models.Model):
     end = models.DateTimeField()
     sheets_count = models.PositiveIntegerField()
     pieces_count = models.PositiveIntegerField()
-    method = models.ForeignKey(SprintMethod, on_delete=models.DO_NOTHING)
+    method = models.ForeignKey(SprintMethod, on_delete=models.PROTECT)
+    area = models.ForeignKey(UnitArea, on_delete=models.PROTECT)
 
     def __str__(self) -> str:
         return str(self.start)
