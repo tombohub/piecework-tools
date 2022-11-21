@@ -2,20 +2,25 @@
 
 {% block body %}
 <div class="container pt-4">
-    <div class="pt-2 d-flex justify-content-between align-items-end">
+    <div class="pt-2 v-stack gap-2">
+
+        <div>
+            Last action: {{previous_action.name|capfirst}} duration: {{previous_action.duration}}
+        </div>
+
         {% if current_action %}
         <div>
             Current action: <strong>{{current_action.name|capfirst}}</strong><br>
             Started: {{current_action.start}}
         </div>
-        {% if current_action == 'board' %}
-        {% include 'time_tracker/sprint-option.html' %}
-
-        {% endif %}
         {% else %}
         <div>
             There is no current action
         </div>
+        {% endif %}
+
+        {% if current_action == 'board' %}
+        {% include 'time_tracker/sprint-option.html' %}
         {% endif %}
     </div>
     <div class="vstack gap-4 pt-2">
@@ -45,8 +50,6 @@
         {% endfor %}
 
     </div>
-    {% for momo in momos %}
-    {{momo.ko}}
-    {% endfor %}
+
 </div>
 {% endblock body %}

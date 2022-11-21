@@ -1,25 +1,22 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse, JsonResponse
-from django.views import View
+from django.views.generic import ListView
 from .models import ActionTime, Unit, Action
-from . import contexts
 import datetime as dt
-from ninja import NinjaAPI, Schema
-from typing import List
-import json
-from dataclasses import dataclass
-
-api = NinjaAPI()
-
-
-@api.get("/index")
-def api_index(request):
-    data = contexts.index_context()
-    return data
+from . import db
 
 
 def index(request):
-    context = contexts.index_context()
+    actions = db.list_actions()
+    current_action = db.current_action()
+    active_units = db.active_units()
+    previous_action = db.previous_action()
+
+    context = {
+        "actions": actions,
+        "current_action": current_action,
+        "active_units": active_units,
+        "previous_action": previous_action,
+    }
     return render(request, "time_tracker/index.html", context)
 
 
@@ -42,8 +39,9 @@ def stop_current_action(request):
     return redirect(index)
 
 
-def change_unit(request):
-    pass
+def stats(request):
+
+    return render(request, "time_tracker/stats.html")
 
 
 # helpers

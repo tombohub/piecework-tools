@@ -5,6 +5,7 @@ To avoid using models in views
 
 from .models import ActionTime, Action, Unit
 from .domain import CurrentAction
+import datetime as dt
 
 
 def list_actions() -> list[str]:
@@ -41,7 +42,22 @@ def current_action() -> CurrentAction | None:
     return current_action
 
 
+def previous_action():
+    prev_action_time_obj = ActionTime.objects.filter(is_current=False).last()
+    duration = prev_action_time_obj.duration
+    name = prev_action_time_obj.action.name
+    return {"name": name, "duration": str(duration).split(".")[0]}
+
+
 def active_units() -> list[int]:
+    """
+    Get currently active unit numbers. Most likely one only
+
+    Returns
+    -------
+    list[int]
+        active unit numbers
+    """
     active_units_obj = Unit.objects.filter(is_finished=False)
     active_units_numbers = [unit.number for unit in active_units_obj]
     return active_units_numbers

@@ -26,19 +26,42 @@ class Unit(models.Model):
     windows_count = models.PositiveSmallIntegerField(null=True, blank=True)
     bulkheads_count = models.PositiveSmallIntegerField(null=True, blank=True)
     is_finished = models.BooleanField(default=False)
-    total_sheets = models.PositiveIntegerField(null=True, blank=True)
 
     def __str__(self) -> str:
         return str(self.number)
 
 
+class SheetType(models.Model):
+    name = models.CharField(max_length=10)
+
+    def __str__(self):
+        return str(self.name)
+
+
+class UnitSheetCount(models.Model):
+    type = models.ForeignKey(SheetType, on_delete=models.PROTECT)
+    length = models.PositiveIntegerField(choices=[(8, 8), (9, 9), (10, 10), (12, 12)])
+    count = models.PositiveIntegerField()
+    unit = models.ForeignKey(Unit, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.length}ft {self.type}"
+
+
 class ActionTime(models.Model):
     action = models.ForeignKey(Action, on_delete=models.PROTECT)
+    date = models.DateField(auto_now_add=True)
     start = models.DateTimeField()
     end = models.DateTimeField(null=True, blank=True)
     unit = models.ForeignKey(Unit, on_delete=models.PROTECT)
     is_current = models.BooleanField(default=True)
     is_boarding = models.BooleanField(default=False)
+    duration = models.DurationField(null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        if self.end is not None:
+            self.duration = self.end - self.start
+        super().save(*args, **kwargs)
 
     def __str__(self) -> str:
         return str(self.action)
