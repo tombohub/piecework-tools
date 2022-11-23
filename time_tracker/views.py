@@ -40,8 +40,9 @@ def stop_current_action(request):
 
 
 def stats(request):
-
-    return render(request, "time_tracker/stats.html")
+    daily_stats = db.daily_stats()
+    context = {"daily_stats": daily_stats}
+    return render(request, "time_tracker/stats.html", context)
 
 
 # helpers

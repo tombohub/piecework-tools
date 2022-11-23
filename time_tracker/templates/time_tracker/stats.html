@@ -1,1 +1,5 @@
-date: time boarding time % boarding:
+date: time boarding time % boarding: <br>
+
+{% for stat in daily_stats %}
+date: {{stat.date}} | duration: {{stat.duration}} <br>
+{% endfor %}

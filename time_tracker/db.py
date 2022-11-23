@@ -2,7 +2,7 @@
 Database fetching and saving operations.
 To avoid using models in views
 """
-
+from django.db.models import Sum
 from .models import ActionTime, Action, Unit
 from .domain import CurrentAction
 import datetime as dt
@@ -61,3 +61,13 @@ def active_units() -> list[int]:
     active_units_obj = Unit.objects.filter(is_finished=False)
     active_units_numbers = [unit.number for unit in active_units_obj]
     return active_units_numbers
+
+
+def daily_stats() -> list[dict]:
+    daily_durations_query_set = (
+        ActionTime.objects.values("date")
+        .annotate(duration=Sum("duration"))
+        .order_by("date")
+    )
+
+    return list(daily_durations_query_set)
