@@ -10,12 +10,18 @@ class Action(models.Model):
     def __str__(self) -> str:
         return str(self.name)
 
+    class Meta:
+        db_table = "activities"
+
 
 class UnitArea(models.Model):
     name = models.CharField(max_length=20)
 
     def __str__(self) -> str:
         return str(self.name)
+
+    class Meta:
+        db_table = "unit_areas"
 
 
 class Unit(models.Model):
@@ -30,12 +36,18 @@ class Unit(models.Model):
     def __str__(self) -> str:
         return str(self.number)
 
+    class Meta:
+        db_table = "units"
+
 
 class SheetType(models.Model):
     name = models.CharField(max_length=10)
 
     def __str__(self):
         return str(self.name)
+
+    class Meta:
+        db_table = "sheet_types"
 
 
 class UnitSheetCount(models.Model):
@@ -46,6 +58,9 @@ class UnitSheetCount(models.Model):
 
     def __str__(self):
         return f"{self.length}ft {self.type}"
+
+    class Meta:
+        db_table = "unit_sheet_counts"
 
 
 class ActionTime(models.Model):
@@ -66,6 +81,9 @@ class ActionTime(models.Model):
     def __str__(self) -> str:
         return str(self.action)
 
+    class Meta:
+        db_table = "activity_times"
+
 
 class SprintMethod(models.Model):
     name = models.CharField(max_length=50)
@@ -73,6 +91,9 @@ class SprintMethod(models.Model):
 
     def __str__(self) -> str:
         return str(self.name)
+
+    class Meta:
+        db_table = "sprint_methods"
 
 
 class SprintTime(models.Model):
@@ -85,3 +106,6 @@ class SprintTime(models.Model):
 
     def __str__(self) -> str:
         return str(self.start)
+
+    class Meta:
+        db_table = "sprint_times"
