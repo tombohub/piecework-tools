@@ -4,11 +4,11 @@ To avoid using models in views
 """
 from django.db.models import Sum
 from .models import ActionTime, Action, Unit
-from .domain import CurrentAction
+from .domain import CurrentActivity, Activity, ActivityTime
 import datetime as dt
 
 
-def list_actions() -> list[str]:
+def list_activities() -> list[str]:
     """
     get list of all available actions
 
@@ -21,7 +21,7 @@ def list_actions() -> list[str]:
     return [action.name for action in actions]
 
 
-def current_action() -> CurrentAction | None:
+def current_action() -> CurrentActivity | None:
     """
     Get current action name if exists. Otherwise None
 
@@ -33,7 +33,7 @@ def current_action() -> CurrentAction | None:
     exists_current_action = ActionTime.objects.filter(is_current=True).exists()
     if exists_current_action:
         current_action_object = ActionTime.objects.get(is_current=True)
-        current_action = CurrentAction(
+        current_action = CurrentActivity(
             name=current_action_object.action.name, start=current_action_object.start
         )
     else:
@@ -71,3 +71,27 @@ def daily_stats() -> list[dict]:
     )
 
     return list(daily_durations_query_set)
+
+
+def get_activity_times(date: dt.date, activity: str) -> list[ActivityTime]:
+    activity_times_db = ActionTime.objects.filter(date=date, action__name=activity)
+    activity_times = [
+        ActivityTime(
+            activity=Activity(
+                name=act_time.action.name, description=act_time.action.description
+            ),
+            date=act_time.date,
+            start=act_time.start,
+            end=act_time.end,
+            duration=act_time.duration,
+        )
+        for act_time in activity_times_db
+    ]
+    return activity_times
+
+
+def get_boarding_duration_today():
+    result = ActionTime.objects.filter(
+        action__name="board", date=dt.date.today()
+    ).aggregate(duration=Sum("duration"))
+    return result["duration"]

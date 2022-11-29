@@ -4,3 +4,4 @@ typings
 .vscode
 __pychache__
 *.pyc
+m.py

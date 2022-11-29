@@ -3,19 +3,23 @@ from django.views.generic import ListView
 from .models import ActionTime, Unit, Action
 import datetime as dt
 from . import db
+from .domain import Activity
 
 
 def index(request):
-    actions = db.list_actions()
+    actions = db.list_activities()
     current_action = db.current_action()
     active_units = db.active_units()
     previous_action = db.previous_action()
+    # NOTE: magic string
+    boarding_duration_today = db.get_boarding_duration_today()
 
     context = {
         "actions": actions,
         "current_action": current_action,
         "active_units": active_units,
         "previous_action": previous_action,
+        "boarding_duration_today": boarding_duration_today,
     }
     return render(request, "time_tracker/index.html", context)
 

@@ -18,6 +18,9 @@
             There is no current action
         </div>
         {% endif %}
+        <div>
+            Boarding duration today: {{boarding_duration_today}}
+        </div>
 
         {% if current_action == 'board' %}
         {% include 'time_tracker/sprint-option.html' %}
