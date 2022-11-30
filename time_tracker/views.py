@@ -4,6 +4,7 @@ from .models import ActionTime, Unit, Action
 import datetime as dt
 from . import db
 from .domain import Activity
+import django_tables2 as tables
 
 
 def index(request):
@@ -38,13 +39,14 @@ def start_action(request):
     return redirect(index)
 
 
-def stop_current_action(request):
+def stop_current_activity(request):
     end_current_activity()
     return redirect(index)
 
 
 def stats(request):
     daily_stats = db.daily_stats()
+
     context = {"daily_stats": daily_stats}
     return render(request, "time_tracker/stats.html", context)
 

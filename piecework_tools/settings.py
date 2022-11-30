@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "debug_toolbar",
     "ninja",
     "corsheaders",
+    "django_tables2",
 ]
 
 MIDDLEWARE = [

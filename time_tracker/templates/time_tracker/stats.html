@@ -1,5 +1,7 @@
+{% load render_table from django_tables2 %}
+
 date: time boarding time % boarding: <br>
 
-{% for stat in daily_stats %}
-date: {{stat.date}} | duration: {{stat.duration}} <br>
-{% endfor %}
+{% autoescape off %}
+{{ daily_stats }}
+{% endautoescape %}

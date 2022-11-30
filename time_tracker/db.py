@@ -6,6 +6,7 @@ from django.db.models import Sum
 from .models import ActionTime, Action, Unit
 from .domain import CurrentActivity, Activity, ActivityTime
 import datetime as dt
+from django_pandas.io import read_frame
 
 
 def list_activities() -> list[str]:
@@ -63,14 +64,17 @@ def active_units() -> list[int]:
     return active_units_numbers
 
 
+#%%
 def daily_stats() -> list[dict]:
-    daily_durations_query_set = (
-        ActionTime.objects.values("date")
-        .annotate(duration=Sum("duration"))
-        .order_by("date")
+    qs = ActionTime.objects.all()
+    df = read_frame(qs)
+    df = df.pivot_table(
+        values="duration", index="date", columns="action", aggfunc="sum"
     )
-
-    return list(daily_durations_query_set)
+    # index is date so we need to reset to include it in dict
+    df = df.reset_index()
+    # return df.to_dict("records")
+    return df.to_html(index=False, index_names=False)
 
 
 def get_activity_times(date: dt.date, activity: str) -> list[ActivityTime]:
@@ -95,3 +99,6 @@ def get_boarding_duration_today():
         action__name="board", date=dt.date.today()
     ).aggregate(duration=Sum("duration"))
     return result["duration"]
+
+
+# %%
