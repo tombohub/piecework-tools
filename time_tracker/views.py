@@ -25,7 +25,7 @@ def index(request):
 
 
 def start_action(request):
-    end_current_action()
+    end_current_activity()
 
     now = dt.datetime.now()
     action_name = request.GET["action"]
@@ -39,7 +39,7 @@ def start_action(request):
 
 
 def stop_current_action(request):
-    end_current_action()
+    end_current_activity()
     return redirect(index)
 
 
@@ -50,7 +50,10 @@ def stats(request):
 
 
 # helpers
-def end_current_action():
+def end_current_activity():
+    """
+    Ends current activity
+    """
     # check if there is any current action and end it
     now = dt.datetime.now()
     exists_current_action = ActionTime.objects.filter(is_current=True).exists()
