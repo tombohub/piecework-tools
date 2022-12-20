@@ -55,3 +55,20 @@ class ActivityTime:
     start: dt.datetime
     end: dt.datetime | None
     duration: dt.timedelta
+
+
+class Duration:
+    def __init__(self, duration: dt.timedelta) -> None:
+        self.duration = duration
+
+    def __str__(self) -> str:
+        """
+        To return string as 00:00:00 instead of 00:00:00.00000
+        """
+        return str(self.duration).split(".")[0]
+
+
+@dataclass
+class DailyActivityDuration:
+    date: dt.date
+    duration: Duration

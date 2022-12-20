@@ -13,7 +13,7 @@ def index(request):
     active_units = db.active_units()
     previous_action = db.previous_action()
     # NOTE: magic string
-    boarding_duration_today = db.get_boarding_duration_today()
+    boarding_duration_today = db.calculate_boarding_duration_today()
 
     context = {
         "actions": actions,
@@ -45,7 +45,7 @@ def stop_current_activity(request):
 
 
 def stats(request):
-    daily_stats = db.daily_stats()
+    daily_stats = db.daily_durations()
 
     context = {"daily_stats": daily_stats}
     return render(request, "time_tracker/stats.html", context)

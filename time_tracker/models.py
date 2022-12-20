@@ -31,6 +31,7 @@ class Unit(models.Model):
     rooms_count = models.PositiveSmallIntegerField(null=True, blank=True)
     windows_count = models.PositiveSmallIntegerField(null=True, blank=True)
     bulkheads_count = models.PositiveSmallIntegerField(null=True, blank=True)
+    potlights_count = models.PositiveSmallIntegerField(null=True, blank=True)
     is_finished = models.BooleanField(default=False)
 
     def __str__(self) -> str:
