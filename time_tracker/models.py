@@ -3,7 +3,7 @@ from django.db import models
 # Create your models here.
 
 
-class Action(models.Model):
+class Activity(models.Model):
     name = models.CharField(max_length=20, unique=True)
     description = models.TextField(null=True, blank=True)
 
@@ -52,6 +52,10 @@ class SheetType(models.Model):
 
 
 class UnitSheetCount(models.Model):
+    """
+    Number and type of sheets per unit
+    """
+
     type = models.ForeignKey(SheetType, on_delete=models.PROTECT)
     length = models.PositiveIntegerField(choices=[(8, 8), (9, 9), (10, 10), (12, 12)])
     count = models.PositiveIntegerField()
@@ -64,8 +68,8 @@ class UnitSheetCount(models.Model):
         db_table = "unit_sheet_counts"
 
 
-class ActionTime(models.Model):
-    action = models.ForeignKey(Action, on_delete=models.PROTECT)
+class ActivityTime(models.Model):
+    action = models.ForeignKey(Activity, on_delete=models.PROTECT)
     date = models.DateField(auto_now_add=True)
     start = models.DateTimeField()
     end = models.DateTimeField(null=True, blank=True)
@@ -110,3 +114,32 @@ class SprintTime(models.Model):
 
     class Meta:
         db_table = "sprint_times"
+
+
+class TotalDurationActivityPerUnit(models.Model):
+    number = models.SmallIntegerField(blank=True, null=True)
+    activity = models.CharField(max_length=20, blank=True, null=True)
+    duration = models.DurationField(blank=True, null=True)
+
+    class Meta:
+        managed = False  # Created from a view. Don't remove.
+        db_table = "total_duration_activity_per_unit"
+
+
+class DailyDurations(models.Model):
+    date = models.DateField(blank=True, null=True)
+    duration = models.DurationField(blank=True, null=True)
+    activity_name = models.CharField(max_length=20, blank=True, null=True)
+
+    class Meta:
+        managed = False  # Created from a view. Don't remove.
+        db_table = "daily_durations"
+
+
+class CompletedUnitsSquareFootage(models.Model):
+    unit_number = models.SmallIntegerField(blank=True, null=True)
+    footage = models.BigIntegerField(blank=True, null=True)
+
+    class Meta:
+        managed = False  # Created from a view. Don't remove.
+        db_table = "completed_units_square_footage"

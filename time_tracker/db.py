@@ -3,7 +3,7 @@ Database fetching and saving operations.
 To avoid using models in views
 """
 from django.db.models import Sum
-from .models import ActionTime, Action, Unit
+from .models import ActivityTime, Activity, Unit
 from . import domain
 import datetime as dt
 from django_pandas.io import read_frame
@@ -19,7 +19,7 @@ def list_activities() -> list[str]:
     list[str]
         available actions
     """
-    actions = Action.objects.all()
+    actions = Activity.objects.all()
     return [action.name for action in actions]
 
 
@@ -32,9 +32,9 @@ def current_action() -> domain.CurrentActivity | None:
     str | None
         current action name
     """
-    exists_current_action = ActionTime.objects.filter(is_current=True).exists()
+    exists_current_action = ActivityTime.objects.filter(is_current=True).exists()
     if exists_current_action:
-        current_action_object = ActionTime.objects.get(is_current=True)
+        current_action_object = ActivityTime.objects.get(is_current=True)
         current_action = domain.CurrentActivity(
             name=current_action_object.action.name, start=current_action_object.start
         )
@@ -45,7 +45,7 @@ def current_action() -> domain.CurrentActivity | None:
 
 
 def previous_action():
-    prev_action_time_obj = ActionTime.objects.filter(is_current=False).last()
+    prev_action_time_obj = ActivityTime.objects.filter(is_current=False).last()
     duration = prev_action_time_obj.duration
     name = prev_action_time_obj.action.name
     return {"name": name, "duration": str(duration).split(".")[0]}
@@ -65,27 +65,8 @@ def active_units() -> list[int]:
     return active_units_numbers
 
 
-def daily_durations() -> list[dict]:
-    """
-    Get pivot data, daily total duration for each activity
-
-    Returns
-    -------
-    list[dict]
-        [{'date': dt.datetime, ...'activity_name': Duration}]
-    """
-    pivot_table = pivot(ActionTime, "date", "action__name", "duration")
-    for record in pivot_table:
-        for key, value in record.items():
-            if key == "date":
-                continue
-            record[key] = domain.Duration(value)
-
-    return list(pivot_table)
-
-
 def get_activity_times(date: dt.date, activity: str) -> list[domain.ActivityTime]:
-    activity_times_db = ActionTime.objects.filter(date=date, action__name=activity)
+    activity_times_db = ActivityTime.objects.filter(date=date, action__name=activity)
     activity_times = [
         domain.ActivityTime(
             activity=domain.Activity(
@@ -110,7 +91,7 @@ def calculate_boarding_duration_today() -> dt.timedelta:
     dt.timedelta
         total duration
     """
-    result = ActionTime.objects.filter(
+    result = ActivityTime.objects.filter(
         action__name="board", date=dt.date.today()
     ).aggregate(duration=Sum("duration"))
     return result["duration"]
@@ -118,7 +99,7 @@ def calculate_boarding_duration_today() -> dt.timedelta:
 
 def calculate_board_activity_daily_durations():
     result = (
-        ActionTime.objects.filter(action__name="board")
+        ActivityTime.objects.filter(action__name="board")
         .values("date")
         .annotate(total_duration=Sum("duration"))
     )

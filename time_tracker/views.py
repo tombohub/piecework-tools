@@ -1,9 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import ListView
-from .models import ActionTime, Unit, Action
+from .models import ActivityTime, Unit, Activity, DailyDurations
 import datetime as dt
-from . import db
-from .domain import Activity
+from . import db, domain
 import django_tables2 as tables
 
 
@@ -30,11 +29,11 @@ def start_action(request):
 
     now = dt.datetime.now()
     action_name = request.GET["action"]
-    action = Action.objects.get(name=action_name)
+    action = Activity.objects.get(name=action_name)
     unit_number = request.GET["unit"]
     unit = get_object_or_404(Unit, number=unit_number)
 
-    action_time = ActionTime(action=action, start=now, unit=unit)
+    action_time = ActivityTime(action=action, start=now, unit=unit)
     action_time.save()
     return redirect(index)
 
@@ -44,11 +43,10 @@ def stop_current_activity(request):
     return redirect(index)
 
 
-def stats(request):
-    daily_stats = db.daily_durations()
-
-    context = {"daily_stats": daily_stats}
-    return render(request, "time_tracker/stats.html", context)
+def daily_durations(request):
+    daily_durations = domain.query_daily_durations()
+    context = {"daily_durations": daily_durations}
+    return render(request, "time_tracker/daily-durations.html", context)
 
 
 # helpers
@@ -58,9 +56,9 @@ def end_current_activity():
     """
     # check if there is any current action and end it
     now = dt.datetime.now()
-    exists_current_action = ActionTime.objects.filter(is_current=True).exists()
+    exists_current_action = ActivityTime.objects.filter(is_current=True).exists()
     if exists_current_action:
-        current_action = ActionTime.objects.get(is_current=True)
+        current_action = ActivityTime.objects.get(is_current=True)
         current_action.end = now
         current_action.is_current = False
         current_action.save()

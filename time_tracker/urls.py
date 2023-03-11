@@ -5,5 +5,5 @@ urlpatterns = [
     path("", views.index, name="home"),
     path("start-action", views.start_action, name="start-action"),
     path("stop-action", views.stop_current_activity, name="stop-action"),
-    path("stats", view=views.stats, name="stats"),
+    path("daily-durations", views.daily_durations, name="daily-durations"),
 ]

@@ -4,6 +4,7 @@ Domain entities and value objects
 from enum import Enum
 from dataclasses import dataclass
 import datetime as dt
+from .models import DailyDurations
 
 
 class SheetType(Enum):
@@ -57,18 +58,21 @@ class ActivityTime:
     duration: dt.timedelta
 
 
-class Duration:
-    def __init__(self, duration: dt.timedelta) -> None:
-        self.duration = duration
-
-    def __str__(self) -> str:
-        """
-        To return string as 00:00:00 instead of 00:00:00.00000
-        """
-        return str(self.duration).split(".")[0]
-
-
 @dataclass
-class DailyActivityDuration:
+class DailyDuration:
     date: dt.date
-    duration: Duration
+    activity_name: str
+    duration: dt.timedelta
+
+
+def query_daily_durations() -> list[DailyDuration]:
+    durations = DailyDurations.objects.all()
+    daily_durations: list[DailyDuration] = []
+    for duration in durations:
+        daily_duration = DailyDuration(
+            date=duration.date,
+            activity_name=duration.activity_name,
+            duration=duration.duration,
+        )
+        daily_durations.append(daily_duration)
+    return daily_durations

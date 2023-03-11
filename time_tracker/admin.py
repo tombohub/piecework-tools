@@ -1,7 +1,8 @@
 from django.contrib import admin
+from django import forms
 from .models import (
-    Action,
-    ActionTime,
+    Activity,
+    ActivityTime,
     SprintMethod,
     SprintTime,
     UnitArea,
@@ -22,7 +23,7 @@ class UnitAdmin(admin.ModelAdmin):
 admin.site.register(Unit, UnitAdmin)
 
 
-@admin.register(ActionTime)
+@admin.register(ActivityTime)
 class ActionTimeAdmin(admin.ModelAdmin):
     date_hierarchy = "date"
     list_display = (
@@ -34,4 +35,4 @@ class ActionTimeAdmin(admin.ModelAdmin):
     )
 
 
-admin.site.register([Action, SprintMethod, SprintTime, UnitArea, UnitSheetCount])
+admin.site.register([Activity, SprintMethod, SprintTime, UnitArea, UnitSheetCount])
