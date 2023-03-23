@@ -54,7 +54,7 @@ class ActivityTime:
     activity: Activity
     date: dt.date
     start: dt.datetime
-    end: dt.datetime | None
+    end: "dt.datetime | None"
     duration: dt.timedelta
 
 

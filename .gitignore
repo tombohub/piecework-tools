@@ -2,6 +2,7 @@
 staticfiles
 typings
 .vscode
+.idea
 __pychache__
 *.pyc
 m.py
