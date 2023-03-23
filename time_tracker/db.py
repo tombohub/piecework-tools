@@ -23,7 +23,7 @@ def list_activities() -> list[str]:
     return [action.name for action in actions]
 
 
-def current_action() -> domain.CurrentActivity | None:
+def current_action() -> "domain.CurrentActivity | None":
     """
     Get current action name if exists. Otherwise None
 
