@@ -22,18 +22,23 @@
         <div>
             Boarding duration today: {{boarding_duration_today}}
         </div>
+        <div>
+            Break duration today: {{break_duration_today}}
+        </div>
 
         {% if current_action == 'board' %}
         {% include 'time_tracker/sprint-option.html' %}
         {% endif %}
+
     </div>
     <div class="vstack gap-4 pt-2">
 
-        <form action="{% url 'start-action' %} ">
+        <form action="{% url 'start-activity' %} ">
             <div class="vstack gap-3">
                 <select name="unit" class="form-select">
                     {% for unit in active_units %}
                     <option value="{{unit}}">{{unit}}</option>
+                    {% url 'start-activity' %}
                     {% endfor %}
                 </select>
                 {# buttons for starting an action #}

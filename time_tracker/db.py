@@ -97,6 +97,21 @@ def calculate_boarding_duration_today() -> dt.timedelta:
     return result["duration"]
 
 
+def calculate_break_duration_today() -> dt.timedelta:
+    """
+    Calculate today's total duration for break activity
+
+    Returns
+    -------
+    dt.timedelta
+        total duration
+    """
+    result = ActivityTime.objects.filter(
+        action__name="break", date=dt.date.today()
+    ).aggregate(duration=Sum("duration"))
+    return result["duration"]
+
+
 def calculate_board_activity_daily_durations():
     result = (
         ActivityTime.objects.filter(action__name="board")

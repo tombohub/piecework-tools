@@ -13,6 +13,7 @@ def index(request):
     previous_action = db.previous_action()
     # NOTE: magic string
     boarding_duration_today = db.calculate_boarding_duration_today()
+    break_duration_today = db.calculate_break_duration_today()
 
     context = {
         "actions": actions,
@@ -20,11 +21,15 @@ def index(request):
         "active_units": active_units,
         "previous_action": previous_action,
         "boarding_duration_today": boarding_duration_today,
+        "break_duration_today": break_duration_today,
     }
     return render(request, "time_tracker/index.html", context)
 
 
-def start_action(request):
+def start_activity(request):
+    """
+    Starts the new activity.
+    """
     end_current_activity()
 
     now = dt.datetime.now()
