@@ -93,7 +93,7 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": "piecework_tools",
-        "HOST": "34.122.88.217",
+        "HOST": "35.209.237.128",
         "USER": "tomo",
         "PASSWORD": "tomo982",
     }
