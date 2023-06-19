@@ -65,6 +65,20 @@ def active_units() -> list[int]:
     return active_units_numbers
 
 
+def get_current_unit() -> Unit:
+    """
+    Get current active unit.
+    Can only be one. Throws error if multiple
+
+    Returns
+    -------
+    Unit
+        current unit model object
+    """
+    unit_obj = Unit.objects.get(is_finished=False)
+    return unit_obj
+
+
 def get_activity_times(date: dt.date, activity: str) -> list[domain.ActivityTime]:
     activity_times_db = ActivityTime.objects.filter(date=date, action__name=activity)
     activity_times = [
@@ -93,6 +107,22 @@ def calculate_boarding_duration_today() -> dt.timedelta:
     """
     result = ActivityTime.objects.filter(
         action__name="board", date=dt.date.today()
+    ).aggregate(duration=Sum("duration"))
+    return result["duration"]
+
+
+def calculate_current_unit_total_boarding_duration() -> dt.timedelta:
+    """
+    Total boarding duration for the current active unit so far
+
+    Returns
+    -------
+    dt.timedelta
+        total boarding duration
+    """
+    current_unit = get_current_unit()
+    result = ActivityTime.objects.filter(
+        action__name="board", unit=current_unit
     ).aggregate(duration=Sum("duration"))
     return result["duration"]
 

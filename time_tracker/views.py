@@ -14,6 +14,7 @@ def index(request):
     # NOTE: magic string
     boarding_duration_today = db.calculate_boarding_duration_today()
     break_duration_today = db.calculate_break_duration_today()
+    boarding_duration_current_unit = db.calculate_current_unit_total_boarding_duration()
 
     context = {
         "actions": actions,
@@ -22,6 +23,7 @@ def index(request):
         "previous_action": previous_action,
         "boarding_duration_today": boarding_duration_today,
         "break_duration_today": break_duration_today,
+        "boarding_duration_current_unit": boarding_duration_current_unit,
     }
     return render(request, "time_tracker/index.html", context)
 
