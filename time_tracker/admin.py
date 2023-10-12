@@ -9,6 +9,7 @@ from .models import (
     Unit,
     UnitSheetCount,
     SheetType,
+    Note
 )
 
 
@@ -35,4 +36,4 @@ class ActionTimeAdmin(admin.ModelAdmin):
     )
 
 
-admin.site.register([Activity, SprintMethod, SprintTime, UnitArea, UnitSheetCount])
+admin.site.register([Activity, SprintMethod, SprintTime, UnitArea, UnitSheetCount, Note])

@@ -1,9 +1,10 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404, reverse
 from django.views.generic import ListView
-from .models import ActivityTime, Unit, Activity, DailyDurations
+from .models import ActivityTime, Unit, Activity, Note
 import datetime as dt
 from . import db, domain
 import django_tables2 as tables
+from .forms import NoteModelForm
 
 
 def index(request):
@@ -55,6 +56,27 @@ def daily_durations(request):
     context = {"daily_durations": daily_durations}
     return render(request, "time_tracker/daily-durations.html", context)
 
+def notes_index(request):
+    if request.method == 'POST':
+        form = NoteModelForm(request.POST)
+        if form.is_valid():
+            form.save()
+            # return to this same view , but now with GET request.
+            # So the form is not resubmitted upon refreshing the page
+            return redirect(notes_index)
+
+    notes = Note.objects.all()
+    form = NoteModelForm()
+    context = {
+        'notes': notes,
+        'form': form
+    }
+    return render(request, 'time_tracker/notes.html', context)
+
+def notes_delete(request, pk):
+    note = Note.objects.get(pk=pk)
+    note.delete()
+    return redirect(notes_index)
 
 # helpers
 def end_current_activity():

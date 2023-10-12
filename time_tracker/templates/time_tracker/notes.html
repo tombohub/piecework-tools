@@ -1,0 +1,17 @@
+{% extends 'time_tracker/base.html' %}
+
+{% block body %}
+    <form action="{% url 'notes' %}" method="post">
+    {{ form }}
+        {% csrf_token %}
+    <button type="submit">Add</button>
+    </form>
+
+    {% for note in notes %}
+        <form action="{% url 'notes-delete' note.pk %}" method="post">
+        {% csrf_token %}
+        <span>{{ note }}</span>
+        <button type="submit">Delete</button>
+        </form>
+    {% endfor %}
+{% endblock %}

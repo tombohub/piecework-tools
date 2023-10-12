@@ -143,3 +143,9 @@ class CompletedUnitsSquareFootage(models.Model):
     class Meta:
         managed = False  # Created from a view. Don't remove.
         db_table = "completed_units_square_footage"
+
+class Note(models.Model):
+    note = models.TextField(help_text='notes for various ideas and reminders', )
+
+    def __str__(self):
+        return self.note
