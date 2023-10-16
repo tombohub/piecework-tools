@@ -23,6 +23,18 @@ class Unit(models.Model):
     potlights_count = models.PositiveSmallIntegerField(null=True, blank=True)
     is_finished = models.BooleanField(default=False)
 
+    @property
+    def total_square_footage(self):
+        """
+        Total square footage of all sheets in the unit
+        """
+        return sum(
+            [
+                unit_sheet_count.square_footage
+                for unit_sheet_count in self.unitsheetcount_set.all()
+            ]
+        )
+
     def __str__(self) -> str:
         return str(self.number)
 

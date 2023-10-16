@@ -4,7 +4,7 @@ from .models import (
     ActivityTime,
     Unit,
     UnitSheetCount,
-    Note
+    Note,
 )
 
 
@@ -14,6 +14,7 @@ class UnitSheetCountInline(admin.TabularInline):
 
 class UnitAdmin(admin.ModelAdmin):
     inlines = [UnitSheetCountInline]
+    readonly_fields = ['total_square_footage']
 
 
 admin.site.register(Unit, UnitAdmin)
