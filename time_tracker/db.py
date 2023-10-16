@@ -3,7 +3,9 @@ Database fetching and saving operations.
 To avoid using models in views
 """
 from django.db.models import Sum
-from .models import ActivityTime, Activity, Unit
+
+from .domain import DailyDuration
+from .models import ActivityTime, Activity, Unit, DailyDurations
 from . import domain
 import datetime as dt
 from django_pandas.io import read_frame
@@ -149,3 +151,16 @@ def calculate_board_activity_daily_durations():
         .annotate(total_duration=Sum("duration"))
     )
     return list(result)
+
+
+def query_daily_durations() -> list[DailyDuration]:
+    durations = DailyDurations.objects.all()
+    daily_durations: list[DailyDuration] = []
+    for duration in durations:
+        daily_duration = DailyDuration(
+            date=duration.date,
+            activity_name=duration.activity_name,
+            duration=duration.duration,
+        )
+        daily_durations.append(daily_duration)
+    return daily_durations

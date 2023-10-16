@@ -1,5 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404, reverse
 from django.views.generic import ListView
+
+import time_tracker.db
 from .models import ActivityTime, Unit, Activity, Note
 import datetime as dt
 from . import db, domain
@@ -52,7 +54,7 @@ def stop_current_activity(request):
 
 
 def daily_durations(request):
-    daily_durations = domain.query_daily_durations()
+    daily_durations = time_tracker.db.query_daily_durations()
     context = {"daily_durations": daily_durations}
     return render(request, "time_tracker/daily-durations.html", context)
 

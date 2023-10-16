@@ -14,7 +14,7 @@ class UnitSheetCountInline(admin.TabularInline):
 
 class UnitAdmin(admin.ModelAdmin):
     inlines = [UnitSheetCountInline]
-    readonly_fields = ['total_square_footage']
+    readonly_fields = ['total_square_footage', 'total_price']
 
 
 admin.site.register(Unit, UnitAdmin)

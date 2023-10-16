@@ -1,4 +1,5 @@
 from django.db import models
+from .domain import PRICE_PER_SQUARE_FOOT
 
 # Create your models here.
 
@@ -34,6 +35,13 @@ class Unit(models.Model):
                 for unit_sheet_count in self.unitsheetcount_set.all()
             ]
         )
+
+    @property
+    def total_price(self):
+        """
+        Total price for the unit
+        """
+        return round(self.total_square_footage * PRICE_PER_SQUARE_FOOT, 2)
 
     def __str__(self) -> str:
         return str(self.number)
