@@ -82,20 +82,6 @@ class ActivityTime(models.Model):
     class Meta:
         db_table = "activity_times"
 
-
-class SprintMethod(models.Model):
-    name = models.CharField(max_length=50)
-    description = models.TextField(null=True, blank=True)
-
-    def __str__(self) -> str:
-        return str(self.name)
-
-    class Meta:
-        db_table = "sprint_methods"
-
-
-
-
 class TotalDurationActivityPerUnit(models.Model):
     number = models.SmallIntegerField(blank=True, null=True)
     activity = models.CharField(max_length=20, blank=True, null=True)

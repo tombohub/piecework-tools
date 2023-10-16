@@ -2,7 +2,6 @@ from django.contrib import admin
 from .models import (
     Activity,
     ActivityTime,
-    SprintMethod,
     Unit,
     UnitSheetCount,
     Note
@@ -32,4 +31,4 @@ class ActionTimeAdmin(admin.ModelAdmin):
     )
 
 
-admin.site.register([Activity, SprintMethod, Note])
+admin.site.register([Activity, Note])
