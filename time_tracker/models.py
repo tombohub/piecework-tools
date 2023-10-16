@@ -13,17 +13,6 @@ class Activity(models.Model):
     class Meta:
         db_table = "activities"
 
-
-class UnitArea(models.Model):
-    name = models.CharField(max_length=20)
-
-    def __str__(self) -> str:
-        return str(self.name)
-
-    class Meta:
-        db_table = "unit_areas"
-
-
 class Unit(models.Model):
     number = models.PositiveSmallIntegerField(unique=True)
     washrooms_count = models.PositiveSmallIntegerField(null=True, blank=True)
@@ -60,13 +49,17 @@ class UnitSheetCount(models.Model):
     length = models.PositiveIntegerField(choices=[(8, 8), (9, 9), (10, 10), (12, 12)])
     count = models.PositiveIntegerField()
     unit = models.ForeignKey(Unit, on_delete=models.CASCADE)
+    square_footage = models.PositiveIntegerField()
+
+    def save(self, *args, **kwargs):
+        self.square_footage = self.length * self.count * 4
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.length}ft {self.type}"
 
     class Meta:
         db_table = "unit_sheet_counts"
-
 
 class ActivityTime(models.Model):
     action = models.ForeignKey(Activity, on_delete=models.PROTECT)
@@ -101,19 +94,6 @@ class SprintMethod(models.Model):
         db_table = "sprint_methods"
 
 
-class SprintTime(models.Model):
-    start = models.DateTimeField()
-    end = models.DateTimeField()
-    sheets_count = models.PositiveIntegerField()
-    pieces_count = models.PositiveIntegerField()
-    method = models.ForeignKey(SprintMethod, on_delete=models.PROTECT)
-    area = models.ForeignKey(UnitArea, on_delete=models.PROTECT)
-
-    def __str__(self) -> str:
-        return str(self.start)
-
-    class Meta:
-        db_table = "sprint_times"
 
 
 class TotalDurationActivityPerUnit(models.Model):
