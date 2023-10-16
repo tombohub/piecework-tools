@@ -1,19 +1,17 @@
 from django.contrib import admin
-from django import forms
 from .models import (
     Activity,
     ActivityTime,
     SprintMethod,
     Unit,
     UnitSheetCount,
-    SheetType,
     Note
 )
 
 
 class UnitSheetCountInline(admin.TabularInline):
     model = UnitSheetCount
-
+    readonly_fields = ['square_footage']
 
 class UnitAdmin(admin.ModelAdmin):
     inlines = [UnitSheetCountInline]
@@ -34,4 +32,4 @@ class ActionTimeAdmin(admin.ModelAdmin):
     )
 
 
-admin.site.register([Activity, SprintMethod, UnitSheetCount, Note])
+admin.site.register([Activity, SprintMethod, Note])
