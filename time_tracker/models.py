@@ -1,5 +1,6 @@
 from django.db import models
 from .domain import PRICE_PER_SQUARE_FOOT
+import datetime as dt
 
 # Create your models here.
 
@@ -13,6 +14,7 @@ class Activity(models.Model):
 
     class Meta:
         db_table = "activities"
+
 
 class Unit(models.Model):
     number = models.PositiveSmallIntegerField(unique=True)
@@ -42,6 +44,56 @@ class Unit(models.Model):
         Total price for the unit
         """
         return round(self.total_square_footage * PRICE_PER_SQUARE_FOOT, 2)
+
+    @property
+    def total_boarding_duration(self) -> dt.timedelta:
+        """
+        Total boarding duration for the unit
+        """
+        duration = self.activitytime_set.filter(action__name="board").aggregate(
+            duration=models.Sum("duration")
+        )["duration"]
+        return duration if duration is not None else dt.timedelta(seconds=0)
+
+    @property
+    def dollars_per_hour_of_boarding(self):
+        """
+        Dollars per hour of boarding for the unit
+        """
+        return (
+            round(
+                self.total_price / self.total_boarding_duration.total_seconds() * 3600,
+                2,
+            )
+            if self.total_boarding_duration.total_seconds() > 0
+            else 0
+        )
+
+    @property
+    def sheet_count(self):
+        """
+        Total number of sheets in the unit
+        """
+        return sum(
+            [
+                unit_sheet_count.count
+                for unit_sheet_count in self.unitsheetcount_set.all()
+            ]
+        )
+
+    @property
+    def sheet_count_per_hour_of_boarding(self):
+        """
+        Total number of sheets in the unit
+        """
+        return (
+            round(
+                self.sheet_count / self.total_boarding_duration.total_seconds() * 3600,
+                2,
+            )
+            if self.total_boarding_duration.total_seconds() > 0
+            else 0
+        )
 
     def __str__(self) -> str:
         return str(self.number)
@@ -81,6 +133,7 @@ class UnitSheetCount(models.Model):
     class Meta:
         db_table = "unit_sheet_counts"
 
+
 class ActivityTime(models.Model):
     action = models.ForeignKey(Activity, on_delete=models.PROTECT)
     date = models.DateField(auto_now_add=True)
@@ -101,6 +154,7 @@ class ActivityTime(models.Model):
 
     class Meta:
         db_table = "activity_times"
+
 
 class TotalDurationActivityPerUnit(models.Model):
     number = models.SmallIntegerField(blank=True, null=True)
@@ -130,8 +184,11 @@ class CompletedUnitsSquareFootage(models.Model):
         managed = False  # Created from a view. Don't remove.
         db_table = "completed_units_square_footage"
 
+
 class Note(models.Model):
-    note = models.TextField(help_text='notes for various ideas and reminders', )
+    note = models.TextField(
+        help_text="notes for various ideas and reminders",
+    )
 
     def __str__(self):
         return self.note
