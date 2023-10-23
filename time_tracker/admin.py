@@ -1,12 +1,5 @@
 from django.contrib import admin
-from .models import (
-    Activity,
-    ActivityTime,
-    Unit,
-    UnitSheetCount,
-    Note,
-    DailyDurations
-)
+from .models import Activity, ActivityTime, Unit, UnitSheetCount, Note, DailyDurations
 
 
 class UnitSheetCountInline(admin.TabularInline):
@@ -17,7 +10,7 @@ class UnitSheetCountInline(admin.TabularInline):
 
 class UnitAdmin(admin.ModelAdmin):
     inlines = [UnitSheetCountInline]
-    list_display = ['number', 'is_finished', 'windows_count']
+    list_display = ["number", "total_square_footage"]
     readonly_fields = [
         "total_square_footage",
         "total_price",
@@ -27,11 +20,14 @@ class UnitAdmin(admin.ModelAdmin):
         "sheet_count_per_hour_of_boarding",
     ]
 
+
 class DailyDurationsAdmin(admin.ModelAdmin):
-    list_display = ['date', 'activity_name', 'duration']
+    list_display = ["date", "activity_name", "duration"]
+
 
 admin.site.register(Unit, UnitAdmin)
 admin.site.register(DailyDurations, DailyDurationsAdmin)
+
 
 @admin.register(ActivityTime)
 class ActionTimeAdmin(admin.ModelAdmin):
