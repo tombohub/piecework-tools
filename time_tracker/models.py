@@ -19,12 +19,6 @@ class Activity(models.Model):
     def __str__(self) -> str:
         return str(self.name)
 
-    class Meta:
-        db_table = "activities"
-
-
-
-
 
 class Unit(models.Model):
     number = models.PositiveSmallIntegerField(unique=True)
@@ -108,9 +102,6 @@ class Unit(models.Model):
     def __str__(self) -> str:
         return str(self.number)
 
-    class Meta:
-        db_table = "units"
-
 
 class ActivityTime(models.Model):
     action = models.ForeignKey(Activity, on_delete=models.PROTECT)
@@ -129,9 +120,6 @@ class ActivityTime(models.Model):
 
     def __str__(self) -> str:
         return str(self.action)
-
-    class Meta:
-        db_table = "activity_times"
 
 
 class DrywallType(models.Model):
@@ -159,10 +147,16 @@ class UnitSheetCount(models.Model):
     def __str__(self):
         return f"{self.length}ft {self.type}"
 
-    class Meta:
-        db_table = "unit_sheet_counts"
 
+class Note(models.Model):
+    note = models.TextField(
+        help_text="notes for various ideas and reminders",
+    )
 
+    def __str__(self):
+        return self.note
+
+# VIEWS
 class TotalDurationActivityPerUnit(models.Model):
     number = models.SmallIntegerField(blank=True, null=True)
     activity = models.CharField(max_length=20, blank=True, null=True)
@@ -192,10 +186,4 @@ class CompletedUnitsSquareFootage(models.Model):
         db_table = "completed_units_square_footage"
 
 
-class Note(models.Model):
-    note = models.TextField(
-        help_text="notes for various ideas and reminders",
-    )
 
-    def __str__(self):
-        return self.note
