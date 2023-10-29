@@ -9,11 +9,21 @@ class Activity(models.Model):
     name = models.CharField(max_length=20, unique=True)
     description = models.TextField(null=True, blank=True)
 
+    @property
+    def activity_times(self):
+        """
+        Alias for activitytime_set
+        """
+        return self.activitytime_set
+
     def __str__(self) -> str:
         return str(self.name)
 
     class Meta:
         db_table = "activities"
+
+
+
 
 
 class Unit(models.Model):
@@ -102,6 +112,28 @@ class Unit(models.Model):
         db_table = "units"
 
 
+class ActivityTime(models.Model):
+    action = models.ForeignKey(Activity, on_delete=models.PROTECT)
+    date = models.DateField(auto_now_add=True)
+    start = models.DateTimeField()
+    end = models.DateTimeField(null=True, blank=True)
+    unit = models.ForeignKey(Unit, on_delete=models.PROTECT)
+    is_current = models.BooleanField(default=True)
+    is_boarding = models.BooleanField(default=False)
+    duration = models.DurationField(null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        if self.end is not None:
+            self.duration = self.end - self.start
+        super().save(*args, **kwargs)
+
+    def __str__(self) -> str:
+        return str(self.action)
+
+    class Meta:
+        db_table = "activity_times"
+
+
 class DrywallType(models.Model):
     name = models.CharField(max_length=10)
 
@@ -129,28 +161,6 @@ class UnitSheetCount(models.Model):
 
     class Meta:
         db_table = "unit_sheet_counts"
-
-
-class ActivityTime(models.Model):
-    action = models.ForeignKey(Activity, on_delete=models.PROTECT)
-    date = models.DateField(auto_now_add=True)
-    start = models.DateTimeField()
-    end = models.DateTimeField(null=True, blank=True)
-    unit = models.ForeignKey(Unit, on_delete=models.PROTECT)
-    is_current = models.BooleanField(default=True)
-    is_boarding = models.BooleanField(default=False)
-    duration = models.DurationField(null=True, blank=True)
-
-    def save(self, *args, **kwargs):
-        if self.end is not None:
-            self.duration = self.end - self.start
-        super().save(*args, **kwargs)
-
-    def __str__(self) -> str:
-        return str(self.action)
-
-    class Meta:
-        db_table = "activity_times"
 
 
 class TotalDurationActivityPerUnit(models.Model):
