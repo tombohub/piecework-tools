@@ -12,5 +12,4 @@ class NoteModelForm(forms.ModelForm):
         model = Note
         fields = '__all__'
         widgets = {
-            'note': forms.Textarea(attrs={'rows': 2})
-        }
+            'note': forms.Textarea(attrs={'rows': 2, 'class': 'form-control', 'placeholder': 'Enter note here...'})}

@@ -149,9 +149,7 @@ class UnitSheetCount(models.Model):
 
 
 class Note(models.Model):
-    note = models.TextField(
-        help_text="notes for various ideas and reminders",
-    )
+    note = models.TextField()
 
     def __str__(self):
         return self.note
