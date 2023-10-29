@@ -102,14 +102,11 @@ class Unit(models.Model):
         db_table = "units"
 
 
-class SheetType(models.Model):
+class DrywallType(models.Model):
     name = models.CharField(max_length=10)
 
     def __str__(self):
         return str(self.name)
-
-    class Meta:
-        db_table = "sheet_types"
 
 
 class UnitSheetCount(models.Model):
@@ -117,7 +114,7 @@ class UnitSheetCount(models.Model):
     Number and type of sheets per unit
     """
 
-    type = models.ForeignKey(SheetType, on_delete=models.PROTECT)
+    type = models.ForeignKey(DrywallType, on_delete=models.PROTECT)
     length = models.PositiveIntegerField(choices=[(8, 8), (9, 9), (10, 10), (12, 12)])
     count = models.PositiveIntegerField()
     unit = models.ForeignKey(Unit, on_delete=models.CASCADE)

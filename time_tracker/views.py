@@ -1,11 +1,9 @@
-from django.shortcuts import render, redirect, get_object_or_404, reverse
-from django.views.generic import ListView
+from django.shortcuts import render, redirect, get_object_or_404
 
 import time_tracker.db
-from .models import ActivityTime, Unit, Activity, Note
+from .models import ActivityTime, Unit, Activity, Note, DailyDurations
 import datetime as dt
-from . import db, domain
-import django_tables2 as tables
+from . import db
 from .forms import NoteModelForm
 
 
@@ -27,6 +25,7 @@ def index(request):
         "boarding_duration_today": boarding_duration_today,
         "break_duration_today": break_duration_today,
         "boarding_duration_current_unit": boarding_duration_current_unit,
+        'pp': DailyDurations.objects.get(id=158)
     }
     return render(request, "time_tracker/index.html", context)
 
