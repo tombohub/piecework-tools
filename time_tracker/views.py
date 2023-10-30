@@ -9,13 +9,14 @@ from .forms import NoteModelForm
 
 def index(request):
     actions = db.list_activities()
-    current_action = db.current_action()
+    current_action = db.current_activity()
     active_units = db.active_units()
-    previous_action = db.previous_action()
+    previous_action = db.previous_activity()
     # NOTE: magic string
     boarding_duration_today = db.calculate_boarding_duration_today()
     break_duration_today = db.calculate_break_duration_today()
     boarding_duration_current_unit = db.calculate_current_unit_total_boarding_duration()
+    total_duration_today = db.total_duration_today()
 
     context = {
         "actions": actions,
@@ -25,7 +26,8 @@ def index(request):
         "boarding_duration_today": boarding_duration_today,
         "break_duration_today": break_duration_today,
         "boarding_duration_current_unit": boarding_duration_current_unit,
-        'pp': DailyDurations.objects.get(id=158)
+        "total_duration_today": total_duration_today,
+        "pp": DailyDurations.objects.get(id=158),
     }
     return render(request, "time_tracker/index.html", context)
 
@@ -37,12 +39,12 @@ def start_activity(request):
     end_current_activity()
 
     now = dt.datetime.now()
-    action_name = request.GET["action"]
-    action = Activity.objects.get(name=action_name)
+    activity_name = request.GET["action"]
+    activity = Activity.objects.get(name=activity_name)
     unit_number = request.GET["unit"]
     unit = get_object_or_404(Unit, number=unit_number)
 
-    action_time = ActivityTime(action=action, start=now, unit=unit)
+    action_time = ActivityTime(activity=activity, start=now, unit=unit)
     action_time.save()
     return redirect(index)
 
@@ -52,13 +54,8 @@ def stop_current_activity(request):
     return redirect(index)
 
 
-def daily_durations(request):
-    daily_durations = time_tracker.db.query_daily_durations()
-    context = {"daily_durations": daily_durations}
-    return render(request, "time_tracker/daily-durations.html", context)
-
 def notes_index(request):
-    if request.method == 'POST':
+    if request.method == "POST":
         form = NoteModelForm(request.POST)
         if form.is_valid():
             form.save()
@@ -68,16 +65,15 @@ def notes_index(request):
 
     notes = Note.objects.all()
     form = NoteModelForm()
-    context = {
-        'notes': notes,
-        'form': form
-    }
-    return render(request, 'time_tracker/notes.html', context)
+    context = {"notes": notes, "form": form}
+    return render(request, "time_tracker/notes.html", context)
+
 
 def notes_delete(request, pk):
     note = Note.objects.get(pk=pk)
     note.delete()
     return redirect(notes_index)
+
 
 # helpers
 def end_current_activity():

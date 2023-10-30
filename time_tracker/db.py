@@ -25,7 +25,7 @@ def list_activities() -> list[str]:
     return [action.name for action in activities]
 
 
-def current_action() -> "domain.CurrentActivity | None":
+def current_activity() -> "domain.CurrentActivity | None":
     """
     Get current action name if exists. Otherwise None
 
@@ -46,7 +46,7 @@ def current_action() -> "domain.CurrentActivity | None":
     return current_action
 
 
-def previous_action():
+def previous_activity():
     prev_action_time_obj = ActivityTime.objects.filter(is_current=False).last()
     duration = prev_action_time_obj.duration
     name = prev_action_time_obj.activity.name
@@ -81,23 +81,6 @@ def get_current_unit() -> Unit:
     return unit_obj
 
 
-def get_activity_times(date: dt.date, activity: str) -> list[domain.ActivityTime]:
-    activity_times_db = ActivityTime.objects.filter(date=date, action__name=activity)
-    activity_times = [
-        domain.ActivityTime(
-            activity=domain.Activity(
-                name=act_time.activity.name, description=act_time.activity.description
-            ),
-            date=act_time.date,
-            start=act_time.start,
-            end=act_time.end,
-            duration=act_time.duration,
-        )
-        for act_time in activity_times_db
-    ]
-    return activity_times
-
-
 def calculate_boarding_duration_today() -> dt.timedelta:
     """
     Calculate today's total duration for board activity
@@ -108,7 +91,7 @@ def calculate_boarding_duration_today() -> dt.timedelta:
         total duration
     """
     result = ActivityTime.objects.filter(
-        action__name="board", date=dt.date.today()
+        activity__name="board", date=dt.date.today()
     ).aggregate(duration=Sum("duration"))
     return result["duration"]
 
@@ -124,7 +107,7 @@ def calculate_current_unit_total_boarding_duration() -> dt.timedelta:
     """
     current_unit = get_current_unit()
     result = ActivityTime.objects.filter(
-        action__name="board", unit=current_unit
+        activity__name="board", unit=current_unit
     ).aggregate(duration=Sum("duration"))
     return result["duration"]
 
@@ -139,28 +122,21 @@ def calculate_break_duration_today() -> dt.timedelta:
         total duration
     """
     result = ActivityTime.objects.filter(
-        action__name="break", date=dt.date.today()
+        activity__name="break", date=dt.date.today()
     ).aggregate(duration=Sum("duration"))
     return result["duration"]
 
 
-def calculate_board_activity_daily_durations():
-    result = (
-        ActivityTime.objects.filter(action__name="board")
-        .values("date")
-        .annotate(total_duration=Sum("duration"))
+def total_duration_today() -> dt.timedelta:
+    """
+    Calculate today's total duration for all activities
+
+    Returns
+    -------
+    dt.timedelta
+        total duration
+    """
+    result = ActivityTime.objects.filter(date=dt.date.today()).aggregate(
+        duration=Sum("duration")
     )
-    return list(result)
-
-
-def query_daily_durations() -> list[DailyDuration]:
-    durations = DailyDurations.objects.all()
-    daily_durations: list[DailyDuration] = []
-    for duration in durations:
-        daily_duration = DailyDuration(
-            date=duration.date,
-            activity_name=duration.activity_name,
-            duration=duration.duration,
-        )
-        daily_durations.append(daily_duration)
-    return daily_durations
+    return result["duration"]
