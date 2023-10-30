@@ -30,10 +30,10 @@ admin.site.register(DailyDurations, DailyDurationsAdmin)
 
 
 @admin.register(ActivityTime)
-class ActionTimeAdmin(admin.ModelAdmin):
+class ActivityTimeAdmin(admin.ModelAdmin):
     date_hierarchy = "date"
     list_display = (
-        "action",
+        "activity",
         "date",
         "start",
         "end",

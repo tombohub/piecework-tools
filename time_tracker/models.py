@@ -2,6 +2,7 @@ from django.db import models
 from .domain import PRICE_PER_SQUARE_FOOT
 import datetime as dt
 
+
 # Create your models here.
 
 
@@ -104,7 +105,7 @@ class Unit(models.Model):
 
 
 class ActivityTime(models.Model):
-    action = models.ForeignKey(Activity, on_delete=models.PROTECT)
+    activity = models.ForeignKey(Activity, on_delete=models.PROTECT)
     date = models.DateField(auto_now_add=True)
     start = models.DateTimeField()
     end = models.DateTimeField(null=True, blank=True)
@@ -119,7 +120,7 @@ class ActivityTime(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self) -> str:
-        return str(self.action)
+        return str(self.activity)
 
 
 class DrywallType(models.Model):
@@ -154,11 +155,13 @@ class Note(models.Model):
     def __str__(self):
         return self.note
 
+
 # VIEWS
 class TotalDurationActivityPerUnit(models.Model):
     number = models.SmallIntegerField(blank=True, null=True)
     activity = models.CharField(max_length=20, blank=True, null=True)
     duration = models.DurationField(blank=True, null=True)
+    ko = {"mama": "papa", "tata": "baba"}
 
     class Meta:
         managed = False  # Created from a view. Don't remove.
@@ -182,6 +185,3 @@ class CompletedUnitsSquareFootage(models.Model):
     class Meta:
         managed = False  # Created from a view. Don't remove.
         db_table = "completed_units_square_footage"
-
-
-

@@ -14,15 +14,15 @@ from django_pivot.pivot import pivot
 
 def list_activities() -> list[str]:
     """
-    get list of all available actions
+    get list of all available activities
 
     Returns
     -------
     list[str]
-        available actions
+        available activities
     """
-    actions = Activity.objects.all()
-    return [action.name for action in actions]
+    activities = Activity.objects.all()
+    return [action.name for action in activities]
 
 
 def current_action() -> "domain.CurrentActivity | None":
@@ -38,7 +38,7 @@ def current_action() -> "domain.CurrentActivity | None":
     if exists_current_action:
         current_action_object = ActivityTime.objects.get(is_current=True)
         current_action = domain.CurrentActivity(
-            name=current_action_object.action.name, start=current_action_object.start
+            name=current_action_object.activity.name, start=current_action_object.start
         )
     else:
         current_action = None
@@ -49,7 +49,7 @@ def current_action() -> "domain.CurrentActivity | None":
 def previous_action():
     prev_action_time_obj = ActivityTime.objects.filter(is_current=False).last()
     duration = prev_action_time_obj.duration
-    name = prev_action_time_obj.action.name
+    name = prev_action_time_obj.activity.name
     return {"name": name, "duration": str(duration).split(".")[0]}
 
 
@@ -86,7 +86,7 @@ def get_activity_times(date: dt.date, activity: str) -> list[domain.ActivityTime
     activity_times = [
         domain.ActivityTime(
             activity=domain.Activity(
-                name=act_time.action.name, description=act_time.action.description
+                name=act_time.activity.name, description=act_time.activity.description
             ),
             date=act_time.date,
             start=act_time.start,
