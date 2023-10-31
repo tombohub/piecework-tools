@@ -153,3 +153,12 @@ def total_duration_today_without_travel_time():
     )
 
     return result["duration"]
+
+
+def boarding_duration_today_pct():
+    """
+    Calculate today's total boarding duration as a percentage of total duration without travel
+    """
+    boarding_duration = calculate_boarding_duration_today()
+    duration_no_travel = total_duration_today_without_travel_time()
+    return boarding_duration / duration_no_travel * 100 if duration_no_travel else 0

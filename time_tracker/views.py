@@ -29,6 +29,7 @@ def index(request):
         "boarding_duration_current_unit": boarding_duration_current_unit,
         "total_duration_today": total_duration_today,
         "total_duration_today_without_travel": total_duration_today_without_travel,
+        "boarding_pct": db.boarding_duration_today_pct(),
         "pp": DailyDurations.objects.get(id=158),
     }
     return render(request, "time_tracker/index.html", context)
