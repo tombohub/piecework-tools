@@ -30,6 +30,9 @@
             <div>
                 Total duration today: {{ total_duration_today }}
             </div>
+            <div>
+                No travel total: {{ total_duration_today_without_travel }}
+            </div>
 
             {% if current_action == 'board' %}
                 {% include 'time_tracker/sprint-option.html' %}

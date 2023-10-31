@@ -140,3 +140,16 @@ def total_duration_today() -> dt.timedelta:
         duration=Sum("duration")
     )
     return result["duration"]
+
+
+def total_duration_today_without_travel_time():
+    """
+    Calculate today's total duration for all activities except travel
+    """
+    result = (
+        ActivityTime.objects.filter(date=dt.date.today())
+        .exclude(activity__name="travel")
+        .aggregate(duration=Sum("duration"))
+    )
+
+    return result["duration"]
