@@ -161,6 +161,9 @@ def boarding_duration_today_pct():
     """
     boarding_duration = calculate_boarding_duration_today()
     duration_no_travel = total_duration_today_without_travel_time()
-    pct1 = boarding_duration / duration_no_travel * 100 if duration_no_travel else 0
-    pct2 = round(pct1, 2)
-    return pct2
+    if boarding_duration and duration_no_travel:
+        pct1 = boarding_duration / duration_no_travel * 100 if duration_no_travel else 0
+        pct2 = round(pct1, 2)
+        return pct2
+    else:
+        return 0
