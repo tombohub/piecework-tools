@@ -3,7 +3,6 @@
 {% block body %}
     <div class="container pt-4">
         <div class="pt-2 v-stack gap-2">
-
             <div>
                 Last action: {{ previous_action.name|capfirst }} duration: {{ previous_action.duration }}
             </div>
@@ -66,10 +65,6 @@
                     <button class="btn btn-primary btn-lg btn">STOP</button>
                 </div>
             </form>
-            {% for m in data %}
-                {{ m.ko }} <br>
-            {% endfor %}
-
         </div>
 
     </div>
