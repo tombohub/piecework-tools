@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 
 import time_tracker.db
-from .models import ActivityTime, Unit, Activity, Note, DailyDurations
+from .models import ActivityLog, Unit, Activity, Note, DailyDurations
 import datetime as dt
 from . import db
 from .forms import NoteModelForm
@@ -47,7 +47,7 @@ def start_activity(request):
     unit_number = request.GET["unit"]
     unit = get_object_or_404(Unit, number=unit_number)
 
-    action_time = ActivityTime(activity=activity, start=now, unit=unit)
+    action_time = ActivityLog(activity=activity, start=now, unit=unit)
     action_time.save()
     return redirect(index)
 
@@ -85,9 +85,9 @@ def end_current_activity():
     """
     # check if there is any current action and end it
     now = dt.datetime.now()
-    exists_current_action = ActivityTime.objects.filter(is_current=True).exists()
+    exists_current_action = ActivityLog.objects.filter(is_current=True).exists()
     if exists_current_action:
-        current_action = ActivityTime.objects.get(is_current=True)
+        current_action = ActivityLog.objects.get(is_current=True)
         current_action.end = now
         current_action.is_current = False
         current_action.save()

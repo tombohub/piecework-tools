@@ -1,6 +1,6 @@
 from django.test import TestCase
 from . import db
-from .models import ActivityTime
+from .models import ActivityLog
 
 
 # Create your tests here.

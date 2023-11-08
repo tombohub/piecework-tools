@@ -5,7 +5,7 @@ To avoid using models in views
 from django.db.models import Sum
 
 from .domain import DailyDuration
-from .models import ActivityTime, Activity, Unit, DailyDurations
+from .models import ActivityLog, Activity, Unit, DailyDurations
 from . import domain
 import datetime as dt
 from django_pandas.io import read_frame
@@ -34,9 +34,9 @@ def current_activity() -> "domain.CurrentActivity | None":
     str | None
         current action name
     """
-    exists_current_action = ActivityTime.objects.filter(is_current=True).exists()
+    exists_current_action = ActivityLog.objects.filter(is_current=True).exists()
     if exists_current_action:
-        current_action_object = ActivityTime.objects.get(is_current=True)
+        current_action_object = ActivityLog.objects.get(is_current=True)
         current_action = domain.CurrentActivity(
             name=current_action_object.activity.name, start=current_action_object.start
         )
@@ -47,7 +47,7 @@ def current_activity() -> "domain.CurrentActivity | None":
 
 
 def previous_activity():
-    prev_action_time_obj = ActivityTime.objects.filter(is_current=False).last()
+    prev_action_time_obj = ActivityLog.objects.filter(is_current=False).last()
     duration = prev_action_time_obj.duration
     name = prev_action_time_obj.activity.name
     return {"name": name, "duration": str(duration).split(".")[0]}
@@ -90,7 +90,7 @@ def calculate_boarding_duration_today() -> dt.timedelta:
     dt.timedelta
         total duration
     """
-    result = ActivityTime.objects.filter(
+    result = ActivityLog.objects.filter(
         activity__name="board", date=dt.date.today()
     ).aggregate(duration=Sum("duration"))
     return result["duration"]
@@ -106,7 +106,7 @@ def calculate_current_unit_total_boarding_duration() -> dt.timedelta:
         total boarding duration
     """
     current_unit = get_current_unit()
-    result = ActivityTime.objects.filter(
+    result = ActivityLog.objects.filter(
         activity__name="board", unit=current_unit
     ).aggregate(duration=Sum("duration"))
     return result["duration"]
@@ -121,7 +121,7 @@ def calculate_break_duration_today() -> dt.timedelta:
     dt.timedelta
         total duration
     """
-    result = ActivityTime.objects.filter(
+    result = ActivityLog.objects.filter(
         activity__name="break", date=dt.date.today()
     ).aggregate(duration=Sum("duration"))
     return result["duration"]
@@ -136,7 +136,7 @@ def total_duration_today() -> dt.timedelta:
     dt.timedelta
         total duration
     """
-    result = ActivityTime.objects.filter(date=dt.date.today()).aggregate(
+    result = ActivityLog.objects.filter(date=dt.date.today()).aggregate(
         duration=Sum("duration")
     )
     return result["duration"]
@@ -147,7 +147,7 @@ def total_duration_today_without_travel_time():
     Calculate today's total duration for all activities except travel
     """
     result = (
-        ActivityTime.objects.filter(date=dt.date.today())
+        ActivityLog.objects.filter(date=dt.date.today())
         .exclude(activity__name="travel")
         .aggregate(duration=Sum("duration"))
     )

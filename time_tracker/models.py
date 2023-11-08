@@ -104,7 +104,7 @@ class Unit(models.Model):
         return str(self.number)
 
 
-class ActivityTime(models.Model):
+class ActivityLog(models.Model):
     activity = models.ForeignKey(Activity, on_delete=models.PROTECT)
     date = models.DateField(auto_now_add=True)
     start = models.DateTimeField()
