@@ -13,9 +13,9 @@ class Activity(models.Model):
     @property
     def activity_times(self):
         """
-        Alias for activitytime_set
+        Alias for activitylog_set
         """
-        return self.activitytime_set
+        return self.activitylog_set
 
     def __str__(self) -> str:
         return str(self.name)
