@@ -55,7 +55,7 @@ class Unit(models.Model):
         """
         Total boarding duration for the unit
         """
-        duration = self.activitytime_set.filter(activity__name="board").aggregate(
+        duration = self.activitylog_set.filter(activity__name="board").aggregate(
             duration=models.Sum("duration")
         )["duration"]
         return duration if duration is not None else dt.timedelta(seconds=0)
