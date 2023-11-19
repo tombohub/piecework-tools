@@ -1,1 +1,1 @@
-web: gunicorn piecework_tools.wsgi
+web: gunicorn tomo.wsgi
