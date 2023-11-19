@@ -1,0 +1,23 @@
+{% extends 'piecework/base.html' %}
+
+{% block body %}
+
+{# note input form#}
+<div class="mb-2">
+    <form action="{% url 'notes' %}" method="post">
+        {{ form }}
+        {% csrf_token %}
+        <button type="submit" class="btn btn-outline-primary">Add</button>
+    </form>
+</div>
+
+
+{# list of notes#}
+{% for note in notes %}
+<form action="{% url 'notes-delete' note.pk %}" method="post">
+    {% csrf_token %}
+    <span>{{ note }}</span>
+    <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>
+</form>
+{% endfor %}
+{% endblock %}

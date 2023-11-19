@@ -43,7 +43,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "livereload",
     "django.contrib.staticfiles",
-    "time_tracker",
+    "piecework",
     "django_extensions",
     "debug_toolbar",
     "ninja",
