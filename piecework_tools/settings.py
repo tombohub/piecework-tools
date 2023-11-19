@@ -11,7 +11,8 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
 from pathlib import Path
-import os
+from decouple import config
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -92,10 +93,10 @@ WSGI_APPLICATION = "piecework_tools.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "piecework_tools",
-        "HOST": "35.209.237.128",
-        "USER": "tomo",
-        "PASSWORD": "tomo982",
+        "NAME": config("DB_NAME"),
+        "HOST": config("DB_HOST"),
+        "USER": config("DB_USER"),
+        "PASSWORD": config("DB_PASSWORD"),
     }
 }
 
