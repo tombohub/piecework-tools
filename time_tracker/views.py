@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 
 import time_tracker.db
-from .models import ActivityLog, Unit, Activity, Note, DailyDurations
+from .models import ActivityLog, Unit, Activity, Note
 import datetime as dt
 from . import db
 from .forms import NoteModelForm

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Activity, ActivityLog, Unit, UnitSheetCount, Note, DailyDurations
+from .models import Activity, ActivityLog, Unit, UnitSheetCount, Note
 
 
 class UnitSheetCountInline(admin.TabularInline):
@@ -21,12 +21,7 @@ class UnitAdmin(admin.ModelAdmin):
     ]
 
 
-class DailyDurationsAdmin(admin.ModelAdmin):
-    list_display = ["date", "activity_name", "duration"]
-
-
 admin.site.register(Unit, UnitAdmin)
-admin.site.register(DailyDurations, DailyDurationsAdmin)
 
 
 @admin.register(ActivityLog)

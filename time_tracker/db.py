@@ -5,7 +5,7 @@ To avoid using models in views
 from django.db.models import Sum
 
 from .domain import DailyDuration
-from .models import ActivityLog, Activity, Unit, DailyDurations
+from .models import ActivityLog, Activity, Unit
 from . import domain
 import datetime as dt
 from django_pandas.io import read_frame
