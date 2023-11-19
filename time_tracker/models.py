@@ -154,34 +154,3 @@ class Note(models.Model):
 
     def __str__(self):
         return self.note
-
-
-# VIEWS
-class TotalDurationActivityPerUnit(models.Model):
-    number = models.SmallIntegerField(blank=True, null=True)
-    activity = models.CharField(max_length=20, blank=True, null=True)
-    duration = models.DurationField(blank=True, null=True)
-    ko = {"mama": "papa", "tata": "baba"}
-
-    class Meta:
-        managed = False  # Created from a view. Don't remove.
-        db_table = "total_duration_activity_per_unit"
-
-
-class DailyDurations(models.Model):
-    date = models.DateField(blank=True, null=True)
-    duration = models.DurationField(blank=True, null=True)
-    activity_name = models.CharField(max_length=20, blank=True, null=True)
-
-    class Meta:
-        managed = False  # Created from a view. Don't remove.
-        db_table = "daily_durations"
-
-
-class CompletedUnitsSquareFootage(models.Model):
-    unit_number = models.SmallIntegerField(blank=True, null=True)
-    footage = models.BigIntegerField(blank=True, null=True)
-
-    class Meta:
-        managed = False  # Created from a view. Don't remove.
-        db_table = "completed_units_square_footage"
