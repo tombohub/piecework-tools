@@ -153,4 +153,4 @@ class Note(models.Model):
     note = models.TextField()
 
     def __str__(self):
-        return self.note
+        return str(self.note)
