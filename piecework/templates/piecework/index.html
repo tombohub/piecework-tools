@@ -43,12 +43,12 @@
     </div>
     <div class="vstack gap-4 pt-2">
 
-        <form action="{% url 'start-activity' %} ">
+        <form action="{% url 'piecework:start-activity' %} ">
             <div class="vstack gap-3">
                 <select name="unit" class="form-select">
                     {% for unit in active_units %}
                     <option value="{{ unit }}">{{ unit }}</option>
-                    {% url 'start-activity' %}
+                    {% url 'piecework:start-activity' %}
                     {% endfor %}
                 </select>
                 {# buttons for starting an action #}
@@ -59,7 +59,7 @@
         </form>
 
         {# button for stopping action #}
-        <form action="{% url 'stop-action' %}">
+        <form action="{% url 'piecework:stop-action' %}">
             <div class="d-grid">
                 <button class="btn btn-primary btn-lg btn">STOP</button>
             </div>

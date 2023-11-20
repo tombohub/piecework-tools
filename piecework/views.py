@@ -1,10 +1,12 @@
-from django.shortcuts import render, redirect, get_object_or_404
+import datetime as dt
+
+from django.shortcuts import get_object_or_404, redirect, render
 
 import piecework.db
-from .models import ActivityLog, Unit, Activity, Note
-import datetime as dt
+
 from . import db
 from .forms import NoteModelForm
+from .models import Activity, ActivityLog, Note, Unit
 
 
 def index(request):
@@ -48,12 +50,12 @@ def start_activity(request):
 
     action_time = ActivityLog(activity=activity, start=now, unit=unit)
     action_time.save()
-    return redirect(index)
+    return redirect("piecework:home")
 
 
 def stop_current_activity(request):
     end_current_activity()
-    return redirect(index)
+    return redirect("piecework:home")
 
 
 def notes_index(request):
@@ -63,7 +65,7 @@ def notes_index(request):
             form.save()
             # return to this same view , but now with GET request.
             # So the form is not resubmitted upon refreshing the page
-            return redirect(notes_index)
+            return redirect("piecework:notes")
 
     notes = Note.objects.all()
     form = NoteModelForm()
@@ -74,7 +76,7 @@ def notes_index(request):
 def notes_delete(request, pk):
     note = Note.objects.get(pk=pk)
     note.delete()
-    return redirect(notes_index)
+    return redirect("piecework:notes")
 
 
 # helpers
