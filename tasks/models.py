@@ -13,3 +13,6 @@ class BaseModel(models.Model):
 
 class Task(BaseModel):
     name = models.CharField(max_length=50)
+
+    def __str__(self) -> str:
+        return str(self.name)

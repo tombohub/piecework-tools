@@ -1,9 +1,20 @@
 {% extends 'home/base.html' %}
 
 {% block navigation %}
-tasks navigation
+<nav>
+    <a href="{% url 'home:home' %}">Home</a>
+    <a href="/admin">Admin</a>
+</nav>
 {% endblock navigation %}
 
 {% block body %}
-tasks body
+<ul class="list-group">
+    {% for task in tasks %}
+    <li class="list-group-item">
+        {{task}}
+        <button class="btn btn-danger"><i class="bi bi-trash3"></i></button>
+    </li>
+    {% endfor %}
+
+</ul>
 {% endblock body %}
