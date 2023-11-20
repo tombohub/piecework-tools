@@ -48,6 +48,8 @@ INSTALLED_APPS = [
     "ninja",
     "corsheaders",
     "django_tables2",
+    "crispy_forms",
+    "crispy_bootstrap5",
     # apps
     "piecework",
     "home",
@@ -151,5 +153,6 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # https://pypi.org/project/django-cors-headers/
 CORS_ALLOW_ALL_ORIGINS = True
 
-
 CSRF_TRUSTED_ORIGINS = ["https://web-production-0844.up.railway.app"]
+
+CRISPY_TEMPLATE_PACK = "bootstrap5"
