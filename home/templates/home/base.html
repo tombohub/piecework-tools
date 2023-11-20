@@ -13,11 +13,9 @@
     <title>Document</title>
 </head>
 
-<nav>
-    <a href="{% url 'piecework:home' %}">Home</a>
-    <a href="{% url 'piecework:notes' %}">Notes</a>
-    <a href="/admin">Admin</a>
-</nav>
+{% block navigation %}
+No navigation
+{% endblock navigation %}
 
 <body>
     <main class="container">
