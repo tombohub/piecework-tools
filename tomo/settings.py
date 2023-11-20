@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     "piecework",
     "home",
     "tasks",
+    "finances",
 ]
 
 MIDDLEWARE = [
