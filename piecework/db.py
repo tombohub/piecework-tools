@@ -2,13 +2,14 @@
 Database fetching and saving operations.
 To avoid using models in views
 """
-from django.db.models import Sum
-
-from .models import ActivityLog, Activity, Unit
-from . import domain
 import datetime as dt
+
+from django.db.models import Sum
 from django_pandas.io import read_frame
 from django_pivot.pivot import pivot
+
+from . import domain
+from .models import Activity, ActivityLog, Unit
 
 
 def list_activities() -> list[str]:
