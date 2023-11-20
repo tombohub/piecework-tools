@@ -7,6 +7,18 @@
 </nav>
 {% endblock navigation %}
 
+{% block sidebar %}
+<ul class="nav nav-pills flex-column">
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'finances:recurring-expenses' %}">Recurring Expenses</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'finances:vendors' %}">Vendors</a>
+    </li>
+</ul>
+{% endblock sidebar %}
+
+
 {% block body %}
-finances body
+
 {% endblock body %}
