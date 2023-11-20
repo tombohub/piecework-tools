@@ -43,13 +43,15 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "livereload",
     "django.contrib.staticfiles",
-    "piecework",
-    "home",
     "django_extensions",
     "debug_toolbar",
     "ninja",
     "corsheaders",
     "django_tables2",
+    # apps
+    "piecework",
+    "home",
+    "tasks",
 ]
 
 MIDDLEWARE = [

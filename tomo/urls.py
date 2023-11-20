@@ -24,4 +24,5 @@ urlpatterns = [
         "piecework/",
         include("piecework.urls"),
     ),
+    path("tasks/", include("tasks.urls")),
 ]
