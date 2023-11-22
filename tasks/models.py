@@ -16,3 +16,18 @@ class Task(BaseModel):
 
     def __str__(self) -> str:
         return str(self.name)
+
+
+class RecurringTask(BaseModel):
+    FREQUENCY_CHOICES = [
+        ("daily", "Daily"),
+        ("weekly", "Weekly"),
+        ("monthly", "Monthly"),
+        ("yearly", "Yearly"),
+    ]
+    name = models.CharField(max_length=50)
+    frequency = models.CharField(max_length=20, choices=FREQUENCY_CHOICES)
+    time_required = models.DurationField(null=True)
+
+    def __str__(self) -> str:
+        return str(self.name)
