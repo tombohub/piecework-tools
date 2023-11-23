@@ -19,7 +19,7 @@ def index(request):
     return render(request, "tasks/index.html", context)
 
 
-def delete(request, pk):
+def task_delete(request, pk):
     task = Task.objects.get(pk=pk)
     task.delete()
     return redirect("tasks:home")
