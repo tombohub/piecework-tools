@@ -1,11 +1,16 @@
 from django.contrib import admin
-from .models import Activity, ActivityLog, Unit, UnitSheetCount, Note
+from .models import Activity, ActivityLog, Unit, UnitSheetCount, Note, Project
 
 
 class UnitSheetCountInline(admin.TabularInline):
     model = UnitSheetCount
     readonly_fields = ["square_footage"]
     extra = 4
+
+
+@admin.register(Project)
+class ProjectAdmin(admin.ModelAdmin):
+    pass
 
 
 class UnitAdmin(admin.ModelAdmin):
