@@ -17,7 +17,6 @@ from decouple import config
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
@@ -92,7 +91,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "tomo.wsgi.application"
 
-
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
@@ -105,7 +103,6 @@ DATABASES = {
         "PASSWORD": config("DB_PASSWORD"),
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
@@ -125,7 +122,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
 
@@ -136,7 +132,6 @@ TIME_ZONE = "America/Toronto"
 USE_I18N = True
 
 USE_TZ = False
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
@@ -153,6 +148,6 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # https://pypi.org/project/django-cors-headers/
 CORS_ALLOW_ALL_ORIGINS = True
 
-CSRF_TRUSTED_ORIGINS = ["https://web-production-0844.up.railway.app"]
+CSRF_TRUSTED_ORIGINS = ["https://web-production-b811a.up.railway.app"]
 
 CRISPY_TEMPLATE_PACK = "bootstrap5"
