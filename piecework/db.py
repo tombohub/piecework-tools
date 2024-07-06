@@ -7,6 +7,8 @@ import datetime as dt
 from django.db.models import Sum
 from django_pandas.io import read_frame
 from django_pivot.pivot import pivot
+from django.shortcuts import get_object_or_404
+from django.core.exceptions import ObjectDoesNotExist
 
 from . import domain
 from .models import Activity, ActivityLog, Unit
@@ -67,9 +69,9 @@ def active_units() -> list[int]:
     return active_units_numbers
 
 
-def get_current_unit() -> Unit:
+def get_current_unit() -> Unit | None:
     """
-    Get current active unit.
+    Get current active unit or None
     Can only be one. Throws error if multiple
 
     Returns
@@ -77,8 +79,11 @@ def get_current_unit() -> Unit:
     Unit
         current unit model object
     """
-    unit_obj = Unit.objects.get(is_finished=False)
-    return unit_obj
+    try:
+        unit_obj = Unit.objects.get(is_finished=False)
+        return unit_obj
+    except ObjectDoesNotExist:
+        return None
 
 
 def calculate_boarding_duration_today() -> dt.timedelta:
