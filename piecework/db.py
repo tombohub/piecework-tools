@@ -65,8 +65,7 @@ def active_units() -> list[int]:
         active unit numbers
     """
     active_units_obj = Unit.objects.filter(is_finished=False)
-    active_units_numbers = [unit.number for unit in active_units_obj]
-    return active_units_numbers
+    return active_units_obj
 
 
 def get_current_unit() -> Unit | None:

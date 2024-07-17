@@ -14,7 +14,7 @@ from .models import Activity, ActivityLog, Note, Unit
 def index(request):
     actions = db.list_activities()
     current_action = db.current_activity()
-    active_units = db.active_units()
+    active_units_objs = db.active_units()
     previous_action = db.previous_activity()
     # NOTE: magic string
     boarding_duration_today = db.calculate_boarding_duration_today()
@@ -26,7 +26,7 @@ def index(request):
     context = {
         "actions": actions,
         "current_action": current_action,
-        "active_units": active_units,
+        "active_units_objs": active_units_objs,
         "previous_action": previous_action,
         "boarding_duration_today": boarding_duration_today,
         "break_duration_today": break_duration_today,
@@ -47,8 +47,8 @@ def start_activity(request):
     now = dt.datetime.now()
     activity_name = request.GET["action"]
     activity = Activity.objects.get(name=activity_name)
-    unit_number = request.GET["unit"]
-    unit = get_object_or_404(Unit, number=unit_number)
+    unit_pk = request.GET["unit_pk"]
+    unit = get_object_or_404(Unit, pk=unit_pk)
 
     action_time = ActivityLog(activity=activity, start=now, unit=unit)
     action_time.save()
