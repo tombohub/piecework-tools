@@ -32,7 +32,7 @@ class Project(models.Model):
 
 class Unit(models.Model):
     project = models.ForeignKey(Project, on_delete=models.PROTECT, null=True, blank=True)
-    number = models.PositiveSmallIntegerField(unique=True)
+    number = models.PositiveSmallIntegerField()
     washrooms_count = models.PositiveSmallIntegerField(null=True, blank=True)
     closets_count = models.PositiveSmallIntegerField(null=True, blank=True)
     rooms_count = models.PositiveSmallIntegerField(null=True, blank=True)
