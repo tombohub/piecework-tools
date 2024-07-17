@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('piecework', '0046_delete_completedunitssquarefootage_and_more'),
     ]
@@ -14,7 +13,9 @@ class Migration(migrations.Migration):
             name='Project',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=255)),
+                ('name', models.CharField(blank=True, max_length=255, null=True)),
+                ('drywall_company', models.CharField(blank=True, max_length=255, null=True)),
+                ('general_contractor', models.CharField(blank=True, max_length=255, null=True))
             ],
         ),
     ]
