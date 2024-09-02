@@ -51,9 +51,6 @@ INSTALLED_APPS = [
     "crispy_bootstrap5",
     # apps
     "piecework",
-    "home",
-    "tasks",
-    "finances",
 ]
 
 MIDDLEWARE = [
