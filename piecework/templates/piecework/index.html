@@ -1,85 +1,84 @@
-{% extends 'home/base.html' %}
+{% extends 'piecework/base.html' %}
 
 
 
 
 {% block navigation %}
-  <nav>
-    <a href="{% url 'home:home' %}">Home</a>
-    <a href="{% url 'piecework:home' %}">Piecework:home</a>
-    <a href="{% url 'piecework:notes' %}">Notes</a>
-    <a href="/admin">Admin</a>
-  </nav>
+<nav>
+  <a href="{% url 'piecework:home' %}">Piecework:home</a>
+  <a href="{% url 'piecework:notes' %}">Notes</a>
+  <a href="/admin">Admin</a>
+</nav>
 {% endblock navigation %}
 
 
 
 
 {% block body %}
-  <div class="container pt-4">
-    <div class="pt-2 v-stack gap-2">
-      <div>
-        Last action: {{ previous_action.name|capfirst }} duration: {{ previous_action.duration }}
-      </div>
-
-      {% if current_action %}
-        <div>
-          Current action: <strong>{{ current_action.name|capfirst }}</strong><br>
-          Started: {{ current_action.start }}
-        </div>
-      {% else %}
-        <div>
-          There is no current action
-        </div>
-      {% endif %}
-      <div>
-        Boarding duration today: {{ boarding_duration_today }}
-      </div>
-      <div>
-        Boarding duration unit: {{ boarding_duration_current_unit }}
-      </div>
-      <div>
-        Break duration today: {{ break_duration_today }}
-      </div>
-      <div>
-        Total duration today: {{ total_duration_today }}
-      </div>
-      <div>
-        No travel total: {{ total_duration_today_without_travel }}
-      </div>
-      <div>
-        Boarding pct: {{ boarding_pct }}%
-      </div>
-
-      {% if current_action == 'board' %}
-        {% include 'piecework/sprint-option.html' %}
-      {% endif %}
-
+<div class="container pt-4">
+  <div class="pt-2 v-stack gap-2">
+    <div>
+      Last action: {{ previous_action.name|capfirst }} duration: {{ previous_action.duration }}
     </div>
-    <div class="vstack gap-4 pt-2">
 
-      <form action="{% url 'piecework:start-activity' %} ">
-        <div class="vstack gap-3">
-          <select name="unit_pk" class="form-select">
-            {% for unit in active_units_objs %}
-              <option value="{{ unit.pk }}">{{ unit }}</option>
-              {% url 'piecework:start-activity' %}
-            {% endfor %}
-          </select>
-          {# buttons for starting an action #}
-          {% for action in actions %}
-            <button class="btn btn-lg btn-dark" name="action" value="{{ action }}">{{ action|capfirst }}</button>
-          {% endfor %}
-        </div>
-      </form>
-
-      {# button for stopping action #}
-      <form action="{% url 'piecework:stop-action' %}">
-        <div class="d-grid">
-          <button class="btn btn-primary btn-lg btn">STOP</button>
-        </div>
-      </form>
+    {% if current_action %}
+    <div>
+      Current action: <strong>{{ current_action.name|capfirst }}</strong><br>
+      Started: {{ current_action.start }}
     </div>
+    {% else %}
+    <div>
+      There is no current action
+    </div>
+    {% endif %}
+    <div>
+      Boarding duration today: {{ boarding_duration_today }}
+    </div>
+    <div>
+      Boarding duration unit: {{ boarding_duration_current_unit }}
+    </div>
+    <div>
+      Break duration today: {{ break_duration_today }}
+    </div>
+    <div>
+      Total duration today: {{ total_duration_today }}
+    </div>
+    <div>
+      No travel total: {{ total_duration_today_without_travel }}
+    </div>
+    <div>
+      Boarding pct: {{ boarding_pct }}%
+    </div>
+
+    {% if current_action == 'board' %}
+    {% include 'piecework/sprint-option.html' %}
+    {% endif %}
 
   </div>
+  <div class="vstack gap-4 pt-2">
+
+    <form action="{% url 'piecework:start-activity' %} ">
+      <div class="vstack gap-3">
+        <select name="unit_pk" class="form-select">
+          {% for unit in active_units_objs %}
+          <option value="{{ unit.pk }}">{{ unit }}</option>
+          {% url 'piecework:start-activity' %}
+          {% endfor %}
+        </select>
+        {# buttons for starting an action #}
+        {% for action in actions %}
+        <button class="btn btn-lg btn-dark" name="action" value="{{ action }}">{{ action|capfirst }}</button>
+        {% endfor %}
+      </div>
+    </form>
+
+    {# button for stopping action #}
+    <form action="{% url 'piecework:stop-action' %}">
+      <div class="d-grid">
+        <button class="btn btn-primary btn-lg btn">STOP</button>
+      </div>
+    </form>
+  </div>
+
+</div>
 {% endblock body %}
