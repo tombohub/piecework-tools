@@ -10,6 +10,11 @@ class UnitSheetCountInline(admin.TabularInline):
     readonly_fields = ["square_footage"]
     extra = 4
 
+    def get_queryset(self, request: HttpRequest) -> QuerySet:
+        qs = super().get_queryset(request)
+        return qs.select_related('type')
+
+
 
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
