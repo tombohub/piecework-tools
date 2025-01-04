@@ -148,3 +148,7 @@ CORS_ALLOW_ALL_ORIGINS = True
 CSRF_TRUSTED_ORIGINS = ["https://web-production-b811a.up.railway.app"]
 
 CRISPY_TEMPLATE_PACK = "bootstrap5"
+
+DEBUG_TOOLBAR_CONFIG = {
+    'SHOW_TOOLBAR_CALLBACK': lambda request: True,
+}
