@@ -1,5 +1,8 @@
 from django.contrib import admin
-from .models import Activity, ActivityLog, Unit, UnitSheetCount, Note, Project
+from django.db.models.query import QuerySet
+from django.http.request import HttpRequest
+
+from .models import Activity, ActivityLog, Note, Project, Unit, UnitSheetCount
 
 
 class UnitSheetCountInline(admin.TabularInline):
@@ -24,6 +27,10 @@ class UnitAdmin(admin.ModelAdmin):
         "sheet_count",
         "sheet_count_per_hour_of_boarding",
     ]
+
+    def get_queryset(self, request: HttpRequest):
+        qs = super().get_queryset(request)
+        return qs.prefetch_related('unitsheetcount_set')
 
 
 admin.site.register(Unit, UnitAdmin)
