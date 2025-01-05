@@ -23,7 +23,7 @@ class ProjectAdmin(admin.ModelAdmin):
 
 class UnitAdmin(admin.ModelAdmin):
     inlines = [UnitSheetCountInline]
-    list_display = ["number", "total_square_footage"]
+    list_display = ["number"]
     readonly_fields = [
         "total_square_footage",
         "total_price",
