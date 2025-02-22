@@ -3,28 +3,25 @@ name = "piecework-tools-django"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.13"
 dependencies = [
-    "django-livereload-server==0.4",
-    "django==4.2.7",
-    "python-decouple==3.8",
-    "django-extensions==3.2.1",
-    "django-debug-toolbar==3.7.0",
-    "django-ninja==0.19.1",
-    "django-cors-headers==3.13.0",
-    "django-tables2==2.4.1",
-    "django-crispy-forms==2.1",
-    "crispy-bootstrap5==2023.10",
-    "psycopg2==2.9.5",
-    "django-pandas==0.6.6",
-    "django-pivot==1.9.0",
-    "whitenoise==6.2.0",
-    "kolo==2.2.1",
-    "gevent==24.2.1",
-    "gunicorn==20.1.0",
+    "django-livereload-server",
+    "python-decouple",
+    "django-extensions",
+    "django-debug-toolbar",
+    "django-ninja",
+    "django-cors-headers",
+    "django-tables2",
+    "django-crispy-forms",
+    "crispy-bootstrap5",
+    "django-pandas",
+    "django-pivot",
+    "whitenoise",
+    "gevent",
+    "django",
+    "psycopg2",
+    "gunicorn",
 ]
 
 [dependency-groups]
-dev = [
-    "ipython==8.6.0",
-]
+dev = ["djlint>=1.36.4", "ipython==8.32.0"]
