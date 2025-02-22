@@ -13,7 +13,7 @@ from .models import Activity, ActivityLog, Note, Unit
 
 def index(request):
     actions = db.list_activities()
-    current_action = db.current_activity()
+    current_action = db.current_activity_log()
     active_units_objs = db.active_units()
     previous_action = db.previous_activity()
     # NOTE: magic string

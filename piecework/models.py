@@ -1,7 +1,8 @@
-from django.db import models
-from .domain import PRICE_PER_SQUARE_FOOT
 import datetime as dt
 
+from django.db import models
+
+from .domain import PRICE_PER_SQUARE_FOOT
 
 # Create your models here.
 
@@ -9,13 +10,6 @@ import datetime as dt
 class Activity(models.Model):
     name = models.CharField(max_length=20, unique=True)
     description = models.TextField(null=True, blank=True)
-
-    @property
-    def activity_times(self):
-        """
-        Alias for activitylog_set
-        """
-        return self.activitylog_set
 
     def __str__(self) -> str:
         return str(self.name)
@@ -31,7 +25,9 @@ class Project(models.Model):
 
 
 class Unit(models.Model):
-    project = models.ForeignKey(Project, on_delete=models.PROTECT, null=True, blank=True)
+    project = models.ForeignKey(
+        Project, on_delete=models.PROTECT, null=True, blank=True
+    )
     number = models.PositiveSmallIntegerField()
     washrooms_count = models.PositiveSmallIntegerField(null=True, blank=True)
     closets_count = models.PositiveSmallIntegerField(null=True, blank=True)

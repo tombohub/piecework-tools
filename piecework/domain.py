@@ -1,11 +1,13 @@
 """
 Domain entities and value objects
 """
-from enum import Enum
-from dataclasses import dataclass
+
 import datetime as dt
+from dataclasses import dataclass
+from enum import Enum
 
 PRICE_PER_SQUARE_FOOT = 0.352
+
 
 class SheetType(Enum):
     REGULAR = "regular"
@@ -18,12 +20,6 @@ class SheetLength(Enum):
     NINE_FT = 9
     TEN_FT = 10
     TWELVE_FT = 12
-
-
-@dataclass
-class Sheet:
-    sheet_type = SheetType
-    length: SheetLength
 
 
 @dataclass
@@ -63,5 +59,3 @@ class DailyDuration:
     date: dt.date
     activity_name: str
     duration: dt.timedelta
-
-

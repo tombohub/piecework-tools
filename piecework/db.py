@@ -28,13 +28,13 @@ def list_activities() -> list[str]:
     return [action.name for action in activities]
 
 
-def current_activity() -> "domain.CurrentActivity | None":
+def current_activity_log() -> "domain.CurrentActivity | None":
     """
-    Get current action name if exists. Otherwise None
+    Get current activity name if exists. Otherwise None
 
     Returns
     -------
-    str | None
+    CurrentActivity | None
         current action name
     """
     exists_current_action = ActivityLog.objects.filter(is_current=True).exists()
