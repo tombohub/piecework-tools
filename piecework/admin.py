@@ -2,7 +2,15 @@ from django.contrib import admin
 from django.db.models.query import QuerySet
 from django.http.request import HttpRequest
 
-from .models import Activity, ActivityLog, Note, Project, Unit, UnitSheetCount
+from .models import (
+    Activity,
+    ActivityLog,
+    DrywallType,
+    Note,
+    Project,
+    Unit,
+    UnitSheetCount,
+)
 
 
 class UnitSheetCountInline(admin.TabularInline):
@@ -12,12 +20,16 @@ class UnitSheetCountInline(admin.TabularInline):
 
     def get_queryset(self, request: HttpRequest) -> QuerySet:
         qs = super().get_queryset(request)
-        return qs.select_related('type')
-
+        return qs.select_related("type")
 
 
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(DrywallType)
+class DrywallTypeAdmin(admin.ModelAdmin):
     pass
 
 
@@ -35,7 +47,7 @@ class UnitAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request: HttpRequest):
         qs = super().get_queryset(request)
-        return qs.prefetch_related('unitsheetcount_set')
+        return qs.prefetch_related("unitsheetcount_set")
 
 
 admin.site.register(Unit, UnitAdmin)

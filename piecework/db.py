@@ -2,13 +2,14 @@
 Database fetching and saving operations.
 To avoid using models in views
 """
+
 import datetime as dt
 
+from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Sum
+from django.shortcuts import get_object_or_404
 from django_pandas.io import read_frame
 from django_pivot.pivot import pivot
-from django.shortcuts import get_object_or_404
-from django.core.exceptions import ObjectDoesNotExist
 
 from . import domain
 from .models import Activity, ActivityLog, Unit
@@ -50,8 +51,12 @@ def current_activity() -> "domain.CurrentActivity | None":
 
 def previous_activity():
     prev_action_time_obj = ActivityLog.objects.filter(is_current=False).last()
-    duration = prev_action_time_obj.duration
-    name = prev_action_time_obj.activity.name
+    if prev_action_time_obj is not None:
+        duration = prev_action_time_obj.duration
+        name = prev_action_time_obj.activity.name
+    else:
+        duration = 0
+        name = ""
     return {"name": name, "duration": str(duration).split(".")[0]}
 
 
