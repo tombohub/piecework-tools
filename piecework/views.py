@@ -4,8 +4,6 @@ import datetime as dt
 
 from django.shortcuts import get_object_or_404, redirect, render
 
-import piecework.db
-
 from . import db
 from .forms import NoteModelForm
 from .models import Activity, ActivityLog, Note, Unit

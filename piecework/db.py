@@ -7,9 +7,6 @@ import datetime as dt
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Sum
-from django.shortcuts import get_object_or_404
-from django_pandas.io import read_frame
-from django_pivot.pivot import pivot
 
 from . import domain
 from .models import Activity, ActivityLog, Unit
