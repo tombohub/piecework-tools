@@ -11,3 +11,8 @@ tasks:
     cmds:
       - echo "{{.GREETING}}"
     silent: true
+
+  dev:
+    desc: Run the Django development server
+    cmds:
+      - uv run python manage.py runserver
