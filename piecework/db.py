@@ -44,19 +44,6 @@ def previous_activity():
     return {"name": name, "duration": str(duration).split(".")[0]}
 
 
-def active_units() -> list[int]:
-    """
-    Get currently active unit numbers. Most likely one only
-
-    Returns
-    -------
-    list[int]
-        active unit numbers
-    """
-    active_units_obj = Unit.objects.filter(is_finished=False)
-    return active_units_obj
-
-
 def get_current_unit() -> Unit | None:
     """
     Get current active unit or None
