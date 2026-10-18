@@ -8,29 +8,7 @@ import datetime as dt
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Sum
 
-from . import domain
 from .models import ActivityLog, Unit
-
-
-def current_activity_log() -> "domain.CurrentActivity | None":
-    """
-    Get current activity name if exists. Otherwise None
-
-    Returns
-    -------
-    CurrentActivity | None
-        current action name
-    """
-    exists_current_action = ActivityLog.objects.filter(is_current=True).exists()
-    if exists_current_action:
-        current_action_object = ActivityLog.objects.get(is_current=True)
-        current_action = domain.CurrentActivity(
-            name=current_action_object.activity.name, start=current_action_object.start
-        )
-    else:
-        current_action = None
-
-    return current_action
 
 
 def previous_activity():
