@@ -1,0 +1,46 @@
+<nav class="navbar bg-body-secondary" aria-label="Primary navigation">
+    <div class="container-fluid">
+        <a href="{% url 'piecework:home' %}" class="navbar-brand">Home</a>
+        <button class="navbar-toggler"
+                type="button"
+                data-bs-toggle="offcanvas"
+                data-bs-target="#offcanvas-navbar"
+                aria-controls="offcanvas-navbar"
+                aria-label="Open navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    </div>
+</nav>
+
+<div class="offcanvas offcanvas-end"
+     tabindex="-1"
+     id="offcanvas-navbar"
+     aria-labelledby="offcanvas-navbar-label">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="offcanvas-navbar-label">Navigation</h5>
+        <button class="btn-close"
+                type="button"
+                data-bs-dismiss="offcanvas"
+                aria-label="Close navigation"></button>
+    </div>
+    <div class="offcanvas-body p-0 h-100 d-flex flex-column">
+        <div class="list-group list-group-flush flex-grow-1">
+            <a class="list-group-item list-group-item-action"
+               href="{% url 'piecework:notes' %}">Notes</a>
+        </div>
+
+        <div class="list-group list-group-flush">
+            <a class="list-group-item list-group-item-action"
+               href="{% url 'admin:index' %}">Admin</a>
+            {% if user.is_authenticated %}
+                <form action="{% url 'admin:logout' %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="list-group-item list-group-item-action w-100 text-start">
+                        Logout
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
