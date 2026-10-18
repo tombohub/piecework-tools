@@ -1,15 +1,22 @@
+# from __future__ import annotations
+
 import datetime as dt
 
 from django.db import models
 
 from .domain import PRICE_PER_SQUARE_FOOT
 
-# Create your models here.
+
+class ActivityManager(models.Manager):
+    def names(self):
+        return self.get_queryset().values_list("name", flat=True)
 
 
 class Activity(models.Model):
     name = models.CharField(max_length=20, unique=True)
     description = models.TextField(null=True, blank=True)
+
+    objects: ActivityManager = ActivityManager()
 
     def __str__(self) -> str:
         return str(self.name)
@@ -25,13 +32,13 @@ class Project(models.Model):
 
 
 class Unit(models.Model):
-    project = models.ForeignKey(
-        Project, on_delete=models.PROTECT, null=True, blank=True
-    )
     number = models.CharField(max_length=10)
     potlights_count = models.PositiveSmallIntegerField(null=True, blank=True)
     sprinklers_count = models.PositiveSmallIntegerField(null=True, blank=True)
     is_finished = models.BooleanField(default=False)
+    project = models.ForeignKey(
+        Project, on_delete=models.PROTECT, null=True, blank=True
+    )
 
     @property
     def total_square_footage(self):

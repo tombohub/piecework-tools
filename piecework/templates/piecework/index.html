@@ -55,8 +55,8 @@
           {% endfor %}
         </select>
         {# buttons for starting an action #}
-        {% for action in actions %}
-        <button class="btn btn-lg btn-dark" name="action" value="{{ action }}">{{ action|capfirst }}</button>
+        {% for name in activity_names %}
+        <button class="btn btn-lg btn-dark" name="action" value="{{ name }}">{{ name|capfirst }}</button>
         {% endfor %}
       </div>
     </form>

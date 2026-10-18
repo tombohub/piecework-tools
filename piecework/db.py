@@ -9,20 +9,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Sum
 
 from . import domain
-from .models import Activity, ActivityLog, Unit
-
-
-def list_activities() -> list[str]:
-    """
-    get list of all available activities
-
-    Returns
-    -------
-    list[str]
-        available activities
-    """
-    activities = Activity.objects.all()
-    return [action.name for action in activities]
+from .models import ActivityLog, Unit
 
 
 def current_activity_log() -> "domain.CurrentActivity | None":

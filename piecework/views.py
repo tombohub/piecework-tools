@@ -10,7 +10,7 @@ from .models import Activity, ActivityLog, Note, Unit
 
 
 def index(request):
-    actions = db.list_activities()
+    activity_names = Activity.objects.names()
     current_action = db.current_activity_log()
     active_units_objs = db.active_units()
     previous_action = db.previous_activity()
@@ -22,7 +22,7 @@ def index(request):
     total_duration_today_without_travel = db.total_duration_today_without_travel_time()
 
     context = {
-        "actions": actions,
+        "activity_names": activity_names,
         "current_action": current_action,
         "active_units_objs": active_units_objs,
         "previous_action": previous_action,
