@@ -5,6 +5,7 @@ from typing import ClassVar
 
 from django.db import models
 from django.db.models import Q
+from django.utils import timezone
 
 from .domain import PRICE_PER_SQUARE_FOOT
 
@@ -36,12 +37,15 @@ class Project(models.Model):
         return str(self.name)
 
 
-class UnitManager(models.Manager):
+class UnitManager(models.Manager["Unit"]):
     def active(self):
         """
-        Get list active units
+        Return the active unit, or None if there isn't one
         """
-        return self.get_queryset().filter(is_finished=False)
+        try:
+            return self.get_queryset().get(status=self.model.Status.ACTIVE)
+        except self.model.DoesNotExist:
+            return None
 
 
 class Unit(models.Model):
@@ -164,6 +168,19 @@ class ActivityLogManager(models.Manager):
             return self.get_queryset().select_related("activity").get(is_current=True)
         except self.model.DoesNotExist:
             return None
+
+    def total_duration_today(self) -> dt.timedelta:
+        """
+        Return today's total duration for all
+        activities.
+        """
+        duration = (
+            self.get_queryset()
+            .filter(start__date=dt.date.today())
+            .aggregate(total=models.Sum("duration"))
+        )["total"]
+
+        return duration or dt.timedelta()
 
 
 class ActivityLog(models.Model):

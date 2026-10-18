@@ -27,9 +27,6 @@
       Total duration today: {{ total_duration_today }}
     </div>
     <div>
-      No travel total: {{ total_duration_today_without_travel }}
-    </div>
-    <div>
       Boarding pct: {{ boarding_pct }}%
     </div>
 
@@ -38,10 +35,8 @@
     <form action="{% url 'piecework:start-activity' %}">
       <div class="vstack gap-3">
         <select name="unit_pk" class="form-select">
-          {% for unit in active_units %}
-          <option value="{{ unit.pk }}">{{ unit }}</option>
+          <option value="{{ active_unit.pk }}">{{ active_unit }}</option>
           {% url 'piecework:start-activity' %}
-          {% endfor %}
         </select>
         {# buttons for starting an action #}
         {% for name in activity_names %}

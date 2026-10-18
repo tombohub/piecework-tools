@@ -12,23 +12,23 @@ from .models import Activity, ActivityLog, Note, Unit
 def index(request):
     activity_names = Activity.objects.names()
     current_activity_log = ActivityLog.objects.current()
-    active_units = Unit.objects.active()
+    active_unit = Unit.objects.active()
     # NOTE: magic string
     boarding_duration_today = db.calculate_boarding_duration_today()
     break_duration_today = ActivityLog.objects.break_duration_today()
-    boarding_duration_current_unit = db.calculate_current_unit_total_boarding_duration()
-    total_duration_today = db.total_duration_today()
-    total_duration_today_without_travel = db.total_duration_today_without_travel_time()
+    boarding_duration_current_unit = (
+        active_unit.total_boarding_duration if active_unit else dt.timedelta()
+    )
+    total_duration_today = ActivityLog.objects.total_duration_today()
 
     context = {
         "activity_names": activity_names,
         "current_activity_log": current_activity_log,
-        "active_units": active_units,
+        "active_unit": active_unit,
         "boarding_duration_today": boarding_duration_today,
         "break_duration_today": break_duration_today,
         "boarding_duration_current_unit": boarding_duration_current_unit,
         "total_duration_today": total_duration_today,
-        "total_duration_today_without_travel": total_duration_today_without_travel,
         "boarding_pct": db.boarding_duration_today_pct(),
     }
     return render(request, "piecework/index.html", context)

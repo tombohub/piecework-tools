@@ -17,11 +17,18 @@
 - number: string required
 - potlights_count: number optional
 - sprinklers_count: number optional
-- is_finished: bool required
+- status: string enum active | on_hold | completed
 - project: Project
+
+## Rules
+1. only one unit can have status active
 
 # ActivityLog
 
 ## Fields
 - activity: Activity
+- start: datetime require
+- end: datetime optional
+- unit: Unit required
+
 

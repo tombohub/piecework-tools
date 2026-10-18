@@ -5,27 +5,9 @@ To avoid using models in views
 
 import datetime as dt
 
-from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Sum
 
-from .models import ActivityLog, Unit
-
-
-def get_current_unit() -> Unit | None:
-    """
-    Get current active unit or None
-    Can only be one. Throws error if multiple
-
-    Returns
-    -------
-    Unit
-        current unit model object
-    """
-    try:
-        unit_obj = Unit.objects.get(is_finished=False)
-        return unit_obj
-    except ObjectDoesNotExist:
-        return None
+from .models import ActivityLog
 
 
 def calculate_boarding_duration_today() -> dt.timedelta:
@@ -40,37 +22,6 @@ def calculate_boarding_duration_today() -> dt.timedelta:
     result = ActivityLog.objects.filter(
         activity__name="board", date=dt.date.today()
     ).aggregate(duration=Sum("duration"))
-    return result["duration"]
-
-
-def calculate_current_unit_total_boarding_duration() -> dt.timedelta:
-    """
-    Total boarding duration for the current active unit so far
-
-    Returns
-    -------
-    dt.timedelta
-        total boarding duration
-    """
-    current_unit = get_current_unit()
-    result = ActivityLog.objects.filter(
-        activity__name="board", unit=current_unit
-    ).aggregate(duration=Sum("duration"))
-    return result["duration"]
-
-
-def total_duration_today() -> dt.timedelta:
-    """
-    Calculate today's total duration for all activities
-
-    Returns
-    -------
-    dt.timedelta
-        total duration
-    """
-    result = ActivityLog.objects.filter(date=dt.date.today()).aggregate(
-        duration=Sum("duration")
-    )
     return result["duration"]
 
 
