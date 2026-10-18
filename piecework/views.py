@@ -16,7 +16,7 @@ def index(request):
     previous_action = db.previous_activity()
     # NOTE: magic string
     boarding_duration_today = db.calculate_boarding_duration_today()
-    break_duration_today = db.calculate_break_duration_today()
+    break_duration_today = ActivityLog.objects.break_duration_today()
     boarding_duration_current_unit = db.calculate_current_unit_total_boarding_duration()
     total_duration_today = db.total_duration_today()
     total_duration_today_without_travel = db.total_duration_today_without_travel_time()

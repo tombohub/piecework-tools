@@ -92,21 +92,6 @@ def calculate_current_unit_total_boarding_duration() -> dt.timedelta:
     return result["duration"]
 
 
-def calculate_break_duration_today() -> dt.timedelta:
-    """
-    Calculate today's total duration for break activity
-
-    Returns
-    -------
-    dt.timedelta
-        total duration
-    """
-    result = ActivityLog.objects.filter(
-        activity__name="break", date=dt.date.today()
-    ).aggregate(duration=Sum("duration"))
-    return result["duration"]
-
-
 def total_duration_today() -> dt.timedelta:
     """
     Calculate today's total duration for all activities

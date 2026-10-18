@@ -33,6 +33,9 @@ class Project(models.Model):
 
 class UnitManager(models.Manager):
     def active(self):
+        """
+        Get list of all available activity names
+        """
         return self.get_queryset().filter(is_finished=False)
 
 
@@ -120,6 +123,17 @@ class Unit(models.Model):
         return str(self.number)
 
 
+class ActivityLogManager(models.Manager):
+    def break_duration_today(self) -> dt.timedelta:
+        duration = (
+            self.get_queryset()
+            .filter(activity__name="break", date=dt.date.today())
+            .aggregate(total=models.Sum("duration"))
+        )["total"]
+
+        return duration or dt.timedelta()
+
+
 class ActivityLog(models.Model):
     activity = models.ForeignKey(Activity, on_delete=models.PROTECT)
     date = models.DateField(auto_now_add=True)
@@ -129,6 +143,8 @@ class ActivityLog(models.Model):
     is_current = models.BooleanField(default=True)
     is_boarding = models.BooleanField(default=False)
     duration = models.DurationField(null=True, blank=True)
+
+    objects: ActivityLogManager = ActivityLogManager()
 
     def save(self, *args, **kwargs):
         if self.end is not None:
