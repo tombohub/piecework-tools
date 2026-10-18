@@ -19,7 +19,7 @@ dependencies = [
     "whitenoise",
     "gevent",
     "django",
-    "psycopg2",
+    "psycopg",
     "gunicorn",
 ]
 
