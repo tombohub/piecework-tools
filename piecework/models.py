@@ -1,8 +1,10 @@
 # from __future__ import annotations
 
 import datetime as dt
+from typing import ClassVar
 
 from django.db import models
+from django.db.models import Q
 
 from .domain import PRICE_PER_SQUARE_FOOT
 
@@ -43,15 +45,30 @@ class UnitManager(models.Manager):
 
 
 class Unit(models.Model):
+    class Status(models.TextChoices):
+        ACTIVE = "active", "Active"
+        ON_HOLD = "on_hold", "On hold"
+        COMPLETED = "completed", "Completed"
+
     number = models.CharField(max_length=10)
     potlights_count = models.PositiveSmallIntegerField(null=True, blank=True)
     sprinklers_count = models.PositiveSmallIntegerField(null=True, blank=True)
     is_finished = models.BooleanField(default=False)
+    status = models.CharField(max_length=20, choices=Status, default=Status.ACTIVE)
     project = models.ForeignKey(
         Project, on_delete=models.PROTECT, null=True, blank=True
     )
 
     objects: UnitManager = UnitManager()
+
+    class Meta:
+        constraints: ClassVar = [
+            models.UniqueConstraint(
+                fields=["status"],
+                condition=Q(status="active"),
+                name="only_one_active_unit",
+            )
+        ]
 
     @property
     def total_square_footage(self):
