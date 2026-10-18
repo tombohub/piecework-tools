@@ -31,6 +31,11 @@ class Project(models.Model):
         return str(self.name)
 
 
+class UnitManager(models.Manager):
+    def active(self):
+        return self.get_queryset().filter(is_finished=False)
+
+
 class Unit(models.Model):
     number = models.CharField(max_length=10)
     potlights_count = models.PositiveSmallIntegerField(null=True, blank=True)
@@ -39,6 +44,8 @@ class Unit(models.Model):
     project = models.ForeignKey(
         Project, on_delete=models.PROTECT, null=True, blank=True
     )
+
+    objects: UnitManager = UnitManager()
 
     @property
     def total_square_footage(self):

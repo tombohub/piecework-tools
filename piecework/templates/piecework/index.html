@@ -49,7 +49,7 @@
     <form action="{% url 'piecework:start-activity' %} ">
       <div class="vstack gap-3">
         <select name="unit_pk" class="form-select">
-          {% for unit in active_units_objs %}
+          {% for unit in active_units %}
           <option value="{{ unit.pk }}">{{ unit }}</option>
           {% url 'piecework:start-activity' %}
           {% endfor %}
