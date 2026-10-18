@@ -13,7 +13,6 @@ def index(request):
     activity_names = Activity.objects.names()
     current_activity_log = ActivityLog.objects.current()
     active_units = Unit.objects.active()
-    previous_action = db.previous_activity()
     # NOTE: magic string
     boarding_duration_today = db.calculate_boarding_duration_today()
     break_duration_today = ActivityLog.objects.break_duration_today()
@@ -25,7 +24,6 @@ def index(request):
         "activity_names": activity_names,
         "current_activity_log": current_activity_log,
         "active_units": active_units,
-        "previous_action": previous_action,
         "boarding_duration_today": boarding_duration_today,
         "break_duration_today": break_duration_today,
         "boarding_duration_current_unit": boarding_duration_current_unit,

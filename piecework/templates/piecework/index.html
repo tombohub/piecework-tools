@@ -1,14 +1,8 @@
 {% extends 'piecework/base.html' %}
 
-
-
-
 {% block body %}
 <div class="container pt-4">
   <div class="pt-2 v-stack gap-2">
-    <div>
-      Last action: {{ previous_action.name|capfirst }} duration: {{ previous_action.duration }}
-    </div>
 
     {% if current_activity_log %}
     <div>
@@ -41,8 +35,7 @@
 
   </div>
   <div class="vstack gap-4 pt-2">
-
-    <form action="{% url 'piecework:start-activity' %} ">
+    <form action="{% url 'piecework:start-activity' %}">
       <div class="vstack gap-3">
         <select name="unit_pk" class="form-select">
           {% for unit in active_units %}

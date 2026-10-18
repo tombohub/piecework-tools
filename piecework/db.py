@@ -11,17 +11,6 @@ from django.db.models import Sum
 from .models import ActivityLog, Unit
 
 
-def previous_activity():
-    prev_action_time_obj = ActivityLog.objects.filter(is_current=False).last()
-    if prev_action_time_obj is not None:
-        duration = prev_action_time_obj.duration
-        name = prev_action_time_obj.activity.name
-    else:
-        duration = 0
-        name = ""
-    return {"name": name, "duration": str(duration).split(".")[0]}
-
-
 def get_current_unit() -> Unit | None:
     """
     Get current active unit or None

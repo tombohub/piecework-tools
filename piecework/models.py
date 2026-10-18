@@ -9,6 +9,9 @@ from .domain import PRICE_PER_SQUARE_FOOT
 
 class ActivityManager(models.Manager):
     def names(self):
+        """
+        Retrieve list of avaliable activity names.
+        """
         return self.get_queryset().values_list("name", flat=True)
 
 
@@ -34,7 +37,7 @@ class Project(models.Model):
 class UnitManager(models.Manager):
     def active(self):
         """
-        Get list of all available activity names
+        Get list active units
         """
         return self.get_queryset().filter(is_finished=False)
 
