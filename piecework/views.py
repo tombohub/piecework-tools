@@ -29,7 +29,6 @@ def index(request):
         "break_duration_today": break_duration_today,
         "boarding_duration_current_unit": boarding_duration_current_unit,
         "total_duration_today": total_duration_today,
-        "boarding_pct": db.boarding_duration_today_pct(),
     }
     return render(request, "piecework/index.html", context)
 
