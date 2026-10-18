@@ -125,6 +125,9 @@ class Unit(models.Model):
 
 class ActivityLogManager(models.Manager):
     def break_duration_today(self) -> dt.timedelta:
+        """
+        Retrieves the break activity today's total duration.
+        """
         duration = (
             self.get_queryset()
             .filter(activity__name="break", date=dt.date.today())
@@ -132,6 +135,15 @@ class ActivityLogManager(models.Manager):
         )["total"]
 
         return duration or dt.timedelta()
+
+    def current(self):
+        """
+        Currently active activity log.
+        """
+        try:
+            return self.get_queryset().select_related("activity").get(is_current=True)
+        except self.model.DoesNotExist:
+            return None
 
 
 class ActivityLog(models.Model):

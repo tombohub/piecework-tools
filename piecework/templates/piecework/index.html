@@ -10,14 +10,14 @@
       Last action: {{ previous_action.name|capfirst }} duration: {{ previous_action.duration }}
     </div>
 
-    {% if current_action %}
+    {% if current_activity_log %}
     <div>
-      Current action: <strong>{{ current_action.name|capfirst }}</strong><br>
-      Started: {{ current_action.start }}
+      Current activity: <strong>{{ current_activity_log.activity.name|capfirst }}</strong><br>
+      Started: {{ current_activity_log.start }}
     </div>
     {% else %}
     <div>
-      There is no current action
+      There is no current activity
     </div>
     {% endif %}
     <div>
@@ -39,7 +39,7 @@
       Boarding pct: {{ boarding_pct }}%
     </div>
 
-    {% if current_action == 'board' %}
+    {% if current_activity_log.activity.name == 'board' %}
     {% include 'piecework/sprint-option.html' %}
     {% endif %}
 
