@@ -29,12 +29,8 @@ class Unit(models.Model):
         Project, on_delete=models.PROTECT, null=True, blank=True
     )
     number = models.CharField(max_length=10)
-    washrooms_count = models.PositiveSmallIntegerField(null=True, blank=True)
-    closets_count = models.PositiveSmallIntegerField(null=True, blank=True)
-    rooms_count = models.PositiveSmallIntegerField(null=True, blank=True)
-    windows_count = models.PositiveSmallIntegerField(null=True, blank=True)
-    bulkheads_count = models.PositiveSmallIntegerField(null=True, blank=True)
     potlights_count = models.PositiveSmallIntegerField(null=True, blank=True)
+    sprinklers_count = models.PositiveSmallIntegerField(null=True, blank=True)
     is_finished = models.BooleanField(default=False)
 
     @property

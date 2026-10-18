@@ -16,3 +16,13 @@ tasks:
     desc: Run the Django development server
     cmds:
       - uv run python manage.py runserver
+
+  makemigrations:
+    desc: Create new Django database migrations
+    cmds:
+      - uv run python manage.py makemigrations
+
+  migrate:
+    desc: Apply Django database migrations
+    cmds:
+      - uv run python manage.py migrate
