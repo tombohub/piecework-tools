@@ -18,8 +18,8 @@ dependencies = [
     "whitenoise",
     "gevent",
     "django",
-    "psycopg",
     "gunicorn",
+    "psycopg[binary]>=3.3.6",
 ]
 
 [dependency-groups]
