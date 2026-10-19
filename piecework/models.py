@@ -88,6 +88,13 @@ class Unit(models.Model):
         )
 
     @property
+    def total_price(self):
+        """
+        Total price for the unit
+        """
+        return round(self.total_square_footage * PRICE_PER_SQUARE_FOOT, 2)
+
+    @property
     def total_boarding_duration(self) -> dt.timedelta:
         """
         Total boarding duration for the unit
