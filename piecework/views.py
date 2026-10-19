@@ -4,7 +4,6 @@ import datetime as dt
 
 from django.shortcuts import get_object_or_404, redirect, render
 
-from . import db
 from .forms import NoteModelForm
 from .models import Activity, ActivityLog, Note, Unit
 
@@ -14,7 +13,7 @@ def index(request):
     current_activity_log = ActivityLog.objects.current()
     active_unit = Unit.objects.active()
     # NOTE: magic string
-    boarding_duration_today = db.calculate_boarding_duration_today()
+    boarding_duration_today = ActivityLog.objects.boarding_duration_today()
     break_duration_today = ActivityLog.objects.break_duration_today()
     boarding_duration_current_unit = (
         active_unit.total_boarding_duration if active_unit else dt.timedelta()

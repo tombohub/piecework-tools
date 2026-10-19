@@ -4,7 +4,7 @@ import datetime as dt
 from typing import ClassVar
 
 from django.db import models
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.utils import timezone
 
 from .domain import PRICE_PER_SQUARE_FOOT
@@ -178,6 +178,18 @@ class ActivityLogManager(models.Manager):
             self.get_queryset()
             .filter(start__date=dt.date.today())
             .aggregate(total=models.Sum("duration"))
+        )["total"]
+
+        return duration or dt.timedelta()
+
+    def boarding_duration_today(self) -> dt.timedelta:
+        """
+        Return today's total duration for boarding activity
+        """
+        duration = (
+            self.get_queryset()
+            .filter(activity__name="board", date=dt.date.today())
+            .aggregate(total=Sum("duration"))
         )["total"]
 
         return duration or dt.timedelta()
