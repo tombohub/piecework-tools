@@ -15,7 +15,6 @@ from .models import (
 
 class UnitSheetCountInline(admin.TabularInline):
     model = UnitSheetCount
-    readonly_fields = ["square_footage"]
     extra = 4
 
     def get_queryset(self, request: HttpRequest) -> QuerySet:

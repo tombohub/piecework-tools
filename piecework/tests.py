@@ -1,1 +1,75 @@
+from django.db import IntegrityError, transaction
 from django.test import TestCase
+
+from .models import Activity, DrywallType, Unit, UnitSheetCount
+
+
+class ActivityTests(TestCase):
+    @classmethod
+    def setUpTestData(cls) -> None:
+        Activity.objects.create(name="Boarding")
+        Activity.objects.create(name="Taping")
+
+    def test_names_returns_activity_names(self):
+        names = Activity.objects.names()
+
+        self.assertCountEqual(names, ["Boarding", "Taping"])
+
+
+class UnitTests(TestCase):
+    def test_active_returns_active_unit(self):
+        Unit.objects.create(
+            number="101",
+            status=Unit.Status.COMPLETED,
+        )
+        active_unit = Unit.objects.create(
+            number="102",
+            status=Unit.Status.ACTIVE,
+        )
+
+        result = Unit.objects.active()
+
+        self.assertEqual(result, active_unit)
+
+    def test_active_returns_none_when_no_unit_is_active(self):
+        Unit.objects.create(
+            number="101",
+            status=Unit.Status.COMPLETED,
+        )
+        Unit.objects.create(
+            number="102",
+            status=Unit.Status.ON_HOLD,
+        )
+
+        result = Unit.objects.active()
+
+        self.assertIsNone(result)
+
+    def test_only_one_unit_can_be_active(self):
+        Unit.objects.create(number="101", status=Unit.Status.ACTIVE)
+
+        with self.assertRaises(IntegrityError), transaction.atomic():
+            Unit.objects.create(number="102", status=Unit.Status.ACTIVE)
+
+        self.assertEqual(Unit.objects.filter(status=Unit.Status.ACTIVE).count(), 1)
+
+    def test_total_unit_square_footage_calculates_correct(self):
+        unit = Unit.objects.create(number="101")
+        drywall_type = DrywallType.objects.create(name="Regular")
+
+        UnitSheetCount.objects.create(unit=unit, type=drywall_type, length=12, count=10)
+        UnitSheetCount.objects.create(
+            unit=unit,
+            type=drywall_type,
+            length=8,
+            count=5,
+        )
+
+        self.assertEqual(unit.total_square_footage, 640)
+
+
+class UnitSheetCountTests(TestCase):
+    def test_square_footage_is_calculated_correct(self):
+        sheet_count = UnitSheetCount(length=12, count=10)
+
+        self.assertEqual(sheet_count.square_footage, 480)

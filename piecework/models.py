@@ -1,11 +1,10 @@
 # from __future__ import annotations
 
 import datetime as dt
-from typing import ClassVar
+from typing import TYPE_CHECKING, ClassVar
 
 from django.db import models
 from django.db.models import Q, Sum
-from django.utils import timezone
 
 from .domain import PRICE_PER_SQUARE_FOOT
 
@@ -49,6 +48,10 @@ class UnitManager(models.Manager["Unit"]):
 
 
 class Unit(models.Model):
+    if TYPE_CHECKING:
+        unitsheetcount_set: models.Manager["UnitSheetCount"]
+        activitylog_set: models.Manager["ActivityLog"]
+
     class Status(models.TextChoices):
         ACTIVE = "active", "Active"
         ON_HOLD = "on_hold", "On hold"
@@ -75,23 +78,14 @@ class Unit(models.Model):
         ]
 
     @property
-    def total_square_footage(self):
+    def total_square_footage(self) -> int:
         """
         Total square footage of all sheets in the unit
         """
         return sum(
-            [
-                unit_sheet_count.square_footage
-                for unit_sheet_count in self.unitsheetcount_set.all()
-            ]
+            unit_sheet_count.square_footage
+            for unit_sheet_count in self.unitsheetcount_set.all()
         )
-
-    @property
-    def total_price(self):
-        """
-        Total price for the unit
-        """
-        return round(self.total_square_footage * PRICE_PER_SQUARE_FOOT, 2)
 
     @property
     def total_boarding_duration(self) -> dt.timedelta:
@@ -232,11 +226,13 @@ class UnitSheetCount(models.Model):
     length = models.PositiveIntegerField(choices=[(8, 8), (9, 9), (10, 10), (12, 12)])
     count = models.PositiveIntegerField()
     unit = models.ForeignKey(Unit, on_delete=models.CASCADE)
-    square_footage = models.PositiveIntegerField()
 
-    def save(self, *args, **kwargs):
-        self.square_footage = self.length * self.count * 4
-        super().save(*args, **kwargs)
+    @property
+    def square_footage(self) -> int:
+        """
+        Returns calculated square footage
+        """
+        return self.length * 4 * self.count
 
     def __str__(self):
         return f"{self.length}ft {self.type}"
