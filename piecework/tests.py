@@ -1,7 +1,7 @@
 from django.db import IntegrityError, transaction
 from django.test import TestCase
 
-from .models import Activity, DrywallType, Unit, UnitSheetCount
+from .models import Activity, Unit, UnitSheetCount
 
 
 class ActivityTests(TestCase):
@@ -55,17 +55,43 @@ class UnitTests(TestCase):
 
     def test_total_unit_square_footage_calculates_correct(self):
         unit = Unit.objects.create(number="101")
-        drywall_type = DrywallType.objects.create(name="Regular")
 
-        UnitSheetCount.objects.create(unit=unit, type=drywall_type, length=12, count=10)
         UnitSheetCount.objects.create(
             unit=unit,
-            type=drywall_type,
-            length=8,
+            drywall_type=UnitSheetCount.DrywallType.REGULAR,
+            length=UnitSheetCount.Length.TWELVE,
+            count=10,
+        )
+        UnitSheetCount.objects.create(
+            unit=unit,
+            drywall_type=UnitSheetCount.DrywallType.REGULAR,
+            length=UnitSheetCount.Length.EIGHT,
             count=5,
         )
 
         self.assertEqual(unit.total_square_footage, 640)
+
+    def test_total_price_is_calculated(self):
+        unit = Unit.objects.create(number="101")
+
+        UnitSheetCount.objects.create(
+            unit=unit,
+            drywall_type=UnitSheetCount.DrywallType.REGULAR,
+            length=UnitSheetCount.Length.TWELVE,
+            count=10,
+        )
+
+        # 12 × 4 × 10 = 480 square feet
+        # 480 × 0.352 = 168.96
+        self.assertEqual(unit.total_price, 168.96)
+
+    def test_mark_completed_updates_status(self):
+        unit = Unit.objects.create(number="102", status=Unit.Status.ON_HOLD)
+
+        unit.mark_completed()
+        unit.refresh_from_db()
+
+        self.assertEqual(unit.status, Unit.Status.COMPLETED)
 
 
 class UnitSheetCountTests(TestCase):

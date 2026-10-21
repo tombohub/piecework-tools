@@ -4,9 +4,7 @@ import datetime as dt
 from typing import TYPE_CHECKING, ClassVar
 
 from django.db import models
-from django.db.models import Q, Sum
-
-from .domain import PRICE_PER_SQUARE_FOOT
+from django.db.models import F, Q, Sum
 
 
 class ActivityManager(models.Manager):
@@ -60,10 +58,12 @@ class Unit(models.Model):
     number = models.CharField(max_length=10)
     potlights_count = models.PositiveSmallIntegerField(null=True, blank=True)
     sprinklers_count = models.PositiveSmallIntegerField(null=True, blank=True)
-    is_finished = models.BooleanField(default=False)
     status = models.CharField(max_length=20, choices=Status, default=Status.ACTIVE)
     project = models.ForeignKey(
         Project, on_delete=models.PROTECT, null=True, blank=True
+    )
+    height_feet = models.FloatField(
+        null=True, blank=True, help_text="Height of the unit ceiling in feet"
     )
 
     objects: UnitManager = UnitManager()
@@ -76,6 +76,11 @@ class Unit(models.Model):
                 name="only_one_active_unit",
             )
         ]
+
+    def mark_completed(self) -> None:
+        if self.status != self.Status.COMPLETED:
+            self.status = self.Status.COMPLETED
+            self.save(update_fields=["status"])
 
     @property
     def total_square_footage(self) -> int:
@@ -92,7 +97,7 @@ class Unit(models.Model):
         """
         Total price for the unit
         """
-        return round(self.total_square_footage * PRICE_PER_SQUARE_FOOT, 2)
+        return round(self.total_square_footage * 0.352, 2)
 
     @property
     def total_boarding_duration(self) -> dt.timedelta:
@@ -217,20 +222,26 @@ class ActivityLog(models.Model):
         return str(self.activity)
 
 
-class DrywallType(models.Model):
-    name = models.CharField(max_length=10)
-
-    def __str__(self):
-        return str(self.name)
-
-
 class UnitSheetCount(models.Model):
     """
     Number and type of sheets per unit
     """
 
-    type = models.ForeignKey(DrywallType, on_delete=models.PROTECT)
-    length = models.PositiveIntegerField(choices=[(8, 8), (9, 9), (10, 10), (12, 12)])
+    class DrywallType(models.TextChoices):
+        REGULAR = "regular", "Regular"
+        DENS_GLASS = "dens glass", "Dens glass"
+        BLUE = "blue", "Blue"
+
+    class Length(models.IntegerChoices):
+        EIGHT = 8, "8 ft"
+        NINE = 9, "9 ft"
+        TEN = 10, "10 ft"
+        TWELVE = 12, "12 ft"
+
+    drywall_type = models.CharField(
+        max_length=20, choices=DrywallType.choices, null=True, blank=True
+    )
+    length = models.PositiveIntegerField(choices=Length.choices)
     count = models.PositiveIntegerField()
     unit = models.ForeignKey(Unit, on_delete=models.CASCADE)
 
@@ -242,10 +253,101 @@ class UnitSheetCount(models.Model):
         return self.length * 4 * self.count
 
     def __str__(self):
-        return f"{self.length}ft {self.type}"
+        return f"{self.length}ft {self.drywall_type}"
+
+
+class PieceworkRate(models.Model):
+    class MeasurementUnit(models.TextChoices):
+        """
+        Unit used to measure and calculate payment
+        """
+
+        SQUARE_FOOT = "square_foot", "Square foot"
+        LINEAR_FOOT = "linear_foot", "Linear foot"
+        PIECE = "piece", "Piece"
+
+    class HeightCategory(models.TextChoices):
+        """
+        Height of the ceiling
+        """
+
+        NOT_APPLICABLE = "not_applicable", "Not applicable"
+        OVER_EIGHT_TO_NINE_INCLUSIVE = (
+            "over_8_to_9_inclusive",
+            "Over 8 ft up to and including 9 ft",
+        )
+        OVER_NINE_TO_TEN_INCLUSIVE = (
+            "over_9_to_10_inclusive",
+            "Over 9 ft up to and including 10 ft",
+        )
+        OVER_TEN_TO_ELEVEN_INCLUSIVE = (
+            "over_10_to_11_inclusive",
+            "Over 10 ft up to and including 11 ft",
+        )
+        OVER_ELEVEN_TO_TWELVE_INCLUSIVE = (
+            "over_11_to_12_inclusive",
+            "Over 11 ft up to and including 12 ft",
+        )
+
+    class PayableItem(models.TextChoices):
+        DRYWALL = "drywall", "Drywall"
+        SPRINKLER = "sprinkler", "Sprinkler"
+        POTLIGHT = "potlight", "Potlight"
+        J_MOULD = "j_mould", "J mould"
+        INSULATION = "insulation", "Insulation"
+
+    class DrywallType(models.TextChoices):
+        """
+        Type of drywall which affects the payable rate.
+        Only used for drywall item
+        """
+
+        NOT_APPLICABLE = "not_applicable", "Not applicable"
+        STANDARD = "standard", "Standard"
+        TYPE_X = "type_x", "Type X"
+        TYPE_C = "type_c", "Type C"
+
+    measurement_unit = models.CharField(max_length=30, choices=MeasurementUnit.choices)
+    height = models.CharField(max_length=30, choices=HeightCategory.choices)
+    payable_item = models.CharField(max_length=30, choices=PayableItem.choices)
+    rate = models.DecimalField(max_digits=8, decimal_places=4)
+    included_quantity = models.PositiveSmallIntegerField(
+        default=0,
+        help_text="Item quantity which is not payable, like first 5 sprinklers",
+    )
+    """
+    Item quantity which is not payable, like first 5 sprinklers
+    """
+
+    drywall_type = models.CharField(max_length=30, choices=DrywallType.choices)
+    start_date = models.DateField(help_text="Date on which this rate starts")
+    end_date = models.DateField(help_text="Last date for this rate")
+
+    class Meta:
+        constraints: ClassVar = [
+            models.UniqueConstraint(
+                fields=[
+                    "payable_item",
+                    "drywall_type",
+                    "height",
+                    "start_date",
+                ],
+                name="unique_piecework_rate_start_date",
+            ),
+        ]
+
+    def payable_quantity(self, quantity: int) -> int:
+        """
+        Quantity of items that are payable
+        """
+        return max(0, quantity - self.included_quantity)
 
 
 class Note(models.Model):
+    """
+    Notes for the application features
+    """
+
     note = models.TextField()
 
     def __str__(self):

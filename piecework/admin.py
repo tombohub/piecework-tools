@@ -5,8 +5,8 @@ from django.http.request import HttpRequest
 from .models import (
     Activity,
     ActivityLog,
-    DrywallType,
     Note,
+    PieceworkRate,
     Project,
     Unit,
     UnitSheetCount,
@@ -24,11 +24,6 @@ class UnitSheetCountInline(admin.TabularInline):
 
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
-    pass
-
-
-@admin.register(DrywallType)
-class DrywallTypeAdmin(admin.ModelAdmin):
     pass
 
 
@@ -65,3 +60,8 @@ class ActivityTimeAdmin(admin.ModelAdmin):
 
 
 admin.site.register([Activity, Note])
+
+
+@admin.register(PieceworkRate)
+class PieceworkRateAdmin(admin.ModelAdmin):
+    pass
