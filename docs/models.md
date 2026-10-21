@@ -13,6 +13,10 @@
 - sprinklers_count: number optional
 - status: string enum active | on_hold | completed
 - project: Project
+- height: string enum (8,9] | (9,10] | (10,11], (11,12] required
+
+# UnitMaterialCount
+
 
 ## Rules
 1. only one unit can have status active

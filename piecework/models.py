@@ -45,6 +45,30 @@ class UnitManager(models.Manager["Unit"]):
             return None
 
 
+class HeightCategory(models.TextChoices):
+    """
+    Height of the ceiling
+    """
+
+    NOT_APPLICABLE = "not_applicable", "Not applicable"
+    OVER_EIGHT_TO_NINE_INCLUSIVE = (
+        "over_8_to_9_inclusive",
+        "Over 8 ft up to and including 9 ft",
+    )
+    OVER_NINE_TO_TEN_INCLUSIVE = (
+        "over_9_to_10_inclusive",
+        "Over 9 ft up to and including 10 ft",
+    )
+    OVER_TEN_TO_ELEVEN_INCLUSIVE = (
+        "over_10_to_11_inclusive",
+        "Over 10 ft up to and including 11 ft",
+    )
+    OVER_ELEVEN_TO_TWELVE_INCLUSIVE = (
+        "over_11_to_12_inclusive",
+        "Over 11 ft up to and including 12 ft",
+    )
+
+
 class Unit(models.Model):
     if TYPE_CHECKING:
         unitsheetcount_set: models.Manager["UnitSheetCount"]
@@ -62,8 +86,11 @@ class Unit(models.Model):
     project = models.ForeignKey(
         Project, on_delete=models.PROTECT, null=True, blank=True
     )
-    height_feet = models.FloatField(
-        null=True, blank=True, help_text="Height of the unit ceiling in feet"
+    height_feet = models.CharField(
+        null=True,
+        blank=True,
+        choices=HeightCategory.choices,
+        help_text="Height of the unit ceiling in feet",
     )
 
     objects: UnitManager = UnitManager()
@@ -265,29 +292,6 @@ class PieceworkRate(models.Model):
         SQUARE_FOOT = "square_foot", "Square foot"
         LINEAR_FOOT = "linear_foot", "Linear foot"
         PIECE = "piece", "Piece"
-
-    class HeightCategory(models.TextChoices):
-        """
-        Height of the ceiling
-        """
-
-        NOT_APPLICABLE = "not_applicable", "Not applicable"
-        OVER_EIGHT_TO_NINE_INCLUSIVE = (
-            "over_8_to_9_inclusive",
-            "Over 8 ft up to and including 9 ft",
-        )
-        OVER_NINE_TO_TEN_INCLUSIVE = (
-            "over_9_to_10_inclusive",
-            "Over 9 ft up to and including 10 ft",
-        )
-        OVER_TEN_TO_ELEVEN_INCLUSIVE = (
-            "over_10_to_11_inclusive",
-            "Over 10 ft up to and including 11 ft",
-        )
-        OVER_ELEVEN_TO_TWELVE_INCLUSIVE = (
-            "over_11_to_12_inclusive",
-            "Over 11 ft up to and including 12 ft",
-        )
 
     class PayableItem(models.TextChoices):
         DRYWALL = "drywall", "Drywall"
