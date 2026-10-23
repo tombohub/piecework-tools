@@ -1,5 +1,4 @@
 from django.contrib import admin
-from django.db.models.query import QuerySet
 from django.http.request import HttpRequest
 
 from .models import (
@@ -16,10 +15,6 @@ from .models import (
 class UnitSheetCountInline(admin.TabularInline):
     model = UnitSheetCount
     extra = 4
-
-    def get_queryset(self, request: HttpRequest) -> QuerySet:
-        qs = super().get_queryset(request)
-        return qs.select_related("type")
 
 
 @admin.register(Project)
