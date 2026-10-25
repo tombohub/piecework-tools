@@ -4,12 +4,12 @@ from django.http.request import HttpRequest
 from .models import (
     Activity,
     ActivityLog,
-    DrywallMaterial,
     DrywallRate,
     Note,
     Project,
     RatePeriod,
     Unit,
+    UnitDrywallMaterial,
     UnitSheetCount,
 )
 
@@ -59,7 +59,7 @@ class ActivityTimeAdmin(admin.ModelAdmin):
 admin.site.register([Activity, Note])
 
 
-@admin.register(DrywallMaterial)
+@admin.register(UnitDrywallMaterial)
 class UnitDrywallMaterialAdmin(admin.ModelAdmin):
     pass
 

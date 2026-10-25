@@ -82,6 +82,23 @@ class RatePeriod(models.Model):
         return self.name
 
 
+class DrywallRateManager(models.Manager["DrywallRate"]):
+    def get_rate_value(
+        self,
+        rate_period: RatePeriod,
+        height: str,
+        rate_category: str,
+    ) -> Decimal:
+        """
+        Get drywall rate as decimal value to use in price calculations
+        """
+        rate_obj = self.get(
+            rate_period=rate_period, height=height, rate_category=rate_category
+        )
+
+        return rate_obj.rate
+
+
 class DrywallRate(models.Model):
     height = models.CharField(max_length=30, choices=HeightCategory.choices)
     rate_category = models.CharField(
@@ -92,17 +109,29 @@ class DrywallRate(models.Model):
         RatePeriod, on_delete=models.PROTECT, null=True, blank=True
     )
 
+    objects: DrywallRateManager = DrywallRateManager()
+
 
 ## UNIT context
 
+UNIT_DRYWALL_RATE_CATEGORY = DrywallRateCategory.STANDARD
+"""
+Rate category always used in units is standard
+"""
 
-class DrywallMaterial(models.Model):
+
+class UnitDrywallMaterial(models.Model):
+    """
+    Definition for drywall material used in units.
+    It's separate model than counting so we can easily change names and add more data in single place instead of each row.
+
+    Unit drywall material is STANDARD rate
+    """
+
     class DrywallType(models.TextChoices):
         REGULAR = "regular", "Regular"
         DENS_GLASS = "dens_glass", "Dens glass"
         BLUE = "blue", "Blue"
-        TYPE_X = "type_x", "Type X"
-        TYPE_C = "type_c", "Type C"
 
     class Length(models.IntegerChoices):
         EIGHT = 8, "8 ft"
@@ -112,9 +141,6 @@ class DrywallMaterial(models.Model):
 
     drywall_type = models.CharField(max_length=30, choices=DrywallType.choices)
     length_feet = models.PositiveSmallIntegerField(choices=Length.choices)
-    rate_category = models.CharField(
-        max_length=20, choices=DrywallRateCategory.choices, null=True, blank=True
-    )
 
     @property
     def square_footage(self) -> int:
@@ -164,8 +190,6 @@ class Unit(models.Model):
         Project, on_delete=models.PROTECT, null=True, blank=True
     )
     height_feet = models.CharField(
-        null=True,
-        blank=True,
         choices=HeightCategory.choices,
         default=HeightCategory.OVER_EIGHT_TO_NINE_INCLUSIVE,
         help_text="Height of the unit ceiling in feet",
@@ -246,6 +270,18 @@ class Unit(models.Model):
         return RatePeriod.objects.get_for_date(pricing_date)
 
     @property
+    def drywall_rate(self) -> Decimal:
+        """
+        Drywall rate for this unit
+        """
+
+        return DrywallRate.objects.get_rate_value(
+            rate_period=self._get_rate_period(),
+            height=self.height_feet,
+            rate_category=UNIT_DRYWALL_RATE_CATEGORY,
+        )
+
+    @property
     def drywall_price(self) -> Decimal:
         """
         Calculate the unit's drywall price using its height, applicable
@@ -253,7 +289,6 @@ class Unit(models.Model):
         """
         # Determine the applicable rate period.
         rate_period = self._get_rate_period()
-        # Validate that the unit has a height and rate period.
         # Calculate square footage grouped by material rate category.
         # Retrieve the rate for each category, unit height, and rate period.
         # Validate that every used category has exactly one rate.
@@ -328,7 +363,7 @@ class UnitSheetCount(models.Model):
     Number of sheets of a particular drywall material used in a unit.
     """
 
-    drywall_material = models.ForeignKey(DrywallMaterial, on_delete=models.PROTECT)
+    drywall_material = models.ForeignKey(UnitDrywallMaterial, on_delete=models.PROTECT)
 
     count = models.PositiveIntegerField()
     unit = models.ForeignKey(Unit, on_delete=models.CASCADE)

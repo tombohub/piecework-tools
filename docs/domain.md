@@ -12,12 +12,12 @@ The unit price depends on:
 2. The unit of measure, such as square feet, quantity, or linear feet
 3. The height of the unit
 
-Materials used and work performed:
+Materials used and work performed in units:
 - Drywall; the rate depends on:
     - square feet
     - unit height
-    - a premium added for Type X and Type C drywall
     - rate period
+    - standard drywall rate
 - J-mould; the rate depends on:
     - linear feet
     - rate period

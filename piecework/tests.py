@@ -1,9 +1,19 @@
 import datetime as dt
+from decimal import Decimal
 
 from django.db import IntegrityError, transaction
 from django.test import TestCase
 
-from .models import Activity, DrywallMaterial, RatePeriod, Unit, UnitSheetCount
+from .models import (
+    Activity,
+    DrywallRate,
+    DrywallRateCategory,
+    HeightCategory,
+    RatePeriod,
+    Unit,
+    UnitDrywallMaterial,
+    UnitSheetCount,
+)
 
 
 class ActivityTests(TestCase):
@@ -58,13 +68,13 @@ class UnitTests(TestCase):
     def test_total_unit_square_footage_calculates_correct(self):
         unit = Unit.objects.create(number="101")
 
-        twelve_foot_material = DrywallMaterial.objects.get(
-            drywall_type=DrywallMaterial.DrywallType.REGULAR,
-            length_feet=DrywallMaterial.Length.TWELVE,
+        twelve_foot_material = UnitDrywallMaterial.objects.get(
+            drywall_type=UnitDrywallMaterial.DrywallType.REGULAR,
+            length_feet=UnitDrywallMaterial.Length.TWELVE,
         )
-        eight_foot_material = DrywallMaterial.objects.get(
-            drywall_type=DrywallMaterial.DrywallType.REGULAR,
-            length_feet=DrywallMaterial.Length.EIGHT,
+        eight_foot_material = UnitDrywallMaterial.objects.get(
+            drywall_type=UnitDrywallMaterial.DrywallType.REGULAR,
+            length_feet=UnitDrywallMaterial.Length.EIGHT,
         )
 
         UnitSheetCount.objects.create(
@@ -83,9 +93,9 @@ class UnitTests(TestCase):
     def test_total_price_is_calculated(self):
         unit = Unit.objects.create(number="101")
 
-        material = DrywallMaterial.objects.get(
-            drywall_type=DrywallMaterial.DrywallType.REGULAR,
-            length_feet=DrywallMaterial.Length.TWELVE,
+        material = UnitDrywallMaterial.objects.get(
+            drywall_type=UnitDrywallMaterial.DrywallType.REGULAR,
+            length_feet=UnitDrywallMaterial.Length.TWELVE,
         )
 
         UnitSheetCount.objects.create(
@@ -109,12 +119,59 @@ class UnitTests(TestCase):
         self.assertEqual(unit.status, Unit.Status.COMPLETED)
         self.assertEqual(unit.completed_on, completed_on)
 
+    def test_drywall_rate_returns_matching_standard_rate(self):
+        applicable_period = RatePeriod.objects.create(
+            name="2025-2026",
+            starts_on=dt.date(2025, 5, 1),
+            ends_on=dt.date(2026, 4, 30),
+        )
+        other_period = RatePeriod.objects.create(
+            name="2026-2027",
+            starts_on=dt.date(2026, 5, 1),
+            ends_on=dt.date(2027, 4, 30),
+        )
+
+        expected_rate = DrywallRate.objects.create(
+            rate_period=applicable_period,
+            height=HeightCategory.OVER_EIGHT_TO_NINE_INCLUSIVE,
+            rate_category=DrywallRateCategory.STANDARD,
+            rate=Decimal("0.3520"),
+        )
+
+        # Rates that must not be selected.
+        DrywallRate.objects.create(
+            rate_period=applicable_period,
+            height=HeightCategory.OVER_EIGHT_TO_NINE_INCLUSIVE,
+            rate_category=DrywallRateCategory.PREMIUM,
+            rate=Decimal("0.4000"),
+        )
+        DrywallRate.objects.create(
+            rate_period=applicable_period,
+            height=HeightCategory.OVER_NINE_TO_TEN_INCLUSIVE,
+            rate_category=DrywallRateCategory.STANDARD,
+            rate=Decimal("0.3750"),
+        )
+        DrywallRate.objects.create(
+            rate_period=other_period,
+            height=HeightCategory.OVER_EIGHT_TO_NINE_INCLUSIVE,
+            rate_category=DrywallRateCategory.STANDARD,
+            rate=Decimal("0.3900"),
+        )
+
+        unit = Unit.objects.create(
+            number="103",
+            completed_on=dt.date(2025, 10, 25),
+            height_feet=HeightCategory.OVER_EIGHT_TO_NINE_INCLUSIVE,
+        )
+
+        self.assertEqual(unit.drywall_rate, expected_rate.rate)
+
 
 class UnitSheetCountTests(TestCase):
     def test_square_footage_is_calculated_correct(self):
-        material = DrywallMaterial(
-            drywall_type=DrywallMaterial.DrywallType.REGULAR,
-            length_feet=DrywallMaterial.Length.TWELVE,
+        material = UnitDrywallMaterial(
+            drywall_type=UnitDrywallMaterial.DrywallType.REGULAR,
+            length_feet=UnitDrywallMaterial.Length.TWELVE,
         )
         sheet_count = UnitSheetCount(drywall_material=material, count=10)
 
@@ -123,7 +180,7 @@ class UnitSheetCountTests(TestCase):
 
 class UnitDrywallMaterialTests(TestCase):
     def test_square_footage_is_calculated_correctly(self):
-        material = DrywallMaterial(drywall_type="Regular", length_feet=12)
+        material = UnitDrywallMaterial(drywall_type="Regular", length_feet=12)
 
         self.assertEqual(material.square_footage, 48)
 
