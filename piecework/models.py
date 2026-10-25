@@ -179,7 +179,9 @@ class Unit(models.Model):
         """
         return sum(
             unit_sheet_count.square_footage
-            for unit_sheet_count in self.unitsheetcount_set.all()
+            for unit_sheet_count in self.unitsheetcount_set.select_related(
+                "drywall_material"
+            )
         )
 
     @property
@@ -245,28 +247,11 @@ class Unit(models.Model):
 
 class UnitSheetCount(models.Model):
     """
-    Number and type of sheets per unit
+    Number of sheets of a particular drywall material used in a unit.
     """
 
-    drywall_material = models.ForeignKey(
-        DrywallMaterial, on_delete=models.PROTECT, null=True, blank=True
-    )
+    drywall_material = models.ForeignKey(DrywallMaterial, on_delete=models.PROTECT)
 
-    class DrywallType(models.TextChoices):
-        REGULAR = "regular", "Regular"
-        DENS_GLASS = "dens glass", "Dens glass"
-        BLUE = "blue", "Blue"
-
-    class Length(models.IntegerChoices):
-        EIGHT = 8, "8 ft"
-        NINE = 9, "9 ft"
-        TEN = 10, "10 ft"
-        TWELVE = 12, "12 ft"
-
-    drywall_type = models.CharField(
-        max_length=20, choices=DrywallType.choices, null=True, blank=True
-    )
-    length = models.PositiveIntegerField(choices=Length.choices)
     count = models.PositiveIntegerField()
     unit = models.ForeignKey(Unit, on_delete=models.CASCADE)
 
@@ -275,10 +260,10 @@ class UnitSheetCount(models.Model):
         """
         Returns calculated square footage
         """
-        return self.length * 4 * self.count
+        return self.drywall_material.square_footage * self.count
 
     def __str__(self):
-        return f"{self.length}ft {self.drywall_type}"
+        return f"{self.drywall_material} {self.count}"
 
 
 class ActivityManager(models.Manager):

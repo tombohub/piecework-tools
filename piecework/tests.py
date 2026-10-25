@@ -56,16 +56,23 @@ class UnitTests(TestCase):
     def test_total_unit_square_footage_calculates_correct(self):
         unit = Unit.objects.create(number="101")
 
+        twelve_foot_material = DrywallMaterial.objects.get(
+            drywall_type=DrywallMaterial.DrywallType.REGULAR,
+            length_feet=DrywallMaterial.Length.TWELVE,
+        )
+        eight_foot_material = DrywallMaterial.objects.get(
+            drywall_type=DrywallMaterial.DrywallType.REGULAR,
+            length_feet=DrywallMaterial.Length.EIGHT,
+        )
+
         UnitSheetCount.objects.create(
             unit=unit,
-            drywall_type=UnitSheetCount.DrywallType.REGULAR,
-            length=UnitSheetCount.Length.TWELVE,
+            drywall_material=twelve_foot_material,
             count=10,
         )
         UnitSheetCount.objects.create(
             unit=unit,
-            drywall_type=UnitSheetCount.DrywallType.REGULAR,
-            length=UnitSheetCount.Length.EIGHT,
+            drywall_material=eight_foot_material,
             count=5,
         )
 
@@ -74,10 +81,14 @@ class UnitTests(TestCase):
     def test_total_price_is_calculated(self):
         unit = Unit.objects.create(number="101")
 
+        material = DrywallMaterial.objects.get(
+            drywall_type=DrywallMaterial.DrywallType.REGULAR,
+            length_feet=DrywallMaterial.Length.TWELVE,
+        )
+
         UnitSheetCount.objects.create(
             unit=unit,
-            drywall_type=UnitSheetCount.DrywallType.REGULAR,
-            length=UnitSheetCount.Length.TWELVE,
+            drywall_material=material,
             count=10,
         )
 
@@ -96,7 +107,11 @@ class UnitTests(TestCase):
 
 class UnitSheetCountTests(TestCase):
     def test_square_footage_is_calculated_correct(self):
-        sheet_count = UnitSheetCount(length=12, count=10)
+        material = DrywallMaterial(
+            drywall_type=DrywallMaterial.DrywallType.REGULAR,
+            length_feet=DrywallMaterial.Length.TWELVE,
+        )
+        sheet_count = UnitSheetCount(drywall_material=material, count=10)
 
         self.assertEqual(sheet_count.square_footage, 480)
 
