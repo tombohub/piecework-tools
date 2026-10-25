@@ -1,32 +1,32 @@
-Union residential agreement is every 3 years. Last one was on May 1st, 2025. In the agreement are the prices for piecework for the next 3 years.
-Each year is called Rate Period and is lasting from May 1st and ending on 30th April next year. On following May 1st new rates are in effect.
+A union residential agreement is established every three years. The last one was established on May 1, 2025. The agreement specifies piecework prices for the next three years.
+Each year is called a rate period. It lasts from May 1 through April 30 of the following year. New rates take effect on the following May 1.
 
-Price worker gets for certain work is called Rate.
+The price a worker receives for specific work is called a rate.
 
-There is high rise residential  rates and low rise residential rates.
+There are high-rise residential rates and low-rise residential rates.
 
-In high rise each condo is called Unit. After the unit it completed it can be booked to receive payment for completed unit. It is currently uknown which rate period is applied, is it on date of unit completed or payment check created.
+In high-rise construction, each condo is called a unit. After a unit is completed, it can be booked so the worker can receive payment for it. It is currently unknown which rate period applies: the period containing the date the unit was completed or the period containing the date the payment cheque was created.
 
-Unit price is dependendent on:
-1. material used or work performed
-1. unit of measure like square feet, quantity or linear feet
-2. height of the unit
+The unit price depends on:
+1. The material used or work performed
+2. The unit of measure, such as square feet, quantity, or linear feet
+3. The height of the unit
 
 Materials used and work performed:
-- drywall, rate depends on:
+- Drywall; the rate depends on:
     - square feet
     - unit height
-    - premium is added for typeX and typeC drywall.
+    - a premium added for Type X and Type C drywall
     - rate period
-- jmould, rate depends on:
+- J-mould; the rate depends on:
     - linear feet
     - rate period
-- insulation, rate depends on:
+- Insulation; the rate depends on:
     - square feet
     - rate period
-- potlights cut out, rate depends on:
-    - number of potlights, where first 5 are not paid
+- Potlight cutouts; the rate depends on:
+    - the number of potlights, with the first five unpaid
     - rate period
-- sprinklers cut out, rate depends on:
-    - number of sprinklers, where first 5 are not paid
+- Sprinkler cutouts; the rate depends on:
+    - the number of sprinklers, with the first five unpaid
     - rate period
