@@ -167,6 +167,7 @@ class Unit(models.Model):
         null=True,
         blank=True,
         choices=HeightCategory.choices,
+        default=HeightCategory.OVER_EIGHT_TO_NINE_INCLUSIVE,
         help_text="Height of the unit ceiling in feet",
     )
 
@@ -237,8 +238,12 @@ class Unit(models.Model):
         )
 
     def _get_rate_period(self) -> RatePeriod:
+        """
+        Return the rate period containing the unit's pricing date.
+        """
         pricing_date = self._get_pricing_date()
-        ...
+
+        return RatePeriod.objects.get_for_date(pricing_date)
 
     @property
     def drywall_price(self) -> Decimal:
@@ -247,6 +252,7 @@ class Unit(models.Model):
         rate period, and square footage in each drywall rate category.
         """
         # Determine the applicable rate period.
+        rate_period = self._get_rate_period()
         # Validate that the unit has a height and rate period.
         # Calculate square footage grouped by material rate category.
         # Retrieve the rate for each category, unit height, and rate period.
