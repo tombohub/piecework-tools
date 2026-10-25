@@ -5,6 +5,7 @@ from .models import (
     Activity,
     ActivityLog,
     DrywallMaterial,
+    DrywallRate,
     Note,
     Project,
     RatePeriod,
@@ -64,3 +65,4 @@ class UnitDrywallMaterialAdmin(admin.ModelAdmin):
 
 
 admin.site.register(RatePeriod)
+admin.site.register(DrywallRate)

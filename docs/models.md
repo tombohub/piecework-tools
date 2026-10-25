@@ -60,13 +60,13 @@
 - height: string enum (8,9] | (9,10] | (10,11], (11,12] required
 - sheet_count: UnitSheetCount[]
 
-## UnitDrywallMaterial
+## DrywallMaterial
 - drywall_type: string
 - length_feet: int
 - rate_category: RateCategory
 
 ## UnitSheetCount
-- drywall_material
+- drywall_material: DrywallMaterial
 - count: int
 - unit: Unit
 - square_footage: int
@@ -75,16 +75,7 @@
 ### Rules
 1. only one unit can have status active
 
-# PieceworkRate:
-- payable_item: string required (drywall, sprinkler etc)
-- measurement_unit: string required (sqft | linear_feet | piece)
-- height: string enum (8,9] | (9,10] | (10,11], (11,12] required
-- rate: decimal required
-- included_quantity: integer required (5 sprinklers are not payable)
-- drywall_type: string required, for premium rates
-- start_date: date required, inclusive
-- end_date: date required, inclusive
-
+# Payments context
 
 
 

@@ -68,6 +68,9 @@ class RatePeriod(models.Model):
             ),
         ]
 
+    def __str__(self) -> str:
+        return self.name
+
 
 class DrywallRate(models.Model):
     height = models.CharField(max_length=30, choices=HeightCategory.choices)
@@ -133,8 +136,8 @@ class UnitManager(models.Manager["Unit"]):
 
 class Unit(models.Model):
     if TYPE_CHECKING:
-        unitsheetcount_set: models.Manager["UnitSheetCount"]
-        activitylog_set: models.Manager["ActivityLog"]
+        unitsheetcount_set: models.Manager[UnitSheetCount]
+        activitylog_set: models.Manager[ActivityLog]
 
     class Status(models.TextChoices):
         ACTIVE = "active", "Active"
@@ -155,6 +158,9 @@ class Unit(models.Model):
         help_text="Height of the unit ceiling in feet",
     )
 
+    started_on = models.DateField(null=True, blank=True)
+    completed_on = models.DateField(null=True, blank=True)
+
     objects: UnitManager = UnitManager()
 
     class Meta:
@@ -166,10 +172,22 @@ class Unit(models.Model):
             )
         ]
 
-    def mark_completed(self) -> None:
+    def mark_completed(self, completed_on: dt.date | None = None) -> None:
+        """
+        Mark the unit as completed and record its completion date.
+        """
+        update_fields = []
+
         if self.status != self.Status.COMPLETED:
             self.status = self.Status.COMPLETED
-            self.save(update_fields=["status"])
+            update_fields.append("status")
+
+        if self.completed_on is None:
+            self.completed_on = completed_on or dt.date.today()
+            update_fields.append("completed_on")
+
+        if update_fields:
+            self.save(update_fields=update_fields)
 
     @property
     def total_square_footage(self) -> int:
@@ -186,7 +204,7 @@ class Unit(models.Model):
     @property
     def total_price(self):
         """
-        Total price for the unit
+        Total price to get paid for the unit
         """
         return round(self.total_square_footage * 0.352, 2)
 
@@ -239,6 +257,9 @@ class Unit(models.Model):
             if self.total_boarding_duration.total_seconds() > 0
             else 0
         )
+
+    @property
+    def rate_per_sqft(self): ...
 
     def __str__(self) -> str:
         return str(self.number)

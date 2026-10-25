@@ -1,3 +1,5 @@
+import datetime as dt
+
 from django.db import IntegrityError, transaction
 from django.test import TestCase
 
@@ -99,10 +101,13 @@ class UnitTests(TestCase):
     def test_mark_completed_updates_status(self):
         unit = Unit.objects.create(number="102", status=Unit.Status.ON_HOLD)
 
-        unit.mark_completed()
+        completed_on = dt.date(2026, 10, 25)
+
+        unit.mark_completed(completed_on=completed_on)
         unit.refresh_from_db()
 
         self.assertEqual(unit.status, Unit.Status.COMPLETED)
+        self.assertEqual(unit.completed_on, completed_on)
 
 
 class UnitSheetCountTests(TestCase):
