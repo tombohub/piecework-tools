@@ -286,6 +286,9 @@ class UnitSheetCount(models.Model):
         return f"{self.drywall_material} {self.count}"
 
 
+## ACTIVITY context
+
+
 class ActivityManager(models.Manager):
     def names(self):
         """
