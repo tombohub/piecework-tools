@@ -3,7 +3,7 @@ import datetime as dt
 from django.db import IntegrityError, transaction
 from django.test import TestCase
 
-from .models import Activity, DrywallMaterial, Unit, UnitSheetCount
+from .models import Activity, DrywallMaterial, RatePeriod, Unit, UnitSheetCount
 
 
 class ActivityTests(TestCase):
@@ -126,3 +126,39 @@ class UnitDrywallMaterialTests(TestCase):
         material = DrywallMaterial(drywall_type="Regular", length_feet=12)
 
         self.assertEqual(material.square_footage, 48)
+
+
+class RatePeriodTests(TestCase):
+    @classmethod
+    def setUpTestData(cls) -> None:
+        cls.rate_period: RatePeriod = RatePeriod.objects.create(
+            name="2025–2026",
+            starts_on=dt.date(2025, 5, 1),
+            ends_on=dt.date(2026, 4, 30),
+        )
+
+    def test_get_for_date_returns_period_containin_date(self):
+        result = RatePeriod.objects.get_for_date(dt.date(2025, 10, 25))
+
+        self.assertEqual(result, self.rate_period)
+
+    def test_get_for_date_includes_period_boundaries(self):
+        for on_date in (self.rate_period.starts_on, self.rate_period.ends_on):
+            with self.subTest(on_date=on_date):
+                result = RatePeriod.objects.get_for_date(on_date)
+
+                self.assertEqual(result, self.rate_period)
+
+    def test_get_for_date_raises_when_no_period_containes_date(self):
+        with self.assertRaises(RatePeriod.DoesNotExist):
+            RatePeriod.objects.get_for_date(dt.date(2026, 5, 1))
+
+    def test_get_for_date_raises_when_periods_overlap(self):
+        RatePeriod.objects.create(
+            name="Overlapping period",
+            starts_on=dt.date(2025, 10, 1),
+            ends_on=dt.date(2026, 9, 30),
+        )
+
+        with self.assertRaises(RatePeriod.MultipleObjectsReturned):
+            RatePeriod.objects.get_for_date(dt.date(2025, 10, 25))
