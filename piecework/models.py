@@ -1,28 +1,13 @@
-# from __future__ import annotations
+from __future__ import annotations
 
 import datetime as dt
+from decimal import Decimal
 from typing import TYPE_CHECKING, ClassVar
 
 from django.db import models
 from django.db.models import F, Q, Sum
 
-
-class ActivityManager(models.Manager):
-    def names(self):
-        """
-        Retrieve list of avaliable activity names.
-        """
-        return self.get_queryset().values_list("name", flat=True)
-
-
-class Activity(models.Model):
-    name = models.CharField(max_length=20, unique=True)
-    description = models.TextField(null=True, blank=True)
-
-    objects: ActivityManager = ActivityManager()
-
-    def __str__(self) -> str:
-        return str(self.name)
+## PROJECTS context
 
 
 class Project(models.Model):
@@ -34,17 +19,7 @@ class Project(models.Model):
         return str(self.name)
 
 
-class UnitManager(models.Manager["Unit"]):
-    def active(self):
-        """
-        Return the active unit, or None if there isn't one
-        """
-        try:
-            return self.get_queryset().get(status=self.model.Status.ACTIVE)
-        except self.model.DoesNotExist:
-            return None
-
-
+## RATES context
 class HeightCategory(models.TextChoices):
     """
     Height of the ceiling
@@ -67,6 +42,94 @@ class HeightCategory(models.TextChoices):
         "over_11_to_12_inclusive",
         "Over 11 ft up to and including 12 ft",
     )
+
+
+class DrywallRateCategory(models.TextChoices):
+    """
+    Drywall Rate can be regular or premium which is extra on top of premium
+    """
+
+    STANDARD = "standard", "Standard"
+    PREMIUM = "premium", "Premium"
+
+
+class RatePeriod(models.Model):
+    name = models.CharField(max_length=30)
+    starts_on = models.DateField()
+    ends_on = models.DateField()
+
+    class Meta:
+        constraints: ClassVar = [
+            models.CheckConstraint(
+                condition=Q(ends_on__gt=F("starts_on")),
+                name="rate_period_end_after_start",
+            ),
+            models.UniqueConstraint(
+                fields=["starts_on", "ends_on"], name="unique_rate_period_dates"
+            ),
+        ]
+
+
+class DrywallRate(models.Model):
+    height = models.CharField(max_length=30, choices=HeightCategory.choices)
+    rate_category = models.CharField(
+        max_length=20, choices=DrywallRateCategory.choices, null=True, blank=True
+    )
+    rate = models.DecimalField(max_digits=8, decimal_places=4, null=True, blank=True)
+    rate_period = models.ForeignKey(
+        RatePeriod, on_delete=models.PROTECT, null=True, blank=True
+    )
+
+
+## UNIT context
+
+
+class DrywallMaterial(models.Model):
+    class DrywallType(models.TextChoices):
+        REGULAR = "regular", "Regular"
+        DENS_GLASS = "dens_glass", "Dens glass"
+        BLUE = "blue", "Blue"
+
+    class Length(models.IntegerChoices):
+        EIGHT = 8, "8 ft"
+        NINE = 9, "9 ft"
+        TEN = 10, "10 ft"
+        TWELVE = 12, "12 ft"
+
+    drywall_type = models.CharField(max_length=30, choices=DrywallType.choices)
+    length_feet = models.PositiveSmallIntegerField(choices=Length.choices)
+    rate_category = models.CharField(
+        max_length=20, choices=DrywallRateCategory.choices, null=True, blank=True
+    )
+
+    @property
+    def square_footage(self) -> int:
+        """
+        Returns calculated square footage of one sheet
+        """
+        return self.length_feet * 4
+
+    def __str__(self) -> str:
+        return f"{self.drywall_type} - {self.length_feet}"
+
+    class Meta:
+        constraints: ClassVar = [
+            models.UniqueConstraint(
+                fields=["drywall_type", "length_feet"],
+                name="unique_drywall_material_type_and_length",
+            )
+        ]
+
+
+class UnitManager(models.Manager["Unit"]):
+    def active(self):
+        """
+        Return the active unit, or None if there isn't one
+        """
+        try:
+            return self.get_queryset().get(status=self.model.Status.ACTIVE)
+        except self.model.DoesNotExist:
+            return None
 
 
 class Unit(models.Model):
@@ -180,6 +243,62 @@ class Unit(models.Model):
         return str(self.number)
 
 
+class UnitSheetCount(models.Model):
+    """
+    Number and type of sheets per unit
+    """
+
+    drywall_material = models.ForeignKey(
+        DrywallMaterial, on_delete=models.PROTECT, null=True, blank=True
+    )
+
+    class DrywallType(models.TextChoices):
+        REGULAR = "regular", "Regular"
+        DENS_GLASS = "dens glass", "Dens glass"
+        BLUE = "blue", "Blue"
+
+    class Length(models.IntegerChoices):
+        EIGHT = 8, "8 ft"
+        NINE = 9, "9 ft"
+        TEN = 10, "10 ft"
+        TWELVE = 12, "12 ft"
+
+    drywall_type = models.CharField(
+        max_length=20, choices=DrywallType.choices, null=True, blank=True
+    )
+    length = models.PositiveIntegerField(choices=Length.choices)
+    count = models.PositiveIntegerField()
+    unit = models.ForeignKey(Unit, on_delete=models.CASCADE)
+
+    @property
+    def square_footage(self) -> int:
+        """
+        Returns calculated square footage
+        """
+        return self.length * 4 * self.count
+
+    def __str__(self):
+        return f"{self.length}ft {self.drywall_type}"
+
+
+class ActivityManager(models.Manager):
+    def names(self):
+        """
+        Retrieve list of avaliable activity names.
+        """
+        return self.get_queryset().values_list("name", flat=True)
+
+
+class Activity(models.Model):
+    name = models.CharField(max_length=20, unique=True)
+    description = models.TextField(null=True, blank=True)
+
+    objects: ActivityManager = ActivityManager()
+
+    def __str__(self) -> str:
+        return str(self.name)
+
+
 class ActivityLogManager(models.Manager):
     def break_duration_today(self) -> dt.timedelta:
         """
@@ -247,104 +366,6 @@ class ActivityLog(models.Model):
 
     def __str__(self) -> str:
         return str(self.activity)
-
-
-class UnitSheetCount(models.Model):
-    """
-    Number and type of sheets per unit
-    """
-
-    class DrywallType(models.TextChoices):
-        REGULAR = "regular", "Regular"
-        DENS_GLASS = "dens glass", "Dens glass"
-        BLUE = "blue", "Blue"
-
-    class Length(models.IntegerChoices):
-        EIGHT = 8, "8 ft"
-        NINE = 9, "9 ft"
-        TEN = 10, "10 ft"
-        TWELVE = 12, "12 ft"
-
-    drywall_type = models.CharField(
-        max_length=20, choices=DrywallType.choices, null=True, blank=True
-    )
-    length = models.PositiveIntegerField(choices=Length.choices)
-    count = models.PositiveIntegerField()
-    unit = models.ForeignKey(Unit, on_delete=models.CASCADE)
-
-    @property
-    def square_footage(self) -> int:
-        """
-        Returns calculated square footage
-        """
-        return self.length * 4 * self.count
-
-    def __str__(self):
-        return f"{self.length}ft {self.drywall_type}"
-
-
-class PieceworkRate(models.Model):
-    class MeasurementUnit(models.TextChoices):
-        """
-        Unit used to measure and calculate payment
-        """
-
-        SQUARE_FOOT = "square_foot", "Square foot"
-        LINEAR_FOOT = "linear_foot", "Linear foot"
-        PIECE = "piece", "Piece"
-
-    class PayableItem(models.TextChoices):
-        DRYWALL = "drywall", "Drywall"
-        SPRINKLER = "sprinkler", "Sprinkler"
-        POTLIGHT = "potlight", "Potlight"
-        J_MOULD = "j_mould", "J mould"
-        INSULATION = "insulation", "Insulation"
-
-    class DrywallType(models.TextChoices):
-        """
-        Type of drywall which affects the payable rate.
-        Only used for drywall item
-        """
-
-        NOT_APPLICABLE = "not_applicable", "Not applicable"
-        STANDARD = "standard", "Standard"
-        TYPE_X = "type_x", "Type X"
-        TYPE_C = "type_c", "Type C"
-
-    measurement_unit = models.CharField(max_length=30, choices=MeasurementUnit.choices)
-    height = models.CharField(max_length=30, choices=HeightCategory.choices)
-    payable_item = models.CharField(max_length=30, choices=PayableItem.choices)
-    rate = models.DecimalField(max_digits=8, decimal_places=4)
-    included_quantity = models.PositiveSmallIntegerField(
-        default=0,
-        help_text="Item quantity which is not payable, like first 5 sprinklers",
-    )
-    """
-    Item quantity which is not payable, like first 5 sprinklers
-    """
-
-    drywall_type = models.CharField(max_length=30, choices=DrywallType.choices)
-    start_date = models.DateField(help_text="Date on which this rate starts")
-    end_date = models.DateField(help_text="Last date for this rate")
-
-    class Meta:
-        constraints: ClassVar = [
-            models.UniqueConstraint(
-                fields=[
-                    "payable_item",
-                    "drywall_type",
-                    "height",
-                    "start_date",
-                ],
-                name="unique_piecework_rate_start_date",
-            ),
-        ]
-
-    def payable_quantity(self, quantity: int) -> int:
-        """
-        Quantity of items that are payable
-        """
-        return max(0, quantity - self.included_quantity)
 
 
 class Note(models.Model):

@@ -17,6 +17,11 @@ tasks:
     cmds:
       - uv run python manage.py runserver
 
+  test:
+    desc: run django tests
+    cmds:
+      - uv run manage.py test
+
   makemigrations:
     desc: Create new Django database migrations
     cmds:

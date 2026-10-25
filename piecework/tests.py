@@ -1,7 +1,7 @@
 from django.db import IntegrityError, transaction
 from django.test import TestCase
 
-from .models import Activity, Unit, UnitSheetCount
+from .models import Activity, DrywallMaterial, Unit, UnitSheetCount
 
 
 class ActivityTests(TestCase):
@@ -99,3 +99,10 @@ class UnitSheetCountTests(TestCase):
         sheet_count = UnitSheetCount(length=12, count=10)
 
         self.assertEqual(sheet_count.square_footage, 480)
+
+
+class UnitDrywallMaterialTests(TestCase):
+    def test_square_footage_is_calculated_correctly(self):
+        material = DrywallMaterial(drywall_type="Regular", length_feet=12)
+
+        self.assertEqual(material.square_footage, 48)
