@@ -91,6 +91,8 @@ class DrywallMaterial(models.Model):
         REGULAR = "regular", "Regular"
         DENS_GLASS = "dens_glass", "Dens glass"
         BLUE = "blue", "Blue"
+        TYPE_X = "type_x", "Type X"
+        TYPE_C = "type_c", "Type C"
 
     class Length(models.IntegerChoices):
         EIGHT = 8, "8 ft"
@@ -161,6 +163,9 @@ class Unit(models.Model):
     started_on = models.DateField(null=True, blank=True)
     completed_on = models.DateField(null=True, blank=True)
 
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
+
     objects: UnitManager = UnitManager()
 
     class Meta:
@@ -200,6 +205,29 @@ class Unit(models.Model):
                 "drywall_material"
             )
         )
+
+    @property
+    def _pricing_date(self) -> dt.date:
+        pricing_date = self.completed_on or self.started_on
+
+        if pricing_date is None:
+            raise ValueError(
+                "The unit must have a start or completion date to determine pricing"
+            )
+        return pricing_date
+
+    @property
+    def drywall_price(self) -> Decimal:
+        """
+        Calculate the unit's drywall price using its height, applicable
+        rate period, and square footage in each drywall rate category.
+        """
+        # Determine the applicable rate period.
+        # Validate that the unit has a height and rate period.
+        # Calculate square footage grouped by material rate category.
+        # Retrieve the rate for each category, unit height, and rate period.
+        # Validate that every used category has exactly one rate.
+        # Return the sum of square footage × rate for every category.
 
     @property
     def total_price(self):
