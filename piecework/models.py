@@ -25,7 +25,6 @@ class HeightCategory(models.TextChoices):
     Height of the ceiling
     """
 
-    NOT_APPLICABLE = "not_applicable", "Not applicable"
     OVER_EIGHT_TO_NINE_INCLUSIVE = (
         "over_8_to_9_inclusive",
         "Over 8 ft up to and including 9 ft",
