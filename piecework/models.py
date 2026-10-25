@@ -52,10 +52,20 @@ class DrywallRateCategory(models.TextChoices):
     PREMIUM = "premium", "Premium"
 
 
+class RatePeriodManager(models.Manager):
+    def get_for_date(self, on_date: dt.date) -> RatePeriod:
+        """
+        Get rate period on specific date
+        """
+        return self.get(starts_on__lte=on_date, ends_on__gte=on_date)
+
+
 class RatePeriod(models.Model):
     name = models.CharField(max_length=30)
     starts_on = models.DateField()
     ends_on = models.DateField()
+
+    objects: RatePeriodManager = RatePeriodManager()
 
     class Meta:
         constraints: ClassVar = [
@@ -206,15 +216,29 @@ class Unit(models.Model):
             )
         )
 
-    @property
-    def _pricing_date(self) -> dt.date:
-        pricing_date = self.completed_on or self.started_on
+    def _get_pricing_date(self) -> dt.date:
+        """
+        Return the unit's pricing date.
 
-        if pricing_date is None:
-            raise ValueError(
-                "The unit must have a start or completion date to determine pricing"
-            )
-        return pricing_date
+        Prefer the completion date, then the start date, and finally the
+        record creation date so newly created units can have a provisional price.
+        """
+        if self.completed_on is not None:
+            return self.completed_on
+
+        if self.started_on is not None:
+            return self.started_on
+
+        if self.created_at is not None:
+            return self.created_at.date()
+
+        raise ValueError(
+            "The unit must be saved before its pricing date can be determined."
+        )
+
+    def _get_rate_period(self) -> RatePeriod:
+        pricing_date = self._get_pricing_date()
+        ...
 
     @property
     def drywall_price(self) -> Decimal:
