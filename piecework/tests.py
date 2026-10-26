@@ -9,9 +9,11 @@ from .models import (
     DrywallRate,
     DrywallRateCategory,
     HeightCategory,
+    JmouldRate,
     RatePeriod,
     Unit,
     UnitDrywallMaterial,
+    UnitJmouldCount,
     UnitSheetCount,
 )
 
@@ -29,6 +31,68 @@ class ActivityTests(TestCase):
 
 
 class UnitTests(TestCase):
+    @classmethod
+    def setUpTestData(cls) -> None:
+        cls.rate_period = RatePeriod.objects.create(
+            name="2025-2026",
+            starts_on=dt.date(2025, 5, 1),
+            ends_on=dt.date(2026, 4, 30),
+        )
+        cls.other_rate_period = RatePeriod.objects.create(
+            name="2026-2027",
+            starts_on=dt.date(2026, 5, 1),
+            ends_on=dt.date(2027, 4, 30),
+        )
+
+        cls.drywall_rate = DrywallRate.objects.create(
+            rate_period=cls.rate_period,
+            height=HeightCategory.OVER_EIGHT_TO_NINE_INCLUSIVE,
+            rate_category=DrywallRateCategory.STANDARD,
+            rate=Decimal("0.3520"),
+        )
+        JmouldRate.objects.create(
+            rate_period=cls.rate_period,
+            rate=Decimal("0.1250"),
+        )
+
+        # Rates that must not be selected for the default test unit.
+        DrywallRate.objects.create(
+            rate_period=cls.rate_period,
+            height=HeightCategory.OVER_EIGHT_TO_NINE_INCLUSIVE,
+            rate_category=DrywallRateCategory.PREMIUM,
+            rate=Decimal("0.4000"),
+        )
+        DrywallRate.objects.create(
+            rate_period=cls.rate_period,
+            height=HeightCategory.OVER_NINE_TO_TEN_INCLUSIVE,
+            rate_category=DrywallRateCategory.STANDARD,
+            rate=Decimal("0.3750"),
+        )
+        DrywallRate.objects.create(
+            rate_period=cls.other_rate_period,
+            height=HeightCategory.OVER_EIGHT_TO_NINE_INCLUSIVE,
+            rate_category=DrywallRateCategory.STANDARD,
+            rate=Decimal("0.3900"),
+        )
+
+        cls.twelve_foot_material = UnitDrywallMaterial.objects.get(
+            drywall_type=UnitDrywallMaterial.DrywallType.REGULAR,
+            length_feet=UnitDrywallMaterial.Length.TWELVE,
+        )
+        cls.eight_foot_material = UnitDrywallMaterial.objects.get(
+            drywall_type=UnitDrywallMaterial.DrywallType.REGULAR,
+            length_feet=UnitDrywallMaterial.Length.EIGHT,
+        )
+
+    def create_unit(self, number: str = "101", **kwargs) -> Unit:
+        defaults = {
+            "completed_on": dt.date(2025, 10, 25),
+            "height_feet": HeightCategory.OVER_EIGHT_TO_NINE_INCLUSIVE,
+        }
+        defaults.update(kwargs)
+
+        return Unit.objects.create(number=number, **defaults)
+
     def test_active_returns_active_unit(self):
         Unit.objects.create(
             number="101",
@@ -68,55 +132,51 @@ class UnitTests(TestCase):
     def test_total_unit_square_footage_calculates_correct(self):
         unit = Unit.objects.create(number="101")
 
-        twelve_foot_material = UnitDrywallMaterial.objects.get(
-            drywall_type=UnitDrywallMaterial.DrywallType.REGULAR,
-            length_feet=UnitDrywallMaterial.Length.TWELVE,
-        )
-        eight_foot_material = UnitDrywallMaterial.objects.get(
-            drywall_type=UnitDrywallMaterial.DrywallType.REGULAR,
-            length_feet=UnitDrywallMaterial.Length.EIGHT,
-        )
-
         UnitSheetCount.objects.create(
             unit=unit,
-            drywall_material=twelve_foot_material,
+            drywall_material=self.twelve_foot_material,
             count=10,
         )
         UnitSheetCount.objects.create(
             unit=unit,
-            drywall_material=eight_foot_material,
+            drywall_material=self.eight_foot_material,
             count=5,
         )
 
         self.assertEqual(unit.total_square_footage, 640)
 
-    def test_total_price_is_calculated(self):
-        rate_period = RatePeriod.objects.create(
-            name="2025-2026",
-            starts_on=dt.date(2025, 5, 1),
-            ends_on=dt.date(2026, 4, 30),
+    def test_drywall_price_is_calculated(self):
+        unit = self.create_unit()
+        UnitSheetCount.objects.create(
+            unit=unit,
+            drywall_material=self.twelve_foot_material,
+            count=10,
         )
-        DrywallRate.objects.create(
-            rate_period=rate_period,
-            height=HeightCategory.OVER_EIGHT_TO_NINE_INCLUSIVE,
-            rate_category=DrywallRateCategory.STANDARD,
-            rate=Decimal("0.3520"),
-        )
-
-        unit = Unit.objects.create(
-            number="101",
-            completed_on=dt.date(2025, 10, 25),
-            height_feet=HeightCategory.OVER_EIGHT_TO_NINE_INCLUSIVE,
-        )
-        material = UnitDrywallMaterial.objects.get(
-            drywall_type=UnitDrywallMaterial.DrywallType.REGULAR,
-            length_feet=UnitDrywallMaterial.Length.TWELVE,
-        )
-        UnitSheetCount.objects.create(unit=unit, drywall_material=material, count=10)
 
         # 12 ft × 4 ft × 10 sheets = 480 sq ft
         # 480 sq ft × $0.3520 = $168.96
         self.assertEqual(unit.drywall_price, Decimal("168.96"))
+
+    def test_jmould_price_is_calculated(self):
+        unit = self.create_unit()
+        UnitJmouldCount.objects.create(unit=unit, length_feet=8, count=2)
+        UnitJmouldCount.objects.create(unit=unit, length_feet=10, count=3)
+
+        # (8 ft × 2) + (10 ft × 3) = 46 linear ft
+        # 46 linear ft × $0.1250 = $5.75
+        self.assertEqual(unit.jmould_price, Decimal("5.75"))
+
+    def test_total_price_is_calculated(self):
+        unit = self.create_unit()
+        UnitSheetCount.objects.create(
+            unit=unit,
+            drywall_material=self.twelve_foot_material,
+            count=10,
+        )
+        UnitJmouldCount.objects.create(unit=unit, length_feet=8, count=2)
+        UnitJmouldCount.objects.create(unit=unit, length_feet=10, count=3)
+
+        self.assertEqual(unit.total_price, Decimal("174.71"))
 
     def test_mark_completed_updates_status(self):
         unit = Unit.objects.create(number="102", status=Unit.Status.ON_HOLD)
@@ -130,51 +190,9 @@ class UnitTests(TestCase):
         self.assertEqual(unit.completed_on, completed_on)
 
     def test_drywall_rate_returns_matching_standard_rate(self):
-        applicable_period = RatePeriod.objects.create(
-            name="2025-2026",
-            starts_on=dt.date(2025, 5, 1),
-            ends_on=dt.date(2026, 4, 30),
-        )
-        other_period = RatePeriod.objects.create(
-            name="2026-2027",
-            starts_on=dt.date(2026, 5, 1),
-            ends_on=dt.date(2027, 4, 30),
-        )
+        unit = self.create_unit(number="103")
 
-        expected_rate = DrywallRate.objects.create(
-            rate_period=applicable_period,
-            height=HeightCategory.OVER_EIGHT_TO_NINE_INCLUSIVE,
-            rate_category=DrywallRateCategory.STANDARD,
-            rate=Decimal("0.3520"),
-        )
-
-        # Rates that must not be selected.
-        DrywallRate.objects.create(
-            rate_period=applicable_period,
-            height=HeightCategory.OVER_EIGHT_TO_NINE_INCLUSIVE,
-            rate_category=DrywallRateCategory.PREMIUM,
-            rate=Decimal("0.4000"),
-        )
-        DrywallRate.objects.create(
-            rate_period=applicable_period,
-            height=HeightCategory.OVER_NINE_TO_TEN_INCLUSIVE,
-            rate_category=DrywallRateCategory.STANDARD,
-            rate=Decimal("0.3750"),
-        )
-        DrywallRate.objects.create(
-            rate_period=other_period,
-            height=HeightCategory.OVER_EIGHT_TO_NINE_INCLUSIVE,
-            rate_category=DrywallRateCategory.STANDARD,
-            rate=Decimal("0.3900"),
-        )
-
-        unit = Unit.objects.create(
-            number="103",
-            completed_on=dt.date(2025, 10, 25),
-            height_feet=HeightCategory.OVER_EIGHT_TO_NINE_INCLUSIVE,
-        )
-
-        self.assertEqual(unit.drywall_rate, expected_rate.rate)
+        self.assertEqual(unit.drywall_rate, self.drywall_rate.rate)
 
 
 class UnitSheetCountTests(TestCase):

@@ -112,6 +112,32 @@ class DrywallRate(models.Model):
     objects: DrywallRateManager = DrywallRateManager()
 
 
+class JmouldRateManager(models.Manager["JmouldRate"]):
+    def get_rate_value_for_period(self, rate_period: RatePeriod) -> Decimal:
+        """
+        Rate value per linear foot for the selected period
+        """
+        return self.get(rate_period=rate_period).rate
+
+
+class JmouldRate(models.Model):
+    """
+    Rate for Jmould per linear foot
+    """
+
+    rate = models.DecimalField(max_digits=8, decimal_places=4)
+    rate_period = models.ForeignKey(RatePeriod, on_delete=models.PROTECT)
+
+    objects: JmouldRateManager = JmouldRateManager()
+
+    class Meta:
+        constraints: ClassVar = [
+            models.UniqueConstraint(
+                fields=["rate_period"], name="unique_jmould_rate_per_period"
+            )
+        ]
+
+
 ## UNIT context
 
 UNIT_DRYWALL_RATE_CATEGORY = DrywallRateCategory.STANDARD
@@ -175,6 +201,7 @@ class UnitManager(models.Manager["Unit"]):
 class Unit(models.Model):
     if TYPE_CHECKING:
         unitsheetcount_set: models.Manager[UnitSheetCount]
+        unitjmouldcount_set: models.Manager[UnitJmouldCount]
         activitylog_set: models.Manager[ActivityLog]
 
     class Status(models.TextChoices):
@@ -241,6 +268,36 @@ class Unit(models.Model):
             )
         )
 
+    @property
+    def total_jmould_linear_feet(self) -> int:
+        """
+        Return the total linear feet of J-mould used in the unit.
+        """
+        return sum(
+            jmould_count.linear_feet for jmould_count in self.unitjmouldcount_set.all()
+        )
+
+    @property
+    def jmould_rate(self) -> Decimal:
+        """
+        Jmould rate applicable to this unit
+        """
+        return JmouldRate.objects.get_rate_value_for_period(
+            rate_period=self._get_rate_period()
+        )
+
+    @property
+    def jmould_price(self) -> Decimal:
+        """
+        Calculate the unit's j mould price
+        """
+        linear_feet = self.total_jmould_linear_feet
+
+        if linear_feet == 0:
+            return Decimal(0)
+
+        return linear_feet * self.jmould_rate
+
     def _get_pricing_date(self) -> dt.date:
         """
         Return the unit's pricing date.
@@ -290,14 +347,11 @@ class Unit(models.Model):
         return self.total_square_footage * self.drywall_rate
 
     @property
-    def jmould_price(self) -> Decimal: ...
-
-    @property
     def total_price(self):
         """
         Returns the total payable price for the unit
         """
-        total_price = self.drywall_price
+        total_price = self.drywall_price + self.jmould_price
         return total_price
 
     @property
@@ -386,6 +440,10 @@ class UnitJmouldCount(models.Model):
     length_feet = models.PositiveSmallIntegerField(choices=Length.choices)
     count = models.PositiveIntegerField()
     unit = models.ForeignKey(Unit, on_delete=models.CASCADE)
+
+    @property
+    def linear_feet(self) -> int:
+        return self.length_feet * self.count
 
 
 ## ACTIVITY context
