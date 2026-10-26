@@ -290,6 +290,9 @@ class Unit(models.Model):
         return self.total_square_footage * self.drywall_rate
 
     @property
+    def jmould_price(self) -> Decimal: ...
+
+    @property
     def total_price(self):
         """
         Returns the total payable price for the unit
@@ -373,6 +376,16 @@ class UnitSheetCount(models.Model):
 
     def __str__(self):
         return f"{self.drywall_material} {self.count}"
+
+
+class UnitJmouldCount(models.Model):
+    class Length(models.IntegerChoices):
+        EIGHT = 8, "8 ft"
+        TEN = 10, "10 ft"
+
+    length_feet = models.PositiveSmallIntegerField(choices=Length.choices)
+    count = models.PositiveIntegerField()
+    unit = models.ForeignKey(Unit, on_delete=models.CASCADE)
 
 
 ## ACTIVITY context
