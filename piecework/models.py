@@ -472,18 +472,19 @@ class Unit(models.Model):
         return duration if duration is not None else dt.timedelta(seconds=0)
 
     @property
-    def dollars_per_hour_of_boarding(self):
+    def dollars_per_hour_of_boarding(self) -> Decimal:
         """
-        Dollars per hour of boarding for the unit
+        Return boarding earnings per hour.
         """
-        return (
-            round(
-                self.total_price / self.total_boarding_duration.total_seconds() * 3600,
-                2,
-            )
-            if self.total_boarding_duration.total_seconds() > 0
-            else 0
-        )
+        duration = self.total_boarding_duration
+        seconds = duration.total_seconds()
+
+        if seconds <= 0:
+            return Decimal("0.00")
+
+        dollars_per_hour = self.total_price / Decimal(str(seconds)) * Decimal("3600")
+
+        return dollars_per_hour.quantize(Decimal("0.01"))
 
     @property
     def sheet_count(self):
