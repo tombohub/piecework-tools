@@ -285,21 +285,17 @@ class Unit(models.Model):
     def drywall_price(self) -> Decimal:
         """
         Calculate the unit's drywall price using its height, applicable
-        rate period, and square footage in each drywall rate category.
+        rate period, and square footage.
         """
-        # Determine the applicable rate period.
-        rate_period = self._get_rate_period()
-        # Calculate square footage grouped by material rate category.
-        # Retrieve the rate for each category, unit height, and rate period.
-        # Validate that every used category has exactly one rate.
-        # Return the sum of square footage × rate for every category.
+        return self.total_square_footage * self.drywall_rate
 
     @property
     def total_price(self):
         """
-        Total price to get paid for the unit
+        Returns the total payable price for the unit
         """
-        return round(self.total_square_footage * 0.352, 2)
+        total_price = self.drywall_price
+        return total_price
 
     @property
     def total_boarding_duration(self) -> dt.timedelta:

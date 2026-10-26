@@ -91,22 +91,32 @@ class UnitTests(TestCase):
         self.assertEqual(unit.total_square_footage, 640)
 
     def test_total_price_is_calculated(self):
-        unit = Unit.objects.create(number="101")
+        rate_period = RatePeriod.objects.create(
+            name="2025-2026",
+            starts_on=dt.date(2025, 5, 1),
+            ends_on=dt.date(2026, 4, 30),
+        )
+        DrywallRate.objects.create(
+            rate_period=rate_period,
+            height=HeightCategory.OVER_EIGHT_TO_NINE_INCLUSIVE,
+            rate_category=DrywallRateCategory.STANDARD,
+            rate=Decimal("0.3520"),
+        )
 
+        unit = Unit.objects.create(
+            number="101",
+            completed_on=dt.date(2025, 10, 25),
+            height_feet=HeightCategory.OVER_EIGHT_TO_NINE_INCLUSIVE,
+        )
         material = UnitDrywallMaterial.objects.get(
             drywall_type=UnitDrywallMaterial.DrywallType.REGULAR,
             length_feet=UnitDrywallMaterial.Length.TWELVE,
         )
+        UnitSheetCount.objects.create(unit=unit, drywall_material=material, count=10)
 
-        UnitSheetCount.objects.create(
-            unit=unit,
-            drywall_material=material,
-            count=10,
-        )
-
-        # 12 × 4 × 10 = 480 square feet
-        # 480 × 0.352 = 168.96
-        self.assertEqual(unit.total_price, 168.96)
+        # 12 ft × 4 ft × 10 sheets = 480 sq ft
+        # 480 sq ft × $0.3520 = $168.96
+        self.assertEqual(unit.drywall_price, Decimal("168.96"))
 
     def test_mark_completed_updates_status(self):
         unit = Unit.objects.create(number="102", status=Unit.Status.ON_HOLD)
