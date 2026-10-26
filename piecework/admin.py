@@ -7,8 +7,10 @@ from .models import (
     DrywallRate,
     JmouldRate,
     Note,
+    PotlightRate,
     Project,
     RatePeriod,
+    SprinklerRate,
     Unit,
     UnitDrywallMaterial,
     UnitJmouldCount,
@@ -74,3 +76,5 @@ class UnitDrywallMaterialAdmin(admin.ModelAdmin):
 admin.site.register(RatePeriod)
 admin.site.register(DrywallRate)
 admin.site.register(JmouldRate)
+admin.site.register(SprinklerRate)
+admin.site.register(PotlightRate)
