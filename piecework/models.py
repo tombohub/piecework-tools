@@ -138,6 +138,44 @@ class JmouldRate(models.Model):
         ]
 
 
+class SprinklerRateManager(models.Manager["SprinklerRate"]):
+    def get_for_period(self, rate_period: RatePeriod) -> SprinklerRate:
+        """
+        Return the sprinkler pricing configuration for a rate period.
+        """
+        return self.get(rate_period=rate_period)
+
+
+class SprinklerRate(models.Model):
+    """
+    Rate for sprinkler cut
+    """
+
+    rate = models.DecimalField(max_digits=8, decimal_places=4)
+    unpaid_quantity = models.PositiveSmallIntegerField(default=5)
+    rate_period = models.ForeignKey(RatePeriod, on_delete=models.PROTECT)
+
+    objects: SprinklerRateManager = SprinklerRateManager()
+
+    def price_for(self, quantity: int) -> Decimal:
+        """
+        Calculate the price after excluding the unpaid quantity.
+        """
+        payable_quantity = max(
+            quantity - self.unpaid_quantity,
+            0,
+        )
+
+        return Decimal(payable_quantity) * self.rate
+
+    class Meta:
+        constraints: ClassVar = [
+            models.UniqueConstraint(
+                fields=["rate_period"], name="unique_sprinkler_rate_per_period"
+            )
+        ]
+
+
 ## UNIT context
 
 UNIT_DRYWALL_RATE_CATEGORY = DrywallRateCategory.STANDARD

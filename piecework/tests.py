@@ -2,7 +2,7 @@ import datetime as dt
 from decimal import Decimal
 
 from django.db import IntegrityError, transaction
-from django.test import TestCase
+from django.test import SimpleTestCase, TestCase
 
 from .models import (
     Activity,
@@ -11,6 +11,7 @@ from .models import (
     HeightCategory,
     JmouldRate,
     RatePeriod,
+    SprinklerRate,
     Unit,
     UnitDrywallMaterial,
     UnitJmouldCount,
@@ -211,6 +212,28 @@ class UnitDrywallMaterialTests(TestCase):
         material = UnitDrywallMaterial(drywall_type="Regular", length_feet=12)
 
         self.assertEqual(material.square_footage, 48)
+
+
+class SprinklerRateTests(SimpleTestCase):
+    def setUp(self) -> None:
+        self.sprinkler_rate = SprinklerRate(
+            rate=Decimal("1.2500"),
+            unpaid_quantity=5,
+        )
+
+    def test_price_for_excludes_unpaid_quantity(self):
+        result = self.sprinkler_rate.price_for(8)
+
+        # 8 total - 5 unpaid = 3 payable
+        # 3 x $1.25 = $3.75
+        self.assertEqual(result, Decimal("3.75"))
+
+    def test_price_for_returns_zero_at_or_below_unpaid_quantity(self):
+        for quantity in (0, 3, 5):
+            with self.subTest(quantity=quantity):
+                result = self.sprinkler_rate.price_for(quantity)
+
+                self.assertEqual(result, Decimal(0))
 
 
 class RatePeriodTests(TestCase):
