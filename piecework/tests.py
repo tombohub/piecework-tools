@@ -10,6 +10,7 @@ from .models import (
     DrywallRateCategory,
     HeightCategory,
     JmouldRate,
+    PotlightRate,
     RatePeriod,
     SprinklerRate,
     Unit,
@@ -232,6 +233,28 @@ class SprinklerRateTests(SimpleTestCase):
         for quantity in (0, 3, 5):
             with self.subTest(quantity=quantity):
                 result = self.sprinkler_rate.price_for(quantity)
+
+                self.assertEqual(result, Decimal(0))
+
+
+class PotlightRateTests(SimpleTestCase):
+    def setUp(self) -> None:
+        self.potlight_rate = PotlightRate(
+            rate=Decimal("1.5000"),
+            unpaid_quantity=5,
+        )
+
+    def test_price_for_excludes_unpaid_quantity(self):
+        result = self.potlight_rate.price_for(8)
+
+        # 8 total - 5 unpaid = 3 payable
+        # 3 x $1.50 = $4.50
+        self.assertEqual(result, Decimal("4.50"))
+
+    def test_price_for_returns_zero_at_or_below_unpaid_quantity(self):
+        for quantity in (0, 3, 5):
+            with self.subTest(quantity=quantity):
+                result = self.potlight_rate.price_for(quantity)
 
                 self.assertEqual(result, Decimal(0))
 

@@ -176,6 +176,44 @@ class SprinklerRate(models.Model):
         ]
 
 
+class PotlightRateManager(models.Manager["PotlightRate"]):
+    def get_for_period(self, rate_period: RatePeriod) -> PotlightRate:
+        """
+        Return the potlight pricing configuration for a rate period.
+        """
+        return self.get(rate_period=rate_period)
+
+
+class PotlightRate(models.Model):
+    """
+    Rate for a potlight cutout.
+    """
+
+    rate = models.DecimalField(max_digits=8, decimal_places=4)
+    unpaid_quantity = models.PositiveSmallIntegerField(default=5)
+    rate_period = models.ForeignKey(RatePeriod, on_delete=models.PROTECT)
+
+    objects: PotlightRateManager = PotlightRateManager()
+
+    def price_for(self, quantity: int) -> Decimal:
+        """
+        Calculate the price after excluding the unpaid quantity.
+        """
+        payable_quantity = max(
+            quantity - self.unpaid_quantity,
+            0,
+        )
+
+        return Decimal(payable_quantity) * self.rate
+
+    class Meta:
+        constraints: ClassVar = [
+            models.UniqueConstraint(
+                fields=["rate_period"], name="unique_potlight_rate_per_period"
+            )
+        ]
+
+
 ## UNIT context
 
 UNIT_DRYWALL_RATE_CATEGORY = DrywallRateCategory.STANDARD
