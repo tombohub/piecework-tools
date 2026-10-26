@@ -56,6 +56,16 @@ class UnitTests(TestCase):
             rate_period=cls.rate_period,
             rate=Decimal("0.1250"),
         )
+        SprinklerRate.objects.create(
+            rate_period=cls.rate_period,
+            rate=Decimal("1.2500"),
+            unpaid_quantity=5,
+        )
+        PotlightRate.objects.create(
+            rate_period=cls.rate_period,
+            rate=Decimal("1.5000"),
+            unpaid_quantity=5,
+        )
 
         # Rates that must not be selected for the default test unit.
         DrywallRate.objects.create(
@@ -168,8 +178,25 @@ class UnitTests(TestCase):
         # 46 linear ft × $0.1250 = $5.75
         self.assertEqual(unit.jmould_price, Decimal("5.75"))
 
+    def test_sprinkler_price_is_calculated(self):
+        unit = self.create_unit(sprinklers_count=8)
+
+        # 8 total - 5 unpaid = 3 payable
+        # 3 x $1.25 = $3.75
+        self.assertEqual(unit.sprinkler_price, Decimal("3.75"))
+
+    def test_potlight_price_is_calculated(self):
+        unit = self.create_unit(potlights_count=8)
+
+        # 8 total - 5 unpaid = 3 payable
+        # 3 x $1.50 = $4.50
+        self.assertEqual(unit.potlight_price, Decimal("4.50"))
+
     def test_total_price_is_calculated(self):
-        unit = self.create_unit()
+        unit = self.create_unit(
+            sprinklers_count=8,
+            potlights_count=8,
+        )
         UnitSheetCount.objects.create(
             unit=unit,
             drywall_material=self.twelve_foot_material,
@@ -178,7 +205,9 @@ class UnitTests(TestCase):
         UnitJmouldCount.objects.create(unit=unit, length_feet=8, count=2)
         UnitJmouldCount.objects.create(unit=unit, length_feet=10, count=3)
 
-        self.assertEqual(unit.total_price, Decimal("174.71"))
+        # $168.96 drywall + $5.75 J-mould + $3.75 sprinklers
+        # + $4.50 potlights = $182.96
+        self.assertEqual(unit.total_price, Decimal("182.96"))
 
     def test_mark_completed_updates_status(self):
         unit = Unit.objects.create(number="102", status=Unit.Status.ON_HOLD)

@@ -423,11 +423,42 @@ class Unit(models.Model):
         return self.total_square_footage * self.drywall_rate
 
     @property
-    def total_price(self):
+    def sprinkler_price(self) -> Decimal:
+        """
+        Calculate the price of payable sprinkler cutouts in the unit.
+        """
+        quantity = self.sprinklers_count or 0
+
+        if quantity == 0:
+            return Decimal(0)
+
+        rate = SprinklerRate.objects.get_for_period(self._get_rate_period())
+        return rate.price_for(quantity)
+
+    @property
+    def potlight_price(self) -> Decimal:
+        """
+        Calculate the price of payable potlight cutouts in the unit.
+        """
+        quantity = self.potlights_count or 0
+
+        if quantity == 0:
+            return Decimal(0)
+
+        rate = PotlightRate.objects.get_for_period(self._get_rate_period())
+        return rate.price_for(quantity)
+
+    @property
+    def total_price(self) -> Decimal:
         """
         Returns the total payable price for the unit
         """
-        total_price = self.drywall_price + self.jmould_price
+        total_price = (
+            self.drywall_price
+            + self.jmould_price
+            + self.sprinkler_price
+            + self.potlight_price
+        )
         return total_price
 
     @property
