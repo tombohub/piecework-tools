@@ -1,3 +1,5 @@
+from math import ceil
+
 from django.contrib import admin
 from django.http.request import HttpRequest
 
@@ -34,6 +36,13 @@ class UnitJmouldCountInline(admin.TabularInline):
 class UnitInsulationCountInline(admin.TabularInline):
     model = UnitInsulationCount
     extra = 2
+    readonly_fields = ["calculated_square_footage"]
+
+    @admin.display(description="Square footage")
+    def calculated_square_footage(self, obj):
+        if obj is None or not obj.insulation_material_id or not obj.count:
+            return "-"
+        return ceil(obj.square_footage)
 
 
 @admin.register(Project)
