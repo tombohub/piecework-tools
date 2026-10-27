@@ -610,14 +610,13 @@ class Unit(models.Model):
         """
         Total number of sheets in the unit
         """
-        return (
-            round(
-                self.sheet_count / self.total_boarding_duration.total_seconds() * 3600,
-                2,
-            )
-            if self.total_boarding_duration.total_seconds() > 0
-            else 0
-        )
+        duration = self.total_boarding_duration
+        seconds = duration.total_seconds()
+
+        if seconds <= 0:
+            return 0
+
+        return round(self.sheet_count / seconds * 3600, 2)
 
     @property
     def rate_per_sqft(self): ...

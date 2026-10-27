@@ -65,6 +65,13 @@ class UnitAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request: HttpRequest):
         qs = super().get_queryset(request)
+
+        change_url_name = f"{self.opts.app_label}_{self.opts.model_name}_change"
+        url_name = getattr(request.resolver_match, "url_name", None)
+
+        if url_name != change_url_name:
+            return qs
+
         return qs.prefetch_related(
             "unitsheetcount_set",
             "unitjmouldcount_set",
