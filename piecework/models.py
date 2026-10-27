@@ -317,10 +317,7 @@ class UnitInsulationMaterial(models.Model):
 
     def __str__(self) -> str:
         thickness_label = self.Thickness(self.thickness_inches).label
-        return (
-            f"{thickness_label} - "
-            f'{self.width_inches}" × {self.length_inches}"'
-        )
+        return f'{thickness_label} - {self.width_inches}" × {self.length_inches}"'
 
     class Meta:
         constraints: ClassVar = [
@@ -349,6 +346,7 @@ class UnitManager(models.Manager["Unit"]):
 class Unit(models.Model):
     if TYPE_CHECKING:
         unitsheetcount_set: models.Manager[UnitSheetCount]
+        unitinsulationcount_set: models.Manager[UnitInsulationCount]
         unitjmouldcount_set: models.Manager[UnitJmouldCount]
         activitylog_set: models.Manager[ActivityLog]
 
@@ -521,6 +519,42 @@ class Unit(models.Model):
         return rate.price_for(quantity)
 
     @property
+    def total_insulation_square_footage(self) -> Decimal:
+        """
+        Return the total square footage of insulation installed in the unit.
+        """
+        return sum(
+            (
+                insulation_count.square_footage
+                for insulation_count in self.unitinsulationcount_set.select_related(
+                    "insulation_material"
+                )
+            ),
+            start=Decimal(0),
+        )
+
+    @property
+    def insulation_rate(self) -> Decimal:
+        """
+        Return the insulation rate applicable to this unit.
+        """
+        return InsulationRate.objects.get_rate_value_for_period(
+            rate_period=self._get_rate_period()
+        )
+
+    @property
+    def insulation_price(self) -> Decimal:
+        """
+        Calculate the unit's insulation price.
+        """
+        square_footage = self.total_insulation_square_footage
+
+        if square_footage == 0:
+            return Decimal(0)
+
+        return square_footage * self.insulation_rate
+
+    @property
     def total_price(self) -> Decimal:
         """
         Returns the total payable price for the unit
@@ -530,6 +564,7 @@ class Unit(models.Model):
             + self.jmould_price
             + self.sprinkler_price
             + self.potlight_price
+            + self.insulation_price
         )
         return total_price
 
@@ -624,6 +659,29 @@ class UnitJmouldCount(models.Model):
     @property
     def linear_feet(self) -> int:
         return self.length_feet * self.count
+
+
+class UnitInsulationCount(models.Model):
+    """
+    Number of pieces of a particular insulation material used in a unit.
+    """
+
+    insulation_material = models.ForeignKey(
+        UnitInsulationMaterial,
+        on_delete=models.PROTECT,
+    )
+    count = models.PositiveIntegerField()
+    unit = models.ForeignKey(Unit, on_delete=models.CASCADE)
+
+    @property
+    def square_footage(self) -> Decimal:
+        """
+        Return the total insulation area represented by this count.
+        """
+        return self.insulation_material.square_footage * self.count
+
+    def __str__(self) -> str:
+        return f"{self.insulation_material} × {self.count}"
 
 
 ## ACTIVITY context

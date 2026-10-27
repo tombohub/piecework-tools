@@ -17,6 +17,7 @@ from .models import (
     SprinklerRate,
     Unit,
     UnitDrywallMaterial,
+    UnitInsulationCount,
     UnitInsulationMaterial,
     UnitJmouldCount,
     UnitSheetCount,
@@ -69,6 +70,10 @@ class UnitTests(TestCase):
             rate=Decimal("1.5000"),
             unpaid_quantity=5,
         )
+        InsulationRate.objects.create(
+            rate_period=cls.rate_period,
+            rate=Decimal("0.1850"),
+        )
 
         # Rates that must not be selected for the default test unit.
         DrywallRate.objects.create(
@@ -97,6 +102,13 @@ class UnitTests(TestCase):
         cls.eight_foot_material = UnitDrywallMaterial.objects.get(
             drywall_type=UnitDrywallMaterial.DrywallType.REGULAR,
             length_feet=UnitDrywallMaterial.Length.EIGHT,
+        )
+        cls.insulation_material = UnitInsulationMaterial.objects.create(
+            thickness_inches=(
+                UnitInsulationMaterial.Thickness.THREE_AND_FIVE_EIGHTHS
+            ),
+            width_inches=24,
+            length_inches=48,
         )
 
     def create_unit(self, number: str = "101", **kwargs) -> Unit:
@@ -195,6 +207,29 @@ class UnitTests(TestCase):
         # 3 x $1.50 = $4.50
         self.assertEqual(unit.potlight_price, Decimal("4.50"))
 
+    def test_total_insulation_square_footage_is_calculated(self):
+        unit = self.create_unit()
+        UnitInsulationCount.objects.create(
+            unit=unit,
+            insulation_material=self.insulation_material,
+            count=2,
+        )
+
+        # 24 in × 48 in = 8 sq ft per piece
+        # 8 sq ft × 2 pieces = 16 sq ft
+        self.assertEqual(unit.total_insulation_square_footage, Decimal("16"))
+
+    def test_insulation_price_is_calculated(self):
+        unit = self.create_unit()
+        UnitInsulationCount.objects.create(
+            unit=unit,
+            insulation_material=self.insulation_material,
+            count=2,
+        )
+
+        # 16 sq ft × $0.1850 = $2.96
+        self.assertEqual(unit.insulation_price, Decimal("2.9600"))
+
     def test_total_price_is_calculated(self):
         unit = self.create_unit(
             sprinklers_count=8,
@@ -207,10 +242,15 @@ class UnitTests(TestCase):
         )
         UnitJmouldCount.objects.create(unit=unit, length_feet=8, count=2)
         UnitJmouldCount.objects.create(unit=unit, length_feet=10, count=3)
+        UnitInsulationCount.objects.create(
+            unit=unit,
+            insulation_material=self.insulation_material,
+            count=2,
+        )
 
         # $168.96 drywall + $5.75 J-mould + $3.75 sprinklers
-        # + $4.50 potlights = $182.96
-        self.assertEqual(unit.total_price, Decimal("182.96"))
+        # + $4.50 potlights + $2.96 insulation = $185.92
+        self.assertEqual(unit.total_price, Decimal("185.92"))
 
     def test_mark_completed_updates_status(self):
         unit = Unit.objects.create(number="102", status=Unit.Status.ON_HOLD)
@@ -406,3 +446,18 @@ class UnitInsulationMaterialTests(TestCase):
 
         with self.assertRaises(ValidationError):
             material.full_clean()
+
+
+class UnitInsulationCountTests(SimpleTestCase):
+    def test_square_footage_multiplies_material_area_by_count(self):
+        material = UnitInsulationMaterial(
+            thickness_inches=UnitInsulationMaterial.Thickness.ONE_AND_FIVE_EIGHTHS,
+            width_inches=24,
+            length_inches=48,
+        )
+        insulation_count = UnitInsulationCount(
+            insulation_material=material,
+            count=3,
+        )
+
+        self.assertEqual(insulation_count.square_footage, Decimal("24"))

@@ -14,6 +14,7 @@ from .models import (
     SprinklerRate,
     Unit,
     UnitDrywallMaterial,
+    UnitInsulationCount,
     UnitInsulationMaterial,
     UnitJmouldCount,
     UnitSheetCount,
@@ -30,13 +31,19 @@ class UnitJmouldCountInline(admin.TabularInline):
     extra = 2
 
 
+class UnitInsulationCountInline(admin.TabularInline):
+    model = UnitInsulationCount
+    extra = 2
+
+
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
     pass
 
 
 class UnitAdmin(admin.ModelAdmin):
-    inlines = [UnitSheetCountInline, UnitJmouldCountInline]
+    inlines = [UnitSheetCountInline, UnitJmouldCountInline, UnitInsulationCountInline]
+
     list_display = ["number"]
     readonly_fields = [
         "total_square_footage",
@@ -49,7 +56,11 @@ class UnitAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request: HttpRequest):
         qs = super().get_queryset(request)
-        return qs.prefetch_related("unitsheetcount_set", "unitjmouldcount_set")
+        return qs.prefetch_related(
+            "unitsheetcount_set",
+            "unitjmouldcount_set",
+            "unitinsulationcount_set",
+        )
 
 
 admin.site.register(Unit, UnitAdmin)
