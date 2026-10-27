@@ -5,6 +5,7 @@ from .models import (
     Activity,
     ActivityLog,
     DrywallRate,
+    InsulationRate,
     JmouldRate,
     Note,
     PotlightRate,
@@ -13,6 +14,7 @@ from .models import (
     SprinklerRate,
     Unit,
     UnitDrywallMaterial,
+    UnitInsulationMaterial,
     UnitJmouldCount,
     UnitSheetCount,
 )
@@ -78,3 +80,5 @@ admin.site.register(DrywallRate)
 admin.site.register(JmouldRate)
 admin.site.register(SprinklerRate)
 admin.site.register(PotlightRate)
+admin.site.register(InsulationRate)
+admin.site.register(UnitInsulationMaterial)

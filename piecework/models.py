@@ -214,6 +214,33 @@ class PotlightRate(models.Model):
         ]
 
 
+class InsulationRateManager(models.Manager["InsulationRate"]):
+    def get_rate_value_for_period(self, rate_period: RatePeriod) -> Decimal:
+        """
+        Return the insulation rate per square foot for the selected period.
+        """
+        return self.get(rate_period=rate_period).rate
+
+
+class InsulationRate(models.Model):
+    """
+    Rate for insulation per square foot.
+    """
+
+    rate = models.DecimalField(max_digits=8, decimal_places=4)
+    rate_period = models.ForeignKey(RatePeriod, on_delete=models.PROTECT)
+
+    objects: InsulationRateManager = InsulationRateManager()
+
+    class Meta:
+        constraints: ClassVar = [
+            models.UniqueConstraint(
+                fields=["rate_period"],
+                name="unique_insulation_rate_per_period",
+            )
+        ]
+
+
 ## UNIT context
 
 UNIT_DRYWALL_RATE_CATEGORY = DrywallRateCategory.STANDARD
@@ -260,6 +287,51 @@ class UnitDrywallMaterial(models.Model):
                 fields=["drywall_type", "length_feet"],
                 name="unique_drywall_material_type_and_length",
             )
+        ]
+
+
+class UnitInsulationMaterial(models.Model):
+    """
+    Definition of insulation material used in units.
+    """
+
+    class Thickness(models.TextChoices):
+        ONE_AND_FIVE_EIGHTHS = "1_5_8", "1 5/8 inches"
+        TWO_AND_ONE_HALF = "2_1_2", "2 1/2 inches"
+        THREE_AND_FIVE_EIGHTHS = "3_5_8", "3 5/8 inches"
+
+    thickness_inches = models.CharField(
+        max_length=5,
+        choices=Thickness.choices,
+    )
+    width_inches = models.PositiveSmallIntegerField()
+    length_inches = models.PositiveSmallIntegerField()
+
+    @property
+    def square_footage(self) -> Decimal:
+        """
+        Return the area of one insulation piece in square feet.
+        """
+        square_inches = Decimal(self.width_inches) * Decimal(self.length_inches)
+        return square_inches / Decimal(144)
+
+    def __str__(self) -> str:
+        thickness_label = self.Thickness(self.thickness_inches).label
+        return (
+            f"{thickness_label} - "
+            f'{self.width_inches}" × {self.length_inches}"'
+        )
+
+    class Meta:
+        constraints: ClassVar = [
+            models.UniqueConstraint(
+                fields=[
+                    "thickness_inches",
+                    "width_inches",
+                    "length_inches",
+                ],
+                name="unique_insulation_material_dimensions",
+            ),
         ]
 
 

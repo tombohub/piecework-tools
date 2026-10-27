@@ -1,6 +1,7 @@
 import datetime as dt
 from decimal import Decimal
 
+from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.test import SimpleTestCase, TestCase
 
@@ -9,12 +10,14 @@ from .models import (
     DrywallRate,
     DrywallRateCategory,
     HeightCategory,
+    InsulationRate,
     JmouldRate,
     PotlightRate,
     RatePeriod,
     SprinklerRate,
     Unit,
     UnitDrywallMaterial,
+    UnitInsulationMaterial,
     UnitJmouldCount,
     UnitSheetCount,
 )
@@ -322,3 +325,84 @@ class RatePeriodTests(TestCase):
 
         with self.assertRaises(RatePeriod.MultipleObjectsReturned):
             RatePeriod.objects.get_for_date(dt.date(2025, 10, 25))
+
+
+class InsulationRateTests(TestCase):
+    def test_get_rate_value_for_period_returns_matching_rate(self):
+        rate_period = RatePeriod.objects.create(
+            name="2025-2026",
+            starts_on=dt.date(2025, 5, 1),
+            ends_on=dt.date(2026, 4, 30),
+        )
+        InsulationRate.objects.create(
+            rate_period=rate_period,
+            rate=Decimal("0.1850"),
+        )
+
+        result = InsulationRate.objects.get_rate_value_for_period(rate_period)
+
+        self.assertEqual(result, Decimal("0.1850"))
+
+
+class UnitInsulationMaterialTests(TestCase):
+    def test_square_footage_is_calculated_from_width_and_length(self):
+        material = UnitInsulationMaterial(
+            thickness_inches=UnitInsulationMaterial.Thickness.THREE_AND_FIVE_EIGHTHS,
+            width_inches=24,
+            length_inches=48,
+        )
+
+        # 24 in × 48 in = 1,152 sq in
+        # 1,152 ÷ 144 = 8 sq ft
+        self.assertEqual(material.square_footage, Decimal("8"))
+
+    def test_dimensions_must_be_unique(self):
+        dimensions = {
+            "thickness_inches": (
+                UnitInsulationMaterial.Thickness.THREE_AND_FIVE_EIGHTHS
+            ),
+            "width_inches": 24,
+            "length_inches": 48,
+        }
+        UnitInsulationMaterial.objects.create(**dimensions)
+
+        with self.assertRaises(IntegrityError), transaction.atomic():
+            UnitInsulationMaterial.objects.create(**dimensions)
+
+    def test_same_width_and_length_allow_different_thickness(self):
+        UnitInsulationMaterial.objects.create(
+            thickness_inches=UnitInsulationMaterial.Thickness.THREE_AND_FIVE_EIGHTHS,
+            width_inches=24,
+            length_inches=48,
+        )
+
+        material = UnitInsulationMaterial.objects.create(
+            thickness_inches=UnitInsulationMaterial.Thickness.TWO_AND_ONE_HALF,
+            width_inches=24,
+            length_inches=48,
+        )
+
+        self.assertEqual(
+            material.thickness_inches,
+            UnitInsulationMaterial.Thickness.TWO_AND_ONE_HALF,
+        )
+
+    def test_thickness_has_expected_choices(self):
+        self.assertEqual(
+            UnitInsulationMaterial.Thickness.choices,
+            [
+                ("1_5_8", "1 5/8 inches"),
+                ("2_1_2", "2 1/2 inches"),
+                ("3_5_8", "3 5/8 inches"),
+            ],
+        )
+
+    def test_thickness_must_be_one_of_the_choices(self):
+        material = UnitInsulationMaterial(
+            thickness_inches="unsupported",
+            width_inches=24,
+            length_inches=48,
+        )
+
+        with self.assertRaises(ValidationError):
+            material.full_clean()
