@@ -63,6 +63,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "debug_toolbar.middleware.DebugToolbarMiddleware",
+    "pyinstrument.middleware.ProfilerMiddleware",
 ]
 
 ROOT_URLCONF = "tomo.urls"
