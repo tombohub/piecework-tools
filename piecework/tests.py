@@ -4,9 +4,11 @@ from decimal import Decimal
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.test import SimpleTestCase, TestCase
+from django.urls import reverse
 
 from .models import (
     Activity,
+    ActivityLog,
     DrywallRate,
     DrywallRateCategory,
     HeightCategory,
@@ -22,6 +24,37 @@ from .models import (
     UnitJmouldCount,
     UnitSheetCount,
 )
+
+
+class HomeViewTests(TestCase):
+    def test_home_displays_active_unit_without_unit_selector(self):
+        active_unit = Unit.objects.create(number="101", status=Unit.Status.ACTIVE)
+
+        response = self.client.get(reverse("piecework:home"))
+
+        self.assertContains(response, f"Active unit: <strong>{active_unit}</strong>")
+        self.assertNotContains(response, 'name="unit_pk"')
+
+    def test_home_displays_message_and_disables_actions_without_active_unit(self):
+        Activity.objects.create(name="board")
+
+        response = self.client.get(reverse("piecework:home"))
+
+        self.assertContains(response, "No active unit.")
+        self.assertContains(response, "disabled")
+
+    def test_start_activity_uses_active_unit(self):
+        activity = Activity.objects.create(name="board")
+        active_unit = Unit.objects.create(number="101", status=Unit.Status.ACTIVE)
+        Unit.objects.create(number="102", status=Unit.Status.ON_HOLD)
+
+        response = self.client.get(
+            reverse("piecework:start-activity"),
+            {"action": activity.name},
+        )
+
+        self.assertRedirects(response, reverse("piecework:home"))
+        self.assertEqual(ActivityLog.objects.get().unit, active_unit)
 
 
 class ActivityTests(TestCase):

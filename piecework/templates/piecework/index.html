@@ -3,6 +3,15 @@
 {% block body %}
 <div class="container pt-4">
   <div class="pt-2 v-stack gap-2">
+    {% if active_unit %}
+    <div class="alert alert-success mb-0" role="status">
+      Active unit: <strong>{{ active_unit }}</strong>
+    </div>
+    {% else %}
+    <div class="alert alert-warning mb-0" role="status">
+      No active unit. Set a unit to active in the admin before starting an activity.
+    </div>
+    {% endif %}
 
     {% if current_activity_log %}
     <div>
@@ -30,13 +39,16 @@
   <div class="vstack gap-4 pt-2">
     <form action="{% url 'piecework:start-activity' %}">
       <div class="vstack gap-3">
-        <select name="unit_pk" class="form-select">
-          <option value="{{ active_unit.pk }}">{{ active_unit }}</option>
-          {% url 'piecework:start-activity' %}
-        </select>
         {# buttons for starting an action #}
         {% for name in activity_names %}
-        <button class="btn btn-lg btn-dark" name="action" value="{{ name }}">{{ name|capfirst }}</button>
+        <button
+          class="btn btn-lg btn-dark"
+          name="action"
+          value="{{ name }}"
+          {% if not active_unit %}disabled{% endif %}
+        >
+          {{ name|capfirst }}
+        </button>
         {% endfor %}
       </div>
     </form>

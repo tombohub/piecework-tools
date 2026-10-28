@@ -36,13 +36,12 @@ def start_activity(request):
     """
     Starts the new activity.
     """
+    unit = get_object_or_404(Unit, status=Unit.Status.ACTIVE)
     end_current_activity()
 
     now = dt.datetime.now()
     activity_name = request.GET["action"]
     activity = Activity.objects.get(name=activity_name)
-    unit_pk = request.GET["unit_pk"]
-    unit = get_object_or_404(Unit, pk=unit_pk)
 
     action_time = ActivityLog(activity=activity, start=now, unit=unit)
     action_time.save()
