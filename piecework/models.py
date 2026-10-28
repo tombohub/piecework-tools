@@ -111,6 +111,9 @@ class DrywallRate(models.Model):
 
     objects: DrywallRateManager = DrywallRateManager()
 
+    def __str__(self) -> str:
+        return f"{self.rate_period} - {self.rate}"
+
 
 class JmouldRateManager(models.Manager["JmouldRate"]):
     def get_rate_value_for_period(self, rate_period: RatePeriod) -> Decimal:
@@ -129,6 +132,9 @@ class JmouldRate(models.Model):
     rate_period = models.ForeignKey(RatePeriod, on_delete=models.PROTECT)
 
     objects: JmouldRateManager = JmouldRateManager()
+
+    def __str__(self) -> str:
+        return f"{self.rate_period} - J-mould: {self.rate} per linear ft"
 
     class Meta:
         constraints: ClassVar = [
@@ -168,6 +174,12 @@ class SprinklerRate(models.Model):
 
         return Decimal(payable_quantity) * self.rate
 
+    def __str__(self) -> str:
+        return (
+            f"{self.rate_period} - Sprinkler: {self.rate} "
+            f"({self.unpaid_quantity} unpaid)"
+        )
+
     class Meta:
         constraints: ClassVar = [
             models.UniqueConstraint(
@@ -206,6 +218,12 @@ class PotlightRate(models.Model):
 
         return Decimal(payable_quantity) * self.rate
 
+    def __str__(self) -> str:
+        return (
+            f"{self.rate_period} - Potlight: {self.rate} "
+            f"({self.unpaid_quantity} unpaid)"
+        )
+
     class Meta:
         constraints: ClassVar = [
             models.UniqueConstraint(
@@ -231,6 +249,9 @@ class InsulationRate(models.Model):
     rate_period = models.ForeignKey(RatePeriod, on_delete=models.PROTECT)
 
     objects: InsulationRateManager = InsulationRateManager()
+
+    def __str__(self) -> str:
+        return f"{self.rate_period} - Insulation: {self.rate} per sq ft"
 
     class Meta:
         constraints: ClassVar = [
@@ -658,6 +679,9 @@ class UnitJmouldCount(models.Model):
     @property
     def linear_feet(self) -> int:
         return self.length_feet * self.count
+
+    def __str__(self) -> str:
+        return f"{self.unit} - {self.count} × {self.get_length_feet_display()} J-mould"
 
 
 class UnitInsulationCount(models.Model):
