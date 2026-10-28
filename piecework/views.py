@@ -11,7 +11,7 @@ from .models import Activity, ActivityLog, Note, Unit
 def index(request):
     activity_names = Activity.objects.names()
     current_activity_log = ActivityLog.objects.current()
-    active_unit = Unit.objects.active()
+    active_unit = Unit.objects.active_unit()
     # NOTE: magic string
     boarding_duration_today = ActivityLog.objects.boarding_duration_today()
     break_duration_today = ActivityLog.objects.break_duration_today()

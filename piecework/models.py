@@ -354,7 +354,7 @@ class UnitInsulationMaterial(models.Model):
 
 
 class UnitManager(models.Manager["Unit"]):
-    def active(self):
+    def active_unit(self):
         """
         Return the active unit, or None if there isn't one
         """

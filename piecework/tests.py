@@ -104,9 +104,7 @@ class UnitTests(TestCase):
             length_feet=UnitDrywallMaterial.Length.EIGHT,
         )
         cls.insulation_material = UnitInsulationMaterial.objects.create(
-            thickness_inches=(
-                UnitInsulationMaterial.Thickness.THREE_AND_FIVE_EIGHTHS
-            ),
+            thickness_inches=(UnitInsulationMaterial.Thickness.THREE_AND_FIVE_EIGHTHS),
             width_inches=24,
             length_inches=48,
         )
@@ -130,7 +128,7 @@ class UnitTests(TestCase):
             status=Unit.Status.ACTIVE,
         )
 
-        result = Unit.objects.active()
+        result = Unit.objects.active_unit()
 
         self.assertEqual(result, active_unit)
 
@@ -144,7 +142,7 @@ class UnitTests(TestCase):
             status=Unit.Status.ON_HOLD,
         )
 
-        result = Unit.objects.active()
+        result = Unit.objects.active_unit()
 
         self.assertIsNone(result)
 
