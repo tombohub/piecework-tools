@@ -300,7 +300,7 @@ class UnitDrywallMaterial(models.Model):
         return self.length_feet * 4
 
     def __str__(self) -> str:
-        return f"{self.drywall_type} - {self.length_feet}"
+        return f"{self.get_length_feet_display()} - {self.get_drywall_type_display()}"
 
     class Meta:
         constraints: ClassVar = [

@@ -27,6 +27,13 @@ class UnitSheetCountInline(admin.TabularInline):
     model = UnitSheetCount
     extra = 4
 
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "drywall_material":
+            kwargs["queryset"] = UnitDrywallMaterial.objects.order_by(
+                "length_feet", "drywall_type"
+            )
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
 
 class UnitJmouldCountInline(admin.TabularInline):
     model = UnitJmouldCount
