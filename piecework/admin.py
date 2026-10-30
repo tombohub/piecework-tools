@@ -61,6 +61,7 @@ class UnitAdmin(admin.ModelAdmin):
     inlines = [UnitSheetCountInline, UnitJmouldCountInline, UnitInsulationCountInline]
 
     list_display = ["number"]
+    list_filter = ["project"]
     readonly_fields = [
         "total_square_footage",
         "total_price",

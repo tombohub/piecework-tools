@@ -9,4 +9,5 @@ urlpatterns = [
     path("stop-action", views.stop_current_activity, name="stop-action"),
     path("notes", views.notes_index, name="notes"),
     path("notes/delete/<int:pk>", views.notes_delete, name="notes-delete"),
+    path("units", views.units_index, name="units_index"),
 ]

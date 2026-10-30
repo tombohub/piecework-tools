@@ -53,6 +53,9 @@ def stop_current_activity(request):
     return redirect("piecework:home")
 
 
+## NOTES
+
+
 def notes_index(request):
     if request.method == "POST":
         form = NoteModelForm(request.POST)
@@ -72,6 +75,15 @@ def notes_delete(request, pk):
     note = Note.objects.get(pk=pk)
     note.delete()
     return redirect("piecework:notes")
+
+
+## UNIT
+
+
+def units_index(request):
+    units = Unit.objects.all()
+
+    return render(request, "piecework/units/index.html", {"units": units})
 
 
 # helpers

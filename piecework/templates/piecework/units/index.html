@@ -1,0 +1,40 @@
+{% extends "piecework/base.html" %}
+
+{% block body %}
+    <h1 class="my-4">Units</h1>
+
+    <div class="row g-3">
+        {% for unit in units %}
+            <div class="col-12 col-md-6 col-xl-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <p>
+                            <span class="text-muted text-info-emphasis">Unit:</span>
+                            <br>
+                            {{ unit.number }}
+                        </p>
+                        <p>
+                            <span class="text-muted text-info-emphasis">Status:</span>
+                            <br>
+                            {{ unit.get_status_display }}
+                        </p>
+                    </div>
+                    <div class="card-footer d-flex">
+                        <a href="#DELETE"
+                           class="btn btn-danger w-50"
+                           aria-label="Delete unit {{ unit.number }}">
+                            <i class="bi bi-trash fs-3" aria-hidden="true"></i>
+                        </a>
+                        <a href="#EDIT"
+                           class="btn btn-info w-50"
+                           aria-label="Edit unit {{ unit.number }}">
+                            <i class="bi bi-pen fs-3" aria-hidden="true"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <p class="text-muted">No units found.</p>
+        {% endfor %}
+    </div>
+{% endblock body %}
