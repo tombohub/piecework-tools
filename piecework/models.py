@@ -707,6 +707,17 @@ class UnitInsulationCount(models.Model):
         return f"{self.insulation_material} × {self.count}"
 
 
+class UnitWorkflowStep(models.Model):
+    name = models.CharField(max_length=255)
+    step_order = models.PositiveSmallIntegerField(unique=True, null=True, blank=True)
+
+    class Meta:
+        ordering = ["step_order"]
+
+    def __str__(self):
+        return self.name
+
+
 ## ACTIVITY context
 
 

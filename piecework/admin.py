@@ -20,6 +20,7 @@ from .models import (
     UnitInsulationMaterial,
     UnitJmouldCount,
     UnitSheetCount,
+    UnitWorkflowStep,
 )
 
 
@@ -117,3 +118,4 @@ admin.site.register(SprinklerRate)
 admin.site.register(PotlightRate)
 admin.site.register(InsulationRate)
 admin.site.register(UnitInsulationMaterial)
+admin.site.register(UnitWorkflowStep)

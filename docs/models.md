@@ -72,6 +72,10 @@
 - square_footage: int
 - payable_amount: int
 
+## UnitWorkflowStep
+- name: string required
+- step_order: int
+
 ### Rules
 1. only one unit can have status active
 
