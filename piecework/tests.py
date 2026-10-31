@@ -544,3 +544,21 @@ class UnitViewTests(TestCase):
 
         self.assertRedirects(response, reverse("piecework:units_index"))
         self.assertTrue(Unit.objects.filter(number="101").exists())
+
+    def test_units_detail_displays_unit(self):
+        unit = Unit.objects.create(number="101")
+
+        response = self.client.get(
+            reverse("piecework:units_detail", kwargs={"pk": unit.pk})
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "piecework/units/detail.html")
+        self.assertEqual(response.context["unit"], unit)
+        self.assertContains(response, "Unit 101")
+
+    def test_units_detail_returns_404_for_uknown_unit(self):
+        response = self.client.get(
+            reverse("piecework:units_detail", kwargs={"pk": 99999})
+        )
+        self.assertEqual(response.status_code, 404)

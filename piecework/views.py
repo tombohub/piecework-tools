@@ -108,8 +108,11 @@ def unit_delete(request, pk):
     return redirect("piecework:units_index")
 
 
-def units_details(request, pk):
+def units_detail(request, pk):
     unit = get_object_or_404(Unit, pk=pk)
+
+    context = {"unit": unit}
+    return render(request, "piecework/units/detail.html", context)
 
 
 # helpers

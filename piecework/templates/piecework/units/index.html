@@ -13,7 +13,9 @@
                 <p>
                     <span class="text-muted text-info-emphasis">Unit:</span>
                     <br>
-                    {{ unit.number }}
+                    <a href="{% url 'piecework:units_detail' unit.pk %}">
+                        Unit {{ unit.number }}
+                    </a>
                 </p>
                 <p>
                     <span class="text-muted text-info-emphasis">Status:</span>

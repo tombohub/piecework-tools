@@ -1,0 +1,40 @@
+{% extends "piecework/base.html" %}
+
+{% block body %}
+<div class="card mt-4">
+    <div class="card-header">
+        <h1 class="text-center">Unit {{ unit.number }}</h1>
+    </div>
+
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-4">Status</dt>
+            <dd class="col-sm-8">{{ unit.get_status_display }}</dd>
+
+            <dt class="col-sm-4">Project</dt>
+            <dd class="col-sm-8">{{ unit.project|default:"—" }}</dd>
+
+            <dt class="col-sm-4">Height</dt>
+            <dd class="col-sm-8">{{ unit.get_height_feet_display }}</dd>
+
+            <dt class="col-sm-4">Potlights</dt>
+            <dd class="col-sm-8">{{ unit.potlights_count|default_if_none:"—" }}</dd>
+
+            <dt class="col-sm-4">Sprinklers</dt>
+            <dd class="col-sm-8">{{ unit.sprinklers_count|default_if_none:"—" }}</dd>
+
+            <dt class="col-sm-4">Started on</dt>
+            <dd class="col-sm-8">{{ unit.started_on|default:"—" }}</dd>
+
+            <dt class="col-sm-4">Completed on</dt>
+            <dd class="col-sm-8">{{ unit.completed_on|default:"—" }}</dd>
+        </dl>
+    </div>
+
+    <div class="card-footer">
+        <a href="{% url 'piecework:units_index' %}" class="btn btn-outline-secondary w-100">
+            Back to units
+        </a>
+    </div>
+</div>
+{% endblock body %}
