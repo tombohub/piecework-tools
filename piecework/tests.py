@@ -492,3 +492,33 @@ class UnitInsulationCountTests(SimpleTestCase):
         )
 
         self.assertEqual(insulation_count.square_footage, Decimal("24"))
+
+
+class UnitViewTests(TestCase):
+    def test_unit_delete_removes_unit(self):
+        unit = Unit.objects.create(number="101")
+        delete_url = reverse("piecework:units_delete", kwargs={"pk": unit.pk})
+
+        response = self.client.post(delete_url)
+
+        self.assertRedirects(response, reverse("piecework:units_index"))
+        self.assertFalse(Unit.objects.filter(pk=unit.pk).exists())
+
+    def test_unit_delete_rejects_get_request(self):
+        unit = Unit.objects.create(number="1")
+        delete_url = reverse(
+            "piecework:units_delete",
+            kwargs={"pk": unit.pk},
+        )
+
+        response = self.client.get(delete_url)
+
+        self.assertEqual(response.status_code, 405)
+        self.assertTrue(Unit.objects.filter(pk=unit.pk).exists())
+
+    def test_unit_delete_returns_404_for_uknown_unit(self):
+        response = self.client.post(
+            reverse("piecework:unit_delete", kwargs={"pk": 99999})
+        )
+
+        self.assertEqual(response.status_code, 404)

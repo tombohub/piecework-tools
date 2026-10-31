@@ -10,4 +10,5 @@ urlpatterns = [
     path("notes", views.notes_index, name="notes"),
     path("notes/delete/<int:pk>", views.notes_delete, name="notes-delete"),
     path("units", views.units_index, name="units_index"),
+    path("units/<int:pk>/delete", views.unit_delete, name="units_delete"),
 ]

@@ -3,6 +3,7 @@
 import datetime as dt
 
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
 
 from .forms import NoteModelForm
 from .models import Activity, ActivityLog, Note, Unit
@@ -84,6 +85,14 @@ def units_index(request):
     units = Unit.objects.all()
 
     return render(request, "piecework/units/index.html", {"units": units})
+
+
+@require_POST
+def unit_delete(request, pk):
+    unit = get_object_or_404(Unit, pk=pk)
+    unit.delete()
+
+    return redirect("piecework:units_index")
 
 
 # helpers
