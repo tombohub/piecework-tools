@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
+from numpy import number
 
 from piecework.forms import UnitForm
 
@@ -562,3 +563,38 @@ class UnitViewTests(TestCase):
             reverse("piecework:units_detail", kwargs={"pk": 99999})
         )
         self.assertEqual(response.status_code, 404)
+
+    def test_units_edit_display_form_for_unit(self):
+        unit = Unit.objects.create(number="101")
+
+        response = self.client.get(
+            reverse("piecework:units_edit", kwargs={"pk": unit.pk})
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "piecework/units/edit.html")
+        self.assertEqual(response.context["form"].instance, unit)
+
+    def test_units_updates_unit(self):
+        unit = Unit.objects.create(
+            number="101",
+            status=Unit.Status.ON_HOLD,
+        )
+
+        response = self.client.post(
+            reverse("piecework:units_edit", kwargs={"pk": unit.pk}),
+            {
+                "number": "102",
+                "status": Unit.Status.ACTIVE,
+                "height_feet": HeightCategory.OVER_EIGHT_TO_NINE_INCLUSIVE,
+            },
+        )
+
+        unit.refresh_from_db()
+
+        self.assertRedirects(
+            response,
+            reverse("piecework:units_detail", kwargs={"pk": unit.pk}),
+        )
+        self.assertEqual(unit.number, "102")
+        self.assertEqual(unit.status, Unit.Status.ACTIVE)

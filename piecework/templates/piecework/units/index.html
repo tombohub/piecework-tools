@@ -32,7 +32,9 @@
                         <i class="bi bi-trash fs-3" aria-hidden="true"></i>
                     </button>
                 </form>
-                <a href="#EDIT" class="btn btn-info w-50" aria-label="Edit unit {{ unit.number }}">
+                <a href="{% url 'piecework:units_edit' unit.pk %}"
+                    class="btn btn-info w-50"
+                    aria-label="Edit unit {{ unit.number }}">
                     <i class="bi bi-pen fs-3" aria-hidden="true"></i>
                 </a>
             </div>

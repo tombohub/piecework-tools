@@ -100,6 +100,22 @@ def units_create(request):
     return render(request, "piecework/units/create.html", {"form": form})
 
 
+def units_edit(request, pk):
+    unit = get_object_or_404(Unit, pk=pk)
+
+    if request.method == "POST":
+        form = UnitForm(request.POST, instance=unit)
+
+        if form.is_valid():
+            form.save()
+            return redirect("piecework:units_detail", pk=unit.pk)
+    else:
+        form = UnitForm(instance=unit)
+
+    context = {"form": form, "unit": unit}
+    return render(request, "piecework/units/edit.html", context)
+
+
 @require_POST
 def unit_delete(request, pk):
     unit = get_object_or_404(Unit, pk=pk)

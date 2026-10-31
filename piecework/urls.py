@@ -12,5 +12,6 @@ urlpatterns = [
     path("units", views.units_index, name="units_index"),
     path("units/<int:pk>", views.units_detail, name="units_detail"),
     path("units/create", views.units_create, name="units_create"),
+    path("units/<int:pk>/edit", views.units_edit, name="units_edit"),
     path("units/<int:pk>/delete", views.unit_delete, name="units_delete"),
 ]
