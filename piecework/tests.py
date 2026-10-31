@@ -6,6 +6,8 @@ from django.db import IntegrityError, transaction
 from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
 
+from piecework.forms import UnitForm
+
 from .models import (
     Activity,
     ActivityLog,
@@ -518,7 +520,27 @@ class UnitViewTests(TestCase):
 
     def test_unit_delete_returns_404_for_uknown_unit(self):
         response = self.client.post(
-            reverse("piecework:unit_delete", kwargs={"pk": 99999})
+            reverse("piecework:units_delete", kwargs={"pk": 99999})
         )
 
         self.assertEqual(response.status_code, 404)
+
+    def test_units_create_displays_form(self):
+        response = self.client.get(reverse("piecework:units_create"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "piecework/units/create.html")
+        self.assertIsInstance(response.context["form"], UnitForm)
+
+    def test_units_create_saves_valid_unit(self):
+        response = self.client.post(
+            reverse("piecework:units_create"),
+            {
+                "number": "101",
+                "status": Unit.Status.ACTIVE,
+                "height_feet": (HeightCategory.OVER_EIGHT_TO_NINE_INCLUSIVE),
+            },
+        )
+
+        self.assertRedirects(response, reverse("piecework:units_index"))
+        self.assertTrue(Unit.objects.filter(number="101").exists())

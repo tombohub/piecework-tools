@@ -1,0 +1,31 @@
+{% extends 'piecework/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block body %}
+<div class="card mt-4">
+    <div class="card-header">
+        <h3 class="text-center">Add unit</h3>
+    </div>
+    <div class="card-body">
+        <form action="" method="post">
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+            <div class="alert alert-danger" role="alert">
+                {% for error in form.non_field_errors %}
+                <div>{{ error }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {{form|crispy}}
+            <div>
+                <button class="btn btn-primary w-100">Submit</button>
+            </div>
+            <div>
+                <a href="{% url 'piecework:units_index' %}" class="btn btn-outline-secondary w-100">Cancel</a>
+            </div>
+
+        </form>
+    </div>
+</div>
+{% endblock body %}

@@ -5,7 +5,7 @@ import datetime as dt
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from .forms import NoteModelForm
+from .forms import NoteModelForm, UnitForm
 from .models import Activity, ActivityLog, Note, Unit
 
 
@@ -87,12 +87,29 @@ def units_index(request):
     return render(request, "piecework/units/index.html", {"units": units})
 
 
+def units_create(request):
+    if request.method == "POST":
+        form = UnitForm(request.POST)
+
+        if form.is_valid():
+            form.save()
+            return redirect("piecework:units_index")
+    else:
+        form = UnitForm()
+
+    return render(request, "piecework/units/create.html", {"form": form})
+
+
 @require_POST
 def unit_delete(request, pk):
     unit = get_object_or_404(Unit, pk=pk)
     unit.delete()
 
     return redirect("piecework:units_index")
+
+
+def units_details(request, pk):
+    unit = get_object_or_404(Unit, pk=pk)
 
 
 # helpers
