@@ -12,14 +12,8 @@
 
 {{ form|crispy }}
 
-<div class="card">
-    <div class="card-header">Unit sheet count</div>
-    <div class="card-body">
-        {{ drywall_formset.management_form }}
-        {% for drywall_form in drywall_formset %}
-        <div class="border rounded p-3 mb-3">
-            {{drywall_form|crispy}}
-        </div>
-        {% endfor %}
-    </div>
-</div>
+<h4 class="text-center">Unit sheet count</h4>
+{{ drywall_formset.management_form }}
+{% for drywall_form in drywall_formset %}
+{{drywall_form|crispy}}
+{% endfor %}
