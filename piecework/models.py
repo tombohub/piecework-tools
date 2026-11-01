@@ -14,12 +14,17 @@ class Project(models.Model):
     class ProjectStatus(models.TextChoices):
         ACTIVE = "active", "Active"
         COMPLETED = "completed", "Completed"
+        ON_HOLD = "on_hold", "On hold"
 
     name = models.CharField(max_length=255, null=True, blank=True)
     drywall_company = models.CharField(max_length=255, null=True, blank=True)
     general_contractor = models.CharField(max_length=255, null=True, blank=True)
     status = models.CharField(
-        max_length=20, choices=ProjectStatus.choices, null=True, blank=True
+        max_length=20,
+        choices=ProjectStatus.choices,
+        null=True,
+        blank=True,
+        default=ProjectStatus.ON_HOLD,
     )
 
     def __str__(self) -> str:
