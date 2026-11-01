@@ -26,7 +26,7 @@ from .models import (
 
 class UnitSheetCountInline(admin.TabularInline):
     model = UnitSheetCount
-    extra = 4
+    extra = 1
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "drywall_material":
@@ -38,12 +38,12 @@ class UnitSheetCountInline(admin.TabularInline):
 
 class UnitJmouldCountInline(admin.TabularInline):
     model = UnitJmouldCount
-    extra = 2
+    extra = 1
 
 
 class UnitInsulationCountInline(admin.TabularInline):
     model = UnitInsulationCount
-    extra = 2
+    extra = 1
     readonly_fields = ["calculated_square_footage"]
 
     @admin.display(description="Square footage")
@@ -62,7 +62,6 @@ class UnitAdmin(admin.ModelAdmin):
     inlines = [UnitSheetCountInline, UnitJmouldCountInline, UnitInsulationCountInline]
 
     list_display = ["number"]
-    list_filter = ["project"]
     readonly_fields = [
         "total_square_footage",
         "total_price",
