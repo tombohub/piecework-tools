@@ -1,4 +1,5 @@
 from math import ceil
+from typing import ClassVar
 
 from django.contrib import admin
 from django.http.request import HttpRequest
@@ -44,7 +45,7 @@ class UnitJmouldCountInline(admin.TabularInline):
 class UnitInsulationCountInline(admin.TabularInline):
     model = UnitInsulationCount
     extra = 1
-    readonly_fields = ["calculated_square_footage"]
+    readonly_fields: ClassVar = ["calculated_square_footage"]
 
     @admin.display(description="Square footage")
     def calculated_square_footage(self, obj):
@@ -59,10 +60,14 @@ class ProjectAdmin(admin.ModelAdmin):
 
 
 class UnitAdmin(admin.ModelAdmin):
-    inlines = [UnitSheetCountInline, UnitJmouldCountInline, UnitInsulationCountInline]
+    inlines: ClassVar = [
+        UnitSheetCountInline,
+        UnitJmouldCountInline,
+        UnitInsulationCountInline,
+    ]
 
-    list_display = ["number"]
-    readonly_fields = [
+    list_display: ClassVar = ["number"]
+    readonly_fields: ClassVar = [
         "total_square_footage",
         "total_price",
         "total_boarding_duration",
