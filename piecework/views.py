@@ -82,7 +82,7 @@ def notes_delete(request, pk):
 
 
 def units_index(request):
-    units = Unit.objects.all()
+    units = Unit.objects.order_by("-created_at")
 
     return render(request, "piecework/units/index.html", {"units": units})
 

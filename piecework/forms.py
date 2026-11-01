@@ -6,7 +6,7 @@ from .models import Note, Unit, UnitSheetCount
 class UnitForm(forms.ModelForm):
     class Meta:
         model = Unit
-        fields = "__all__"
+        exclude = ("started_on", "completed_on")
 
 
 UnitSheetCountFormSet = forms.inlineformset_factory(
