@@ -12,8 +12,4 @@
 
 {{ form|crispy }}
 
-<h4 class="text-center">Unit sheet count</h4>
-{{ drywall_formset.management_form }}
-{% for drywall_form in drywall_formset %}
-{{drywall_form|crispy}}
-{% endfor %}
+{% include "piecework/units/_drywall_formset.html" %}
