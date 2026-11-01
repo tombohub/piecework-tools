@@ -1,5 +1,4 @@
 {% extends 'piecework/base.html' %}
-{% load crispy_forms_tags %}
 
 {% block body %}
 <div class="card mt-4">
@@ -8,16 +7,8 @@
     </div>
     <div class="card-body">
         <form action="" method="post">
-            {% csrf_token %}
-            {% if form.non_field_errors %}
-            <div class="alert alert-danger" role="alert">
-                {% for error in form.non_field_errors %}
-                <div>{{ error }}</div>
-                {% endfor %}
-            </div>
-            {% endif %}
+            {% include "piecework/units/_form.html" %}
 
-            {{form|crispy}}
             <div>
                 <button class="btn btn-primary w-100">Submit</button>
             </div>
