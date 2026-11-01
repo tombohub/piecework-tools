@@ -2,11 +2,10 @@
 
 import datetime as dt
 
-from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from .forms import NoteModelForm, UnitForm, UnitSheetCountFormSet
+from .forms import NoteModelForm, UnitForm
 from .models import Activity, ActivityLog, Note, Unit
 
 
@@ -89,26 +88,16 @@ def units_index(request):
 
 
 def units_create(request):
-    unit = Unit()
-
     if request.method == "POST":
-        form = UnitForm(request.POST, instance=unit)
-        drywall_formset = UnitSheetCountFormSet(
-            request.POST, instance=unit, prefix="drywall"
-        )
-        if form.is_valid() and drywall_formset.is_valid():
-            with transaction.atomic():
-                unit = form.save()
-                drywall_formset.instance = unit
-                drywall_formset.save()
+        form = UnitForm(request.POST)
+
+        if form.is_valid():
+            form.save()
             return redirect("piecework:units_index")
     else:
-        form = UnitForm(instance=unit)
-        drywall_formset = UnitSheetCountFormSet(instance=unit, prefix="drywall")
+        form = UnitForm()
 
-    context = {"form": form, "drywall_formset": drywall_formset}
-
-    return render(request, "piecework/units/create.html", context)
+    return render(request, "piecework/units/create.html", {"form": form})
 
 
 def units_edit(request, pk):
@@ -116,20 +105,14 @@ def units_edit(request, pk):
 
     if request.method == "POST":
         form = UnitForm(request.POST, instance=unit)
-        drywall_formset = UnitSheetCountFormSet(
-            request.POST, instance=unit, prefix="drywall"
-        )
 
-        if form.is_valid() and drywall_formset.is_valid():
-            with transaction.atomic():
-                form.save()
-                drywall_formset.save()
+        if form.is_valid():
+            form.save()
             return redirect("piecework:units_detail", pk=unit.pk)
     else:
         form = UnitForm(instance=unit)
-        drywall_formset = UnitSheetCountFormSet(instance=unit, prefix="drywall")
 
-    context = {"form": form, "drywall_formset": drywall_formset, "unit": unit}
+    context = {"form": form, "unit": unit}
     return render(request, "piecework/units/edit.html", context)
 
 
