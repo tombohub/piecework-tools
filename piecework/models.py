@@ -744,17 +744,6 @@ class UnitInsulationCount(models.Model):
         return f"{self.insulation_material} × {self.count}"
 
 
-class UnitWorkflowStep(models.Model):
-    name = models.CharField(max_length=255)
-    step_order = models.PositiveSmallIntegerField(unique=True, null=True, blank=True)
-
-    class Meta:
-        ordering = ["step_order"]
-
-    def __str__(self):
-        return self.name
-
-
 ## ACTIVITY context
 
 
@@ -843,6 +832,25 @@ class ActivityLog(models.Model):
 
     def __str__(self) -> str:
         return str(self.activity)
+
+
+## WORKFLOW
+
+
+class UnitWorkflowStep(models.Model):
+    name = models.CharField(max_length=255)
+    step_order = models.PositiveSmallIntegerField(unique=True, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering: ClassVar = ["step_order"]
+
+    def __str__(self):
+        return self.name
+
+
+## Meta models
 
 
 class Note(models.Model):
