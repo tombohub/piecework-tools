@@ -18,6 +18,7 @@ from .models import (
     InsulationRate,
     JmouldRate,
     PotlightRate,
+    Project,
     RatePeriod,
     SprinklerRate,
     Unit,
@@ -598,3 +599,56 @@ class UnitViewTests(TestCase):
         )
         self.assertEqual(unit.number, "102")
         self.assertEqual(unit.status, Unit.Status.ACTIVE)
+
+
+class ProjectTests(TestCase):
+    def test_active_project_returns_active_project(self):
+        Project.objects.create(
+            name="Completed project",
+            status=Project.ProjectStatus.COMPLETED,
+        )
+        active_project = Project.objects.create(
+            name="Active project",
+            status=Project.ProjectStatus.ACTIVE,
+        )
+
+        result = Project.objects.active_project()
+
+        self.assertEqual(result, active_project)
+
+    def test_active_project_returns_none_when_none_is_active(self):
+        Project.objects.create(
+            name="on hold porject", status=Project.ProjectStatus.ON_HOLD
+        )
+
+        result = Project.objects.active_project()
+
+        self.assertIsNone(result)
+
+    def test_only_one_project_can_be_active(self):
+        Project.objects.create(
+            name="First project",
+            status=Project.ProjectStatus.ACTIVE,
+        )
+
+        with self.assertRaises(IntegrityError), transaction.atomic():
+            Project.objects.create(
+                name="Second project",
+                status=Project.ProjectStatus.ACTIVE,
+            )
+
+        self.assertEqual(
+            Project.objects.filter(status=Project.ProjectStatus.ACTIVE).count(), 1
+        )
+
+    def test_multiple_non_active_projects_are_allowed(self):
+        Project.objects.create(
+            name="First project",
+            status=Project.ProjectStatus.ON_HOLD,
+        )
+        Project.objects.create(
+            name="Second project",
+            status=Project.ProjectStatus.ON_HOLD,
+        )
+
+        self.assertEqual(Project.objects.count(), 2)

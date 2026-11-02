@@ -10,6 +10,17 @@ from django.db.models import F, Q, Sum
 ## PROJECTS context
 
 
+class ProjectManager(models.Manager):
+    def active_project(self) -> Project | None:
+        """
+        Return active project, or None if there isn't one.
+        """
+        try:
+            return self.get(status=Project.ProjectStatus.ACTIVE)
+        except Project.DoesNotExist:
+            return None
+
+
 class Project(models.Model):
     class ProjectStatus(models.TextChoices):
         ACTIVE = "active", "Active"
@@ -26,6 +37,17 @@ class Project(models.Model):
         blank=True,
         default=ProjectStatus.ON_HOLD,
     )
+
+    objects: ProjectManager = ProjectManager()
+
+    class Meta:
+        constraints: ClassVar = [
+            models.UniqueConstraint(
+                fields=["status"],
+                condition=Q(status="active"),
+                name="only_one_active_project",
+            )
+        ]
 
     def __str__(self) -> str:
         return str(self.name)
@@ -312,7 +334,9 @@ class UnitDrywallMaterial(models.Model):
         return self.length_feet * 4
 
     def __str__(self) -> str:
-        return f"{self.get_length_feet_display()} - {self.get_drywall_type_display()}"
+        length = self.get_length_feet_display()  # pyright: ignore[reportAttributeAccessIssue]
+        drywall_type = self.get_drywall_type_display()  # pyright: ignore[reportAttributeAccessIssue]
+        return f"{length} - {drywall_type}"
 
     class Meta:
         constraints: ClassVar = [
@@ -693,7 +717,8 @@ class UnitJmouldCount(models.Model):
         return self.length_feet * self.count
 
     def __str__(self) -> str:
-        return f"{self.unit} - {self.count} × {self.get_length_feet_display()} J-mould"
+        length = self.get_length_feet_display()  # pyright: ignore[reportAttributeAccessIssue]
+        return f"{self.unit} - {self.count} × {length} J-mould"
 
 
 class UnitInsulationCount(models.Model):

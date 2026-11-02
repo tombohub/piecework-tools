@@ -6,7 +6,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from .forms import NoteModelForm, UnitForm
-from .models import Activity, ActivityLog, Note, Unit
+from .models import Activity, ActivityLog, Note, Project, Unit
 
 
 def index(request):
@@ -95,7 +95,7 @@ def units_create(request):
             form.save()
             return redirect("piecework:units_index")
     else:
-        form = UnitForm()
+        form = UnitForm(initial={"project": Project.objects.active_project()})
 
     return render(request, "piecework/units/create.html", {"form": form})
 
