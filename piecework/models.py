@@ -138,7 +138,7 @@ class DrywallRate(models.Model):
     rate_category = models.CharField(
         max_length=20, choices=DrywallRateCategory.choices, null=True, blank=True
     )
-    rate = models.DecimalField(max_digits=8, decimal_places=4, null=True, blank=True)
+    rate = models.DecimalField(max_digits=8, decimal_places=4)
     rate_period = models.ForeignKey(
         RatePeriod, on_delete=models.PROTECT, null=True, blank=True
     )
