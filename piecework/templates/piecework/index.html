@@ -11,7 +11,6 @@
         <form
           method="post"
           action="{% url 'piecework:units_complete' active_unit.pk %}"
-          onsubmit="return confirm('Mark unit {{ active_unit|escapejs }} complete?')"
         >
           {% csrf_token %}
           <button type="submit" class="btn btn-success">Mark complete</button>
