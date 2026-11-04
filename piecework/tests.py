@@ -37,6 +37,14 @@ class HomeViewTests(TestCase):
         response = self.client.get(reverse("piecework:home"))
 
         self.assertContains(response, f"Active unit: <strong>{active_unit}</strong>")
+        admin_url = reverse(
+            "admin:piecework_unit_change",
+            kwargs={"object_id": active_unit.pk},
+        )
+        self.assertContains(
+            response,
+            f'href="{admin_url}"',
+        )
         self.assertNotContains(response, 'name="unit_pk"')
 
     def test_home_displays_message_and_disables_actions_without_active_unit(self):
