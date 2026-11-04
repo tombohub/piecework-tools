@@ -117,6 +117,14 @@ def units_edit(request, pk):
 
 
 @require_POST
+def unit_complete(request, pk):
+    unit = get_object_or_404(Unit, pk=pk, status=Unit.Status.ACTIVE)
+    unit.mark_completed()
+
+    return redirect("piecework:home")
+
+
+@require_POST
 def unit_delete(request, pk):
     unit = get_object_or_404(Unit, pk=pk)
     unit.delete()

@@ -45,7 +45,39 @@ class HomeViewTests(TestCase):
             response,
             f'href="{admin_url}"',
         )
+        complete_url = reverse(
+            "piecework:units_complete",
+            kwargs={"pk": active_unit.pk},
+        )
+        self.assertContains(response, f'action="{complete_url}"')
         self.assertNotContains(response, 'name="unit_pk"')
+
+    def test_mark_complete_updates_active_unit(self):
+        active_unit = Unit.objects.create(number="101", status=Unit.Status.ACTIVE)
+
+        response = self.client.post(
+            reverse(
+                "piecework:units_complete",
+                kwargs={"pk": active_unit.pk},
+            )
+        )
+
+        self.assertRedirects(response, reverse("piecework:home"))
+        active_unit.refresh_from_db()
+        self.assertEqual(active_unit.status, Unit.Status.COMPLETED)
+        self.assertEqual(active_unit.completed_on, dt.date.today())
+
+    def test_mark_complete_rejects_get_request(self):
+        active_unit = Unit.objects.create(number="101", status=Unit.Status.ACTIVE)
+
+        response = self.client.get(
+            reverse(
+                "piecework:units_complete",
+                kwargs={"pk": active_unit.pk},
+            )
+        )
+
+        self.assertEqual(response.status_code, 405)
 
     def test_home_displays_message_and_disables_actions_without_active_unit(self):
         Activity.objects.create(name="board")
