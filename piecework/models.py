@@ -812,6 +812,17 @@ class ActivityLogManager(models.Manager):
 
         return duration or dt.timedelta()
 
+    def last_completed(self):
+        previous_activity = (
+            self.get_queryset()
+            .filter(is_current=False, duration__isnull=False)
+            .select_related("activity")
+            .order_by("-end")
+            .first()
+        )
+
+        return previous_activity
+
 
 class ActivityLog(models.Model):
     activity = models.ForeignKey(Activity, on_delete=models.PROTECT)

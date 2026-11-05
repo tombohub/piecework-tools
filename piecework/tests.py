@@ -113,6 +113,58 @@ class ActivityTests(TestCase):
         self.assertCountEqual(names, ["Boarding", "Taping"])
 
 
+class ActivityLogTests(TestCase):
+    @classmethod
+    def setUpTestData(cls) -> None:
+        cls.unit = Unit.objects.create(number="101")
+        cls.boarding = Activity.objects.create(name="Boarding")
+        cls.break_activity = Activity.objects.create(name="Break")
+
+    def test_last_completed_returns_most_recent_completed_log(self):
+        ActivityLog.objects.create(
+            activity=self.boarding,
+            unit=self.unit,
+            start=dt.datetime(2026, 11, 4, 9, 0),
+            end=dt.datetime(2026, 11, 4, 10, 0),
+            is_current=False,
+        )
+
+        expected_log = ActivityLog.objects.create(
+            activity=self.break_activity,
+            unit=self.unit,
+            start=dt.datetime(2026, 11, 4, 10, 0),
+            end=dt.datetime(2026, 11, 4, 10, 30),
+            is_current=False,
+        )
+
+        result = ActivityLog.objects.last_completed()
+        assert result is not None
+
+        self.assertEqual(result, expected_log)
+        self.assertEqual(result.activity.name, "Break")
+        self.assertEqual(result.duration, dt.timedelta(minutes=30))
+
+    def test_last_completed_ignores_current_log(self):
+        completed_log = ActivityLog.objects.create(
+            activity=self.boarding,
+            unit=self.unit,
+            start=dt.datetime(2026, 11, 4, 9, 0),
+            end=dt.datetime(2026, 11, 4, 10, 0),
+            is_current=False,
+        )
+
+        ActivityLog.objects.create(
+            activity=self.break_activity,
+            unit=self.unit,
+            start=dt.datetime(2026, 11, 4, 11, 0),
+            is_current=True,
+        )
+
+        result = ActivityLog.objects.last_completed()
+
+        self.assertEqual(result, completed_log)
+
+
 class UnitTests(TestCase):
     @classmethod
     def setUpTestData(cls) -> None:

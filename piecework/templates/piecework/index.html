@@ -4,14 +4,12 @@
 <div class="container pt-4">
   <div class="pt-2 v-stack gap-2">
     {% if active_unit %}
-    <div class="alert alert-success mb-0 d-flex flex-wrap justify-content-between align-items-center gap-2" role="status">
+    <div class="alert alert-success mb-0 d-flex flex-wrap justify-content-between align-items-center gap-2"
+      role="status">
       <span>Active unit: <strong>{{ active_unit }}</strong></span>
       <div class="d-flex flex-wrap align-items-center gap-3">
         <a class="alert-link" href="{% url 'admin:piecework_unit_change' active_unit.pk %}">Unit admin</a>
-        <form
-          method="post"
-          action="{% url 'piecework:units_complete' active_unit.pk %}"
-        >
+        <form method="post" action="{% url 'piecework:units_complete' active_unit.pk %}">
           {% csrf_token %}
           <button type="submit" class="btn btn-success">Mark complete</button>
         </form>
@@ -31,6 +29,15 @@
     {% else %}
     <div>
       There is no current activity
+    </div>
+    {% endif %}
+    {% if last_completed_activity_log %}
+    <div>
+      Previous activity: <strong>{{ last_completed_activity_log.activity.name|capfirst }}</strong>: {{ last_completed_activity_log.duration }}
+    </div>
+    {% else %}
+    <div>
+      There is no completed activity
     </div>
     {% endif %}
     <div>

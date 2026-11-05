@@ -12,6 +12,7 @@ from .models import Activity, ActivityLog, Note, Project, Unit
 def index(request):
     activity_names = Activity.objects.names()
     current_activity_log = ActivityLog.objects.current()
+    last_completed_activity_log = ActivityLog.objects.last_completed()
     active_unit = Unit.objects.active_unit()
     # NOTE: magic string
     boarding_duration_today = ActivityLog.objects.boarding_duration_today()
@@ -24,6 +25,7 @@ def index(request):
     context = {
         "activity_names": activity_names,
         "current_activity_log": current_activity_log,
+        "last_completed_activity_log": last_completed_activity_log,
         "active_unit": active_unit,
         "boarding_duration_today": boarding_duration_today,
         "break_duration_today": break_duration_today,
