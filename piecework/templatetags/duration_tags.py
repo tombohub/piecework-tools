@@ -14,8 +14,8 @@ def compact_duration(value: dt.timedelta | None) -> str:
     hours, minutes = divmod(total_minutes, 60)
 
     if hours and minutes:
-        return f"{hours}h{minutes}m"
+        return f"{hours}h {minutes}m"
     if hours:
-        return f"{minutes}m"
+        return f"{hours}h"
 
     return f"{minutes}m"
