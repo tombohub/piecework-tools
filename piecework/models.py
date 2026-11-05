@@ -663,9 +663,9 @@ class Unit(models.Model):
         )
 
     @property
-    def sheet_count_per_hour_of_boarding(self):
+    def sheets_per_hour_of_boarding(self):
         """
-        Total number of sheets in the unit
+        Number of sheets installed per hour of boarding
         """
         duration = self.total_boarding_duration
         seconds = duration.total_seconds()
