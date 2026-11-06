@@ -395,6 +395,45 @@ class UnitTests(TestCase):
 
         self.assertEqual(unit.drywall_rate, self.drywall_rate.rate)
 
+    def test_weighted_sheets_per_hour(self):
+        boarding = Activity.objects.create(name="board")
+
+        first_unit = self.create_unit(
+            number="101",
+            status=Unit.Status.COMPLETED,
+        )
+        second_unit = self.create_unit(number="102", status=Unit.Status.COMPLETED)
+
+        UnitSheetCount.objects.create(
+            unit=first_unit,
+            drywall_material=self.twelve_foot_material,
+            count=20,
+        )
+
+        UnitSheetCount.objects.create(
+            unit=second_unit,
+            drywall_material=self.twelve_foot_material,
+            count=40,
+        )
+        ActivityLog.objects.create(
+            activity=boarding,
+            unit=first_unit,
+            start=dt.datetime(2025, 10, 20, 8, tzinfo=dt.UTC),
+            end=dt.datetime(2025, 10, 20, 9, tzinfo=dt.UTC),
+            is_current=False,
+        )
+        ActivityLog.objects.create(
+            activity=boarding,
+            unit=second_unit,
+            start=dt.datetime(2025, 10, 21, 8, tzinfo=dt.UTC),
+            end=dt.datetime(2025, 10, 21, 12, tzinfo=dt.UTC),
+            is_current=False,
+        )
+
+        result = Unit.objects.weighted_sheets_per_hour()
+
+        self.assertEqual(result, Decimal("12.00"))
+
 
 class UnitSheetCountTests(TestCase):
     def test_square_footage_is_calculated_correct(self):

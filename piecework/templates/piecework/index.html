@@ -53,6 +53,9 @@
     <div>
       Total duration today: {{ total_duration_today|compact_duration }}
     </div>
+    <div>
+      Historical weighted rate: <strong>{{ weighted_sheets_per_hour }}</strong> sheets/hour
+    </div>
   </div>
   <div class="vstack gap-4 pt-2">
     <form action="{% url 'piecework:start-activity' %}">

@@ -73,7 +73,7 @@ class UnitAdmin(admin.ModelAdmin):
         "total_boarding_duration",
         "dollars_per_hour_of_boarding",
         "sheet_count",
-        "sheet_count_per_hour_of_boarding",
+        "sheets_per_hour_of_boarding",
     ]
 
     def get_queryset(self, request: HttpRequest):

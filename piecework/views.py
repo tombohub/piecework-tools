@@ -21,6 +21,7 @@ def index(request):
         active_unit.total_boarding_duration if active_unit else dt.timedelta()
     )
     total_duration_today = ActivityLog.objects.total_duration_today()
+    weighted_sheets_per_hour = Unit.objects.weighted_sheets_per_hour()
 
     context = {
         "activity_names": activity_names,
@@ -31,6 +32,7 @@ def index(request):
         "break_duration_today": break_duration_today,
         "boarding_duration_current_unit": boarding_duration_current_unit,
         "total_duration_today": total_duration_today,
+        "weighted_sheets_per_hour": weighted_sheets_per_hour,
     }
     return render(request, "piecework/index.html", context)
 
