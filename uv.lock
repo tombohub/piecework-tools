@@ -139,21 +139,6 @@ wheels = [
 ]
 
 [[package]]
-name = "django-data-browser"
-version = "4.2.16"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "django" },
-    { name = "hyperlink" },
-    { name = "python-dateutil" },
-    { name = "sqlparse" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/d9/62/4a792816f411f2ddfff66e68f612ea622a5a27599df57beb504c74665da4/django_data_browser-4.2.16.tar.gz", hash = "sha256:6c74d3fc768d8f8e899fc98783023fb8a72f29aa05e7810182a799a3c5f8c71e", size = 1217560, upload-time = "2026-10-19T10:11:22.023Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/20/66/a73ff87a43914aa41d1739438abf02b0395f753401a50cda69d3aa10be8e/django_data_browser-4.2.16-py3-none-any.whl", hash = "sha256:db6f0515f46d714d7599f6a2253a33eaac9c5a09b9ac12ffbae2b97544ff4ce2", size = 841783, upload-time = "2026-10-19T10:11:19.772Z" },
-]
-
-[[package]]
 name = "django-debug-toolbar"
 version = "5.0.1"
 source = { registry = "https://pypi.org/simple" }
@@ -329,27 +314,6 @@ wheels = [
 ]
 
 [[package]]
-name = "hyperlink"
-version = "21.0.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "idna" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/3a/51/1947bd81d75af87e3bb9e34593a4cf118115a8feb451ce7a69044ef1412e/hyperlink-21.0.0.tar.gz", hash = "sha256:427af957daa58bc909471c6c40f74c5450fa123dd093fc53efd2e91d2705a56b", size = 140743, upload-time = "2021-01-08T05:51:20.972Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/6e/aa/8caf6a0a3e62863cbb9dab27135660acba46903b703e224f14f447e57934/hyperlink-21.0.0-py2.py3-none-any.whl", hash = "sha256:e6b14c37ecb73e89c77d78cdb4c2cc8f3fb59a885c5b3f819ff4ed80f25af1b4", size = 74638, upload-time = "2021-01-08T05:51:22.906Z" },
-]
-
-[[package]]
-name = "idna"
-version = "3.20"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/f5/08/8eea9d4b8302028f3abb2c0813953f7aec26d33b7a8960ed760e65ff29fa/idna-3.20.tar.gz", hash = "sha256:a7db850025b95ded1eae8a46181a1a6c56c92c96f0e2b005d9ff8dc0210cab44", size = 216463, upload-time = "2026-09-17T14:11:04.752Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/58/a2/bb081bab032533a855d44de1d56f8e8426114ff1ba5d1f07a438a0a654f8/idna-3.20-py3-none-any.whl", hash = "sha256:ab7ae7122974553370f0bdb919e1a960b2cd1bc1ef0276416d896db81c14582c", size = 69583, upload-time = "2026-09-17T14:11:03.168Z" },
-]
-
-[[package]]
 name = "ipython"
 version = "8.32.0"
 source = { registry = "https://pypi.org/simple" }
@@ -518,7 +482,6 @@ dependencies = [
     { name = "django" },
     { name = "django-cors-headers" },
     { name = "django-crispy-forms" },
-    { name = "django-data-browser" },
     { name = "django-debug-toolbar" },
     { name = "django-extensions" },
     { name = "django-ninja" },
@@ -544,7 +507,6 @@ requires-dist = [
     { name = "django" },
     { name = "django-cors-headers" },
     { name = "django-crispy-forms" },
-    { name = "django-data-browser", specifier = ">=4.2.16" },
     { name = "django-debug-toolbar" },
     { name = "django-extensions" },
     { name = "django-ninja" },

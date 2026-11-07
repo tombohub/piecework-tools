@@ -48,7 +48,6 @@ INSTALLED_APPS = [
     "django_tables2",
     "crispy_forms",
     "crispy_bootstrap5",
-    "data_browser",
     # apps
     "piecework",
 ]
