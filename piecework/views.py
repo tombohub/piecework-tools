@@ -5,11 +5,12 @@ import datetime as dt
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from .forms import NoteModelForm, UnitForm
+from .forms import NoteModelForm, ProjectStatsFilterForm, UnitForm
 from .models import Activity, ActivityLog, Note, Project, Unit
 
 
 def index(request):
+
     activity_names = Activity.objects.names()
     current_activity_log = ActivityLog.objects.current()
     last_completed_activity_log = ActivityLog.objects.last_completed()
@@ -21,7 +22,15 @@ def index(request):
         active_unit.total_boarding_duration if active_unit else dt.timedelta()
     )
     total_duration_today = ActivityLog.objects.total_duration_today()
-    weighted_sheets_per_hour = Unit.objects.weighted_sheets_per_hour()
+
+    project_filter_form = ProjectStatsFilterForm(request.GET)
+    selected_project = None
+
+    if project_filter_form.is_valid():
+        selected_project = project_filter_form.cleaned_data["project"]
+    weighted_sheets_per_hour = Unit.objects.weighted_sheets_per_hour(
+        project=selected_project
+    )
 
     context = {
         "activity_names": activity_names,
@@ -32,6 +41,8 @@ def index(request):
         "break_duration_today": break_duration_today,
         "boarding_duration_current_unit": boarding_duration_current_unit,
         "total_duration_today": total_duration_today,
+        "project_filter_form": project_filter_form,
+        "selected_project": selected_project,
         "weighted_sheets_per_hour": weighted_sheets_per_hour,
     }
     return render(request, "piecework/index.html", context)

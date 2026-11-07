@@ -34,7 +34,8 @@
     {% endif %}
     {% if last_completed_activity_log %}
     <div>
-      Previous activity: <strong>{{ last_completed_activity_log.activity.name|capfirst }}</strong>: {{ last_completed_activity_log.duration|compact_duration }}
+      Previous activity: <strong>{{ last_completed_activity_log.activity.name|capfirst }}</strong>: {{
+      last_completed_activity_log.duration|compact_duration }}
     </div>
     {% else %}
     <div>
@@ -53,8 +54,32 @@
     <div>
       Total duration today: {{ total_duration_today|compact_duration }}
     </div>
+    <form method="get" class="row row-cols-auto g-2 align-items-center my-2">
+      <div class="col-auto">
+        <label class="mb-0" for="{{ project_filter_form.project.id_for_label }}">Project:</label>
+      </div>
+      <div class="col-auto">
+        {{ project_filter_form.project }}
+
+        {% for error in project_filter_form.project.errors %}
+        <div class="text-danger">
+          {{ error }}
+        </div>
+        {% endfor %}
+      </div>
+      <div class="col-auto">
+        <button type="submit" class="btn btn-outline-primary">Apply</button>
+      </div>
+    </form>
     <div>
-      Historical weighted rate: <strong>{{ weighted_sheets_per_hour }}</strong> sheets/hour
+      Historical weighted rate
+      {% if selected_project %}
+      for <strong>{{ selected_project }}</strong>
+      {% else %}
+      for <strong>all projects</strong>
+      {% endif %}
+      :
+      <strong>{{ weighted_sheets_per_hour }}</strong> sheets/hour
     </div>
   </div>
   <div class="vstack gap-4 pt-2">

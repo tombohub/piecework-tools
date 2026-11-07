@@ -1,6 +1,8 @@
+from typing import ClassVar
+
 from django import forms
 
-from .models import Note, Unit, UnitSheetCount
+from .models import Note, Project, Unit, UnitSheetCount
 
 
 class UnitForm(forms.ModelForm):
@@ -18,7 +20,7 @@ class NoteModelForm(forms.ModelForm):
     class Meta:
         model = Note
         fields = "__all__"
-        widgets = {
+        widgets: ClassVar = {
             "note": forms.Textarea(
                 attrs={
                     "rows": 2,
@@ -27,3 +29,12 @@ class NoteModelForm(forms.ModelForm):
                 }
             )
         }
+
+
+class ProjectStatsFilterForm(forms.Form):
+    project = forms.ModelChoiceField(
+        queryset=Project.objects.order_by("name"),
+        required=False,
+        empty_label="All projects",
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
