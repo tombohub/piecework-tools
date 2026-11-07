@@ -20,6 +20,7 @@ dependencies = [
     "django",
     "gunicorn",
     "psycopg[binary]>=3.3.6",
+    "django-data-browser>=4.2.16",
 ]
 
 [dependency-groups]
