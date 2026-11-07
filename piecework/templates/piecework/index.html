@@ -34,8 +34,9 @@
     {% endif %}
     {% if last_completed_activity_log %}
     <div>
-      Previous activity: <strong>{{ last_completed_activity_log.activity.name|capfirst }}</strong>: {{
-      last_completed_activity_log.duration|compact_duration }}
+      Previous activity:
+      <strong>{{ last_completed_activity_log.activity.name|capfirst }}</strong>:
+      {{ last_completed_activity_log.duration|compact_duration }}
     </div>
     {% else %}
     <div>
