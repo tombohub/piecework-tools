@@ -399,14 +399,19 @@ class UnitManager(models.Manager["Unit"]):
         except self.model.DoesNotExist:
             return None
 
-    def weighted_sheets_per_hour(self) -> Decimal:
+    def weighted_sheets_per_hour(self, project: Project | None = None) -> Decimal:
         """
         Return the weighted sheets-per-hour rate across completed units.
+
+        Filter per project
         """
+        units = self.get_queryset().filter(status=self.model.Status.COMPLETED)
+
+        if project is not None:
+            units = units.filter(project=project)
 
         eligible_unit_ids = (
-            self.get_queryset()
-            .filter(
+            units.filter(
                 status=self.model.Status.COMPLETED,
                 unitsheetcount__count__gt=0,
                 activitylog__activity__name="board",
@@ -437,11 +442,7 @@ class UnitManager(models.Manager["Unit"]):
         if total_seconds <= 0:
             return Decimal("0.00")
 
-        rate = (
-            Decimal(total_sheets)
-            / Decimal(str(total_seconds))
-            * Decimal("3600")
-        )
+        rate = Decimal(total_sheets) / Decimal(str(total_seconds)) * Decimal("3600")
 
         return rate.quantize(Decimal("0.01"))
 
