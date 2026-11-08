@@ -151,7 +151,7 @@ def unit_delete(request, pk):
     return redirect("piecework:units_index")
 
 
-def units_detail(request, pk):
+def units_details(request, pk):
     unit = get_object_or_404(Unit, pk=pk)
 
     drywall_sheet_counts = unit.unitsheetcount_set.select_related(
