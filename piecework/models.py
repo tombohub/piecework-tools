@@ -4,8 +4,10 @@ import datetime as dt
 from decimal import Decimal
 from typing import TYPE_CHECKING, ClassVar
 
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import F, Q, Sum
+from django.utils import timezone
 
 ## PROJECTS context
 
@@ -891,6 +893,61 @@ class ActivityLog(models.Model):
 
     def __str__(self) -> str:
         return str(self.activity)
+
+
+class BoardingSprintManager(models.Manager):
+    def current(self):
+        """
+        Return the currently running boarding sprint, or None if there is none.
+
+        A sprint is considered current while its end time has not been recorded.
+        """
+        return (
+            self.get_queryset()
+            .filter(end_time__isnull=True)
+            .select_related("activity_log__activity")
+            .first()
+        )
+
+    def start_sprint(self):
+        activity_log = ActivityLog.objects.current()
+
+        if activity_log is None:
+            raise ValidationError("sprint cannot start without current activity")
+
+        if activity_log.activity.name != "board":
+            raise ValidationError("A sprint can only start during boarding activity")
+
+        if self.current() is not None:
+            raise ValidationError("A boarding sprint is already running")
+
+        new_sprint = self.create(activity_log=activity_log, start_time=timezone.now())
+
+        return new_sprint
+
+
+class BoardingSprint(models.Model):
+    if TYPE_CHECKING:
+        activity_log_id: int | None
+
+    activity_log = models.ForeignKey(ActivityLog, on_delete=models.PROTECT)
+    start_time = models.DateTimeField()
+    end_time = models.DateTimeField(null=True, blank=True)
+    sheets_installed = models.PositiveSmallIntegerField(null=True, blank=True)
+
+    objects: BoardingSprintManager = BoardingSprintManager()
+
+    def clean(self):
+        if self.activity_log_id and self.activity_log.activity.name != "board":
+            raise ValidationError(
+                "A boarding sprint must belong to boarding activity log"
+            )
+
+    def __str__(self) -> str:
+        return (
+            f"Unit {self.activity_log.unit} boarding sprint - "
+            f"{self.start_time:%Y-%m-%d %H:%M}"
+        )
 
 
 ## WORKFLOW

@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
+from django.utils import timezone
 from numpy import number
 
 from piecework.forms import UnitForm
@@ -12,6 +13,7 @@ from piecework.forms import UnitForm
 from .models import (
     Activity,
     ActivityLog,
+    BoardingSprint,
     DrywallRate,
     DrywallRateCategory,
     HeightCategory,
@@ -817,3 +819,75 @@ class ProjectTests(TestCase):
         )
 
         self.assertEqual(Project.objects.count(), 2)
+
+
+class BoardingSprintTests(TestCase):
+    @classmethod
+    def setUpTestData(cls) -> None:
+        cls.unit = Unit.objects.create(number="101")
+        cls.boarding = Activity.objects.create(name="board")
+        cls.break_activity = Activity.objects.create(name="break")
+
+    def _create_current_activity_log(self, activity: Activity) -> ActivityLog:
+        return ActivityLog.objects.create(
+            activity=activity, unit=self.unit, start=timezone.now(), is_current=True
+        )
+
+    def test_start_sprint_creates_sprint_for_current_boarding_activity(self):
+        activity_log = self._create_current_activity_log(self.boarding)
+        before_start = timezone.now()
+
+        sprint = BoardingSprint.objects.start_sprint()
+        after_start = timezone.now()
+
+        self.assertEqual(sprint.activity_log, activity_log)
+        self.assertGreaterEqual(sprint.start_time, before_start)
+        self.assertLessEqual(sprint.start_time, after_start)
+        self.assertIsNone(sprint.end_time)
+        self.assertIsNone(sprint.sheets_installed)
+
+    def test_start_sprint_require_current_activity(self):
+        with self.assertRaisesMessage(
+            ValidationError, "sprint cannot start without current activity"
+        ):
+            BoardingSprint.objects.start_sprint()
+
+        self.assertFalse(BoardingSprint.objects.exists())
+
+    def test_start_sprint_requires_boarding_activity(self):
+        self._create_current_activity_log(self.break_activity)
+
+        with self.assertRaisesMessage(
+            ValidationError, "A sprint can only start during boarding activity"
+        ):
+            BoardingSprint.objects.start_sprint()
+
+        self.assertFalse(BoardingSprint.objects.exists())
+
+    def test_start_sprint_rejects_second_running_sprint(self):
+        self._create_current_activity_log(self.boarding)
+        first_sprint = BoardingSprint.objects.start_sprint()
+
+        with self.assertRaisesMessage(
+            ValidationError, "A boarding sprint is already running"
+        ):
+            BoardingSprint.objects.start_sprint()
+
+        self.assertEqual(BoardingSprint.objects.count(), 1)
+        self.assertEqual(BoardingSprint.objects.current(), first_sprint)
+
+    def test_current_returns_none_without_running_sprint(self):
+        self.assertIsNone(BoardingSprint.objects.current())
+
+    def test_current_ignores_completed_sprint(self):
+        activity_log = self._create_current_activity_log(self.boarding)
+        now = timezone.now()
+
+        BoardingSprint.objects.create(
+            activity_log=activity_log,
+            start_time=now - dt.timedelta(minutes=30),
+            end_time=now,
+            sheets_installed=10,
+        )
+
+        self.assertIsNone(BoardingSprint.objects.current())
