@@ -160,13 +160,22 @@ def units_details(request, pk):
 
     jmould_counts = unit.unitjmouldcount_set.order_by("length_feet")
 
+    insulation_counts = unit.unitinsulationcount_set.select_related(
+        "insulation_material"
+    ).order_by(
+        "insulation_material__thickness_inches",
+        "insulation_material__width_inches",
+        "insulation_material__length_inches",
+    )
+
     context = {
         "unit": unit,
         "drywall_sheet_counts": drywall_sheet_counts,
         "jmould_counts": jmould_counts,
+        "insulation_counts": insulation_counts,
     }
 
-    return render(request, "piecework/units/detail.html", context)
+    return render(request, "piecework/units/details.html", context)
 
 
 # helpers

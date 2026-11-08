@@ -83,6 +83,35 @@
                 </tbody>
             </table>
         </div>
+
+        <h2 class="h5 mt-4">Insulation materials</h2>
+
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th scope="col">Material</th>
+                        <th scope="col" class="text-end">Pieces</th>
+                        <th scope="col" class="text-end">Square footage</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for insulation_count in insulation_counts %}
+                    <tr>
+                        <td>{{ insulation_count.insulation_material }}</td>
+                        <td class="text-end">{{ insulation_count.count }}</td>
+                        <td class="text-end">
+                            {{ insulation_count.square_footage|floatformat:"-2" }} sq ft
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="text-muted">No insulation materials recorded.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <div class="card-footer">
