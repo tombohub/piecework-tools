@@ -29,6 +29,33 @@
             <dt class="col-sm-4">Completed on</dt>
             <dd class="col-sm-8">{{ unit.completed_on|default:"—" }}</dd>
         </dl>
+
+        <h2 class="h5 mt-4">Drywall materials</h2>
+
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th scope="col">Material</th>
+                        <th scope="col" class="text-end">Sheets</th>
+                        <th scope="col" class="text-end">Square footage</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sheet_count in drywall_sheet_counts %}
+                    <tr>
+                        <td>{{ sheet_count.drywall_material }}</td>
+                        <td class="text-end">{{ sheet_count.count }}</td>
+                        <td class="text-end">{{ sheet_count.square_footage }} sq ft</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="text-muted">No drywall materials recorded.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <div class="card-footer">

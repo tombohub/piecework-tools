@@ -154,7 +154,12 @@ def unit_delete(request, pk):
 def units_detail(request, pk):
     unit = get_object_or_404(Unit, pk=pk)
 
-    context = {"unit": unit}
+    drywall_sheet_counts = unit.unitsheetcount_set.select_related(
+        "drywall_material"
+    ).order_by("drywall_material__length_feet", "drywall_material__drywall_type")
+
+    context = {"unit": unit, "drywall_sheet_counts": drywall_sheet_counts}
+
     return render(request, "piecework/units/detail.html", context)
 
 
