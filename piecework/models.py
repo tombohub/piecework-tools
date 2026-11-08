@@ -949,6 +949,15 @@ class BoardingSprint(models.Model):
             f"{self.start_time:%Y-%m-%d %H:%M}"
         )
 
+    def stop_sprint(self, sheets_installed: int) -> None:
+        if self.end_time is not None:
+            raise ValidationError("This boarding sprint has already stopped")
+
+        self.end_time = timezone.now()
+        self.sheets_installed = sheets_installed
+        self.full_clean()
+        self.save(update_fields=["end_time", "sheets_installed"])
+
 
 ## WORKFLOW
 

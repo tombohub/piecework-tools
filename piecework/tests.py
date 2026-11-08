@@ -891,3 +891,49 @@ class BoardingSprintTests(TestCase):
         )
 
         self.assertIsNone(BoardingSprint.objects.current())
+
+    def test_stop_sprint_records_end_time_and_sheets_installed(self):
+        self._create_current_activity_log(self.boarding)
+        sprint = BoardingSprint.objects.start_sprint()
+        before_stop = timezone.now()
+
+        sprint.stop_sprint(sheets_installed=12)
+        after_stop = timezone.now()
+
+        sprint.refresh_from_db()
+        end_time = sprint.end_time
+        assert end_time is not None
+
+        self.assertEqual(sprint.sheets_installed, 12)
+        self.assertGreaterEqual(end_time, before_stop)
+        self.assertLessEqual(end_time, after_stop)
+        self.assertIsNone(BoardingSprint.objects.current())
+
+    def test_stop_sprint_rejects_already_stopped_sprint(self):
+        self._create_current_activity_log(self.boarding)
+        sprint = BoardingSprint.objects.start_sprint()
+        sprint.stop_sprint(sheets_installed=12)
+
+        original_end_time = sprint.end_time
+
+        with self.assertRaisesMessage(
+            ValidationError, "This boarding sprint has already stopped"
+        ):
+            sprint.stop_sprint(sheets_installed=20)
+
+        sprint.refresh_from_db()
+
+        self.assertEqual(sprint.end_time, original_end_time)
+        self.assertEqual(sprint.sheets_installed, 12)
+
+    def test_stop_sprint_rejects_negative_sheet_count(self):
+        self._create_current_activity_log(self.boarding)
+        sprint = BoardingSprint.objects.start_sprint()
+
+        with self.assertRaises(ValidationError):
+            sprint.stop_sprint(sheets_installed=-1)
+
+        sprint.refresh_from_db()
+
+        self.assertIsNone(sprint.end_time)
+        self.assertIsNone(sprint.sheets_installed)
