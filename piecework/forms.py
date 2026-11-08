@@ -1,8 +1,9 @@
+from random import choice
 from typing import ClassVar
 
 from django import forms
 
-from .models import Note, Project, Unit, UnitSheetCount
+from .models import HeightCategory, Note, Project, Unit, UnitSheetCount
 
 
 class UnitForm(forms.ModelForm):
@@ -31,10 +32,17 @@ class NoteModelForm(forms.ModelForm):
         }
 
 
-class ProjectStatsFilterForm(forms.Form):
+class UnitStatsFilterForm(forms.Form):
     project = forms.ModelChoiceField(
         queryset=Project.objects.order_by("name"),
         required=False,
         empty_label="All projects",
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
+
+    height_feet = forms.ChoiceField(
+        label="Height",
+        required=False,
+        choices=[("", "All heights"), *HeightCategory.choices],
         widget=forms.Select(attrs={"class": "form-select"}),
     )

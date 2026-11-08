@@ -69,6 +69,20 @@
         {% endfor %}
       </div>
       <div class="col-auto">
+        <label class="mb-0" for="{{ project_filter_form.height_feet.id_for_label }}">
+          Height:
+        </label>
+      </div>
+      <div class="col-auto">
+        {{ project_filter_form.height_feet }}
+
+        {% for error in project_filter_form.height_feet.errors %}
+        <div class="text-danger">
+          {{ error }}
+        </div>
+        {% endfor %}
+      </div>
+      <div class="col-auto">
         <button type="submit" class="btn btn-outline-primary">Apply</button>
       </div>
     </form>

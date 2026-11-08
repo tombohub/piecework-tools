@@ -399,16 +399,21 @@ class UnitManager(models.Manager["Unit"]):
         except self.model.DoesNotExist:
             return None
 
-    def weighted_sheets_per_hour(self, project: Project | None = None) -> Decimal:
+    def weighted_sheets_per_hour(
+        self, project: Project | None = None, height_feet: str | None = None
+    ) -> Decimal:
         """
         Return the weighted sheets-per-hour rate across completed units.
 
-        Filter per project
+        Filter per project and unit height
         """
         units = self.get_queryset().filter(status=self.model.Status.COMPLETED)
 
         if project is not None:
             units = units.filter(project=project)
+
+        if height_feet:
+            units = units.filter(height_feet=height_feet)
 
         eligible_unit_ids = (
             units.filter(

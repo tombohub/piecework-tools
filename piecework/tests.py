@@ -492,6 +492,52 @@ class UnitTests(TestCase):
 
         self.assertEqual(result, Decimal("0.00"))
 
+    def test_weighted_sheets_per_hour_filters_by_height(self):
+        boarding = Activity.objects.create(name="board")
+
+        lower_unit = self.create_unit(
+            number="101",
+            status=Unit.Status.COMPLETED,
+            height_feet=HeightCategory.OVER_EIGHT_TO_NINE_INCLUSIVE,
+        )
+        higher_unit = self.create_unit(
+            number="102",
+            status=Unit.Status.COMPLETED,
+            height_feet=HeightCategory.OVER_NINE_TO_TEN_INCLUSIVE,
+        )
+
+        UnitSheetCount.objects.create(
+            unit=lower_unit,
+            drywall_material=self.twelve_foot_material,
+            count=20,
+        )
+        UnitSheetCount.objects.create(
+            unit=higher_unit,
+            drywall_material=self.twelve_foot_material,
+            count=40,
+        )
+
+        ActivityLog.objects.create(
+            activity=boarding,
+            unit=lower_unit,
+            start=dt.datetime(2025, 10, 20, 8, tzinfo=dt.UTC),
+            end=dt.datetime(2025, 10, 20, 9, tzinfo=dt.UTC),
+            is_current=False,
+        )
+        ActivityLog.objects.create(
+            activity=boarding,
+            unit=higher_unit,
+            start=dt.datetime(2025, 10, 21, 8, tzinfo=dt.UTC),
+            end=dt.datetime(2025, 10, 21, 12, tzinfo=dt.UTC),
+            is_current=False,
+        )
+
+        result = Unit.objects.weighted_sheets_per_hour(
+            height_feet=HeightCategory.OVER_EIGHT_TO_NINE_INCLUSIVE
+        )
+
+        self.assertEqual(result, Decimal("20.0"))
+
 
 class UnitSheetCountTests(TestCase):
     def test_square_footage_is_calculated_correct(self):

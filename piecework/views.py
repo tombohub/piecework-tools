@@ -5,7 +5,7 @@ import datetime as dt
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from .forms import NoteModelForm, ProjectStatsFilterForm, UnitForm
+from .forms import NoteModelForm, UnitForm, UnitStatsFilterForm
 from .models import Activity, ActivityLog, Note, Project, Unit
 
 
@@ -23,13 +23,16 @@ def index(request):
     )
     total_duration_today = ActivityLog.objects.total_duration_today()
 
-    project_filter_form = ProjectStatsFilterForm(request.GET)
+    unit_stats_filter_form = UnitStatsFilterForm(request.GET)
     selected_project = None
+    selected_height_feet = None
 
-    if project_filter_form.is_valid():
-        selected_project = project_filter_form.cleaned_data["project"]
+    if unit_stats_filter_form.is_valid():
+        selected_project = unit_stats_filter_form.cleaned_data["project"]
+        selected_height_feet = unit_stats_filter_form.cleaned_data["height_feet"]
+
     weighted_sheets_per_hour = Unit.objects.weighted_sheets_per_hour(
-        project=selected_project
+        project=selected_project, height_feet=selected_height_feet
     )
 
     context = {
@@ -41,8 +44,9 @@ def index(request):
         "break_duration_today": break_duration_today,
         "boarding_duration_current_unit": boarding_duration_current_unit,
         "total_duration_today": total_duration_today,
-        "project_filter_form": project_filter_form,
+        "project_filter_form": unit_stats_filter_form,
         "selected_project": selected_project,
+        "selected_height_feet": selected_height_feet,
         "weighted_sheets_per_hour": weighted_sheets_per_hour,
     }
     return render(request, "piecework/index.html", context)
