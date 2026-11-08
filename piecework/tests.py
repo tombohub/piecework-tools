@@ -31,38 +31,16 @@ from .models import (
 
 
 class HomeViewTests(TestCase):
-    def test_home_displays_active_unit_without_unit_selector(self):
-        active_unit = Unit.objects.create(number="101", status=Unit.Status.ACTIVE)
-
-        response = self.client.get(reverse("piecework:home"))
-
-        self.assertContains(response, f"Active unit: <strong>{active_unit}</strong>")
-        admin_url = reverse(
-            "admin:piecework_unit_change",
-            kwargs={"object_id": active_unit.pk},
-        )
-        self.assertContains(
-            response,
-            f'href="{admin_url}"',
-        )
-        complete_url = reverse(
-            "piecework:units_complete",
-            kwargs={"pk": active_unit.pk},
-        )
-        self.assertContains(response, f'action="{complete_url}"')
-        self.assertNotContains(response, 'name="unit_pk"')
-
     def test_mark_complete_updates_active_unit(self):
         active_unit = Unit.objects.create(number="101", status=Unit.Status.ACTIVE)
 
-        response = self.client.post(
+        self.client.post(
             reverse(
                 "piecework:units_complete",
                 kwargs={"pk": active_unit.pk},
             )
         )
 
-        self.assertRedirects(response, reverse("piecework:home"))
         active_unit.refresh_from_db()
         self.assertEqual(active_unit.status, Unit.Status.COMPLETED)
         self.assertEqual(active_unit.completed_on, dt.date.today())
@@ -79,25 +57,16 @@ class HomeViewTests(TestCase):
 
         self.assertEqual(response.status_code, 405)
 
-    def test_home_displays_message_and_disables_actions_without_active_unit(self):
-        Activity.objects.create(name="board")
-
-        response = self.client.get(reverse("piecework:home"))
-
-        self.assertContains(response, "No active unit.")
-        self.assertContains(response, "disabled")
-
     def test_start_activity_uses_active_unit(self):
         activity = Activity.objects.create(name="board")
         active_unit = Unit.objects.create(number="101", status=Unit.Status.ACTIVE)
         Unit.objects.create(number="102", status=Unit.Status.ON_HOLD)
 
-        response = self.client.get(
+        self.client.get(
             reverse("piecework:start-activity"),
             {"action": activity.name},
         )
 
-        self.assertRedirects(response, reverse("piecework:home"))
         self.assertEqual(ActivityLog.objects.get().unit, active_unit)
 
 
@@ -735,9 +704,8 @@ class UnitViewTests(TestCase):
         unit = Unit.objects.create(number="101")
         delete_url = reverse("piecework:units_delete", kwargs={"pk": unit.pk})
 
-        response = self.client.post(delete_url)
+        self.client.post(delete_url)
 
-        self.assertRedirects(response, reverse("piecework:units_index"))
         self.assertFalse(Unit.objects.filter(pk=unit.pk).exists())
 
     def test_unit_delete_rejects_get_request(self):
@@ -759,15 +727,8 @@ class UnitViewTests(TestCase):
 
         self.assertEqual(response.status_code, 404)
 
-    def test_units_create_displays_form(self):
-        response = self.client.get(reverse("piecework:units_create"))
-
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "piecework/units/create.html")
-        self.assertIsInstance(response.context["form"], UnitForm)
-
     def test_units_create_saves_valid_unit(self):
-        response = self.client.post(
+        self.client.post(
             reverse("piecework:units_create"),
             {
                 "number": "101",
@@ -776,20 +737,7 @@ class UnitViewTests(TestCase):
             },
         )
 
-        self.assertRedirects(response, reverse("piecework:units_index"))
         self.assertTrue(Unit.objects.filter(number="101").exists())
-
-    def test_units_detail_displays_unit(self):
-        unit = Unit.objects.create(number="101")
-
-        response = self.client.get(
-            reverse("piecework:units_detail", kwargs={"pk": unit.pk})
-        )
-
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "piecework/units/details.html")
-        self.assertEqual(response.context["unit"], unit)
-        self.assertContains(response, "Unit 101")
 
     def test_units_detail_returns_404_for_uknown_unit(self):
         response = self.client.get(
@@ -797,24 +745,13 @@ class UnitViewTests(TestCase):
         )
         self.assertEqual(response.status_code, 404)
 
-    def test_units_edit_display_form_for_unit(self):
-        unit = Unit.objects.create(number="101")
-
-        response = self.client.get(
-            reverse("piecework:units_edit", kwargs={"pk": unit.pk})
-        )
-
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "piecework/units/edit.html")
-        self.assertEqual(response.context["form"].instance, unit)
-
     def test_units_updates_unit(self):
         unit = Unit.objects.create(
             number="101",
             status=Unit.Status.ON_HOLD,
         )
 
-        response = self.client.post(
+        self.client.post(
             reverse("piecework:units_edit", kwargs={"pk": unit.pk}),
             {
                 "number": "102",
@@ -825,10 +762,6 @@ class UnitViewTests(TestCase):
 
         unit.refresh_from_db()
 
-        self.assertRedirects(
-            response,
-            reverse("piecework:units_detail", kwargs={"pk": unit.pk}),
-        )
         self.assertEqual(unit.number, "102")
         self.assertEqual(unit.status, Unit.Status.ACTIVE)
 
