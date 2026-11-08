@@ -163,7 +163,7 @@ def units_details(request, pk):
     insulation_counts = unit.unitinsulationcount_set.select_related(
         "insulation_material"
     ).order_by(
-        "insulation_material__thickness_inches",
+        "insulation_material__insulation_type",
         "insulation_material__width_inches",
         "insulation_material__length_inches",
     )

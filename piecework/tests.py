@@ -233,7 +233,7 @@ class UnitTests(TestCase):
             length_feet=UnitDrywallMaterial.Length.EIGHT,
         )
         cls.insulation_material = UnitInsulationMaterial.objects.create(
-            thickness_inches=(UnitInsulationMaterial.Thickness.THREE_AND_FIVE_EIGHTHS),
+            insulation_type=UnitInsulationMaterial.InsulationType.INTERIOR,
             width_inches=24,
             length_inches=48,
         )
@@ -657,7 +657,7 @@ class InsulationRateTests(TestCase):
 class UnitInsulationMaterialTests(TestCase):
     def test_square_footage_is_calculated_from_width_and_length(self):
         material = UnitInsulationMaterial(
-            thickness_inches=UnitInsulationMaterial.Thickness.THREE_AND_FIVE_EIGHTHS,
+            insulation_type=UnitInsulationMaterial.InsulationType.INTERIOR,
             width_inches=24,
             length_inches=48,
         )
@@ -666,50 +666,47 @@ class UnitInsulationMaterialTests(TestCase):
         # 1,152 ÷ 144 = 8 sq ft
         self.assertEqual(material.square_footage, Decimal("8"))
 
-    def test_dimensions_must_be_unique(self):
-        dimensions = {
-            "thickness_inches": (
-                UnitInsulationMaterial.Thickness.THREE_AND_FIVE_EIGHTHS
-            ),
+    def test_type_and_dimensions_must_be_unique(self):
+        material_data = {
+            "insulation_type": UnitInsulationMaterial.InsulationType.INTERIOR,
             "width_inches": 24,
             "length_inches": 48,
         }
-        UnitInsulationMaterial.objects.create(**dimensions)
+        UnitInsulationMaterial.objects.create(**material_data)
 
         with self.assertRaises(IntegrityError), transaction.atomic():
-            UnitInsulationMaterial.objects.create(**dimensions)
+            UnitInsulationMaterial.objects.create(**material_data)
 
-    def test_same_width_and_length_allow_different_thickness(self):
+    def test_same_dimensions_allow_different_insulation_types(self):
         UnitInsulationMaterial.objects.create(
-            thickness_inches=UnitInsulationMaterial.Thickness.THREE_AND_FIVE_EIGHTHS,
+            insulation_type=UnitInsulationMaterial.InsulationType.INTERIOR,
             width_inches=24,
             length_inches=48,
         )
 
         material = UnitInsulationMaterial.objects.create(
-            thickness_inches=UnitInsulationMaterial.Thickness.TWO_AND_ONE_HALF,
+            insulation_type=UnitInsulationMaterial.InsulationType.EXTERIOR,
             width_inches=24,
             length_inches=48,
         )
 
         self.assertEqual(
-            material.thickness_inches,
-            UnitInsulationMaterial.Thickness.TWO_AND_ONE_HALF,
+            material.insulation_type,
+            UnitInsulationMaterial.InsulationType.EXTERIOR,
         )
 
-    def test_thickness_has_expected_choices(self):
+    def test_insulation_type_has_expected_choices(self):
         self.assertEqual(
-            UnitInsulationMaterial.Thickness.choices,
+            UnitInsulationMaterial.InsulationType.choices,
             [
-                ("1_5_8", "1 5/8 inches"),
-                ("2_1_2", "2 1/2 inches"),
-                ("3_5_8", "3 5/8 inches"),
+                ("interior", "Interior"),
+                ("exterior", "Exterior"),
             ],
         )
 
-    def test_thickness_must_be_one_of_the_choices(self):
+    def test_insulation_type_must_be_one_of_the_choices(self):
         material = UnitInsulationMaterial(
-            thickness_inches="unsupported",
+            insulation_type="unsupported",
             width_inches=24,
             length_inches=48,
         )
@@ -721,7 +718,7 @@ class UnitInsulationMaterialTests(TestCase):
 class UnitInsulationCountTests(SimpleTestCase):
     def test_square_footage_multiplies_material_area_by_count(self):
         material = UnitInsulationMaterial(
-            thickness_inches=UnitInsulationMaterial.Thickness.ONE_AND_FIVE_EIGHTHS,
+            insulation_type=UnitInsulationMaterial.InsulationType.INTERIOR,
             width_inches=24,
             length_inches=48,
         )
@@ -790,7 +787,7 @@ class UnitViewTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "piecework/units/detail.html")
+        self.assertTemplateUsed(response, "piecework/units/details.html")
         self.assertEqual(response.context["unit"], unit)
         self.assertContains(response, "Unit 101")
 

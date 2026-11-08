@@ -352,15 +352,11 @@ class UnitInsulationMaterial(models.Model):
     Definition of insulation material used in units.
     """
 
-    class Thickness(models.TextChoices):
-        ONE_AND_FIVE_EIGHTHS = "1_5_8", "1 5/8 inches"
-        TWO_AND_ONE_HALF = "2_1_2", "2 1/2 inches"
-        THREE_AND_FIVE_EIGHTHS = "3_5_8", "3 5/8 inches"
+    class InsulationType(models.TextChoices):
+        INTERIOR = "interior", "Interior"
+        EXTERIOR = "exterior", "Exterior"
 
-    thickness_inches = models.CharField(
-        max_length=5,
-        choices=Thickness.choices,
-    )
+    insulation_type = models.CharField(max_length=20, choices=InsulationType.choices)
     width_inches = models.PositiveSmallIntegerField()
     length_inches = models.PositiveSmallIntegerField()
 
@@ -373,18 +369,18 @@ class UnitInsulationMaterial(models.Model):
         return square_inches / Decimal(144)
 
     def __str__(self) -> str:
-        thickness_label = self.Thickness(self.thickness_inches).label
-        return f'{thickness_label} - {self.width_inches}" × {self.length_inches}"'
+        insulation_type_label = self.InsulationType(self.insulation_type).label
+        return f'{insulation_type_label} - {self.width_inches}" × {self.length_inches}"'
 
     class Meta:
         constraints: ClassVar = [
             models.UniqueConstraint(
                 fields=[
-                    "thickness_inches",
+                    "insulation_type",
                     "width_inches",
                     "length_inches",
                 ],
-                name="unique_insulation_material_dimensions",
+                name="unique_insulation_material_type_and_dimensions",
             ),
         ]
 
