@@ -56,6 +56,33 @@
                 </tbody>
             </table>
         </div>
+
+        <h2 class="h5 mt-4">J-mould materials</h2>
+
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th scope="col">Length</th>
+                        <th scope="col" class="text-end">Pieces</th>
+                        <th scope="col" class="text-end">Linear footage</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for jmould_count in jmould_counts %}
+                    <tr>
+                        <td>{{ jmould_count.get_length_feet_display }}</td>
+                        <td class="text-end">{{ jmould_count.count }}</td>
+                        <td class="text-end">{{ jmould_count.linear_feet }} linear ft</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="text-muted">No J-mould materials recorded.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <div class="card-footer">

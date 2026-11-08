@@ -158,7 +158,13 @@ def units_detail(request, pk):
         "drywall_material"
     ).order_by("drywall_material__length_feet", "drywall_material__drywall_type")
 
-    context = {"unit": unit, "drywall_sheet_counts": drywall_sheet_counts}
+    jmould_counts = unit.unitjmouldcount_set.order_by("length_feet")
+
+    context = {
+        "unit": unit,
+        "drywall_sheet_counts": drywall_sheet_counts,
+        "jmould_counts": jmould_counts,
+    }
 
     return render(request, "piecework/units/detail.html", context)
 
