@@ -15,11 +15,11 @@
     </div>
     <div class="offcanvas-body p-0 h-100 d-flex flex-column">
         <div class="list-group list-group-flush flex-grow-1">
-            <a class="list-group-item list-group-item-action" href="{% url 'piecework:notes' %}">Notes</a>
             <a class="list-group-item list-group-item-action" href="{% url 'piecework:units_index' %}">Units</a>
         </div>
 
         <div class="list-group list-group-flush">
+            <a class="list-group-item list-group-item-action" href="{% url 'piecework:notes' %}">Notes</a>
             <a class="list-group-item list-group-item-action" href="{% url 'admin:index' %}">Admin</a>
             {% if user.is_authenticated %}
             <form action="{% url 'admin:logout' %}" method="post">
