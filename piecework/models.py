@@ -895,8 +895,8 @@ class ActivityLog(models.Model):
         return str(self.activity)
 
 
-class BoardingSprintManager(models.Manager):
-    def current(self):
+class BoardingSprintManager(models.Manager["BoardingSprint"]):
+    def current(self) -> BoardingSprint | None:
         """
         Return the currently running boarding sprint, or None if there is none.
 
@@ -909,7 +909,7 @@ class BoardingSprintManager(models.Manager):
             .first()
         )
 
-    def start_sprint(self):
+    def start_sprint(self) -> BoardingSprint:
         activity_log = ActivityLog.objects.current()
 
         if activity_log is None:
