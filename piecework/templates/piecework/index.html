@@ -98,7 +98,8 @@
     </div>
   </div>
   <div class="vstack gap-4 pt-2">
-    <form action="{% url 'piecework:start-activity' %}">
+    <form action="{% url 'piecework:start-activity' %}" method="post">
+      {% csrf_token %}
       <div class="vstack gap-3">
         {# buttons for starting an action #}
         {% for name in activity_names %}
@@ -108,6 +109,20 @@
         {% endfor %}
       </div>
     </form>
+
+    {% if can_start_boarding_sprint %}
+    <form method="post" action="{% url 'piecework:start_boarding_sprint' %}" class="d-grid">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-success btn-lg">
+        Start sprint
+      </button>
+    </form>
+    {% elif current_boarding_sprint %}
+    <div class="alert alert-info mb-0" role="status">
+      Sprint in progress since
+      {{ current_boarding_sprint.start_time }}.
+    </div>
+    {% endif %}
 
     {# button for stopping action #}
     <form action="{% url 'piecework:stop-action' %}">

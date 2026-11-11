@@ -3,16 +3,19 @@
 import datetime as dt
 
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from .forms import NoteModelForm, UnitForm, UnitStatsFilterForm
-from .models import Activity, ActivityLog, Note, Project, Unit
+from .models import Activity, ActivityLog, BoardingSprint, Note, Project, Unit
 
 
 def index(request):
 
     activity_names = Activity.objects.names()
     current_activity_log = ActivityLog.objects.current()
+    current_boarding_sprint = BoardingSprint.objects.current()
+    can_start_boarding_sprint = BoardingSprint.objects.can_start(current_activity_log)
     last_completed_activity_log = ActivityLog.objects.last_completed()
     active_unit = Unit.objects.active_unit()
     # NOTE: magic string
@@ -38,6 +41,8 @@ def index(request):
     context = {
         "activity_names": activity_names,
         "current_activity_log": current_activity_log,
+        "current_boarding_sprint": current_boarding_sprint,
+        "can_start_boarding_sprint": can_start_boarding_sprint,
         "last_completed_activity_log": last_completed_activity_log,
         "active_unit": active_unit,
         "boarding_duration_today": boarding_duration_today,
@@ -52,6 +57,7 @@ def index(request):
     return render(request, "piecework/index.html", context)
 
 
+@require_POST
 def start_activity(request):
     """
     Starts the new activity.
@@ -59,17 +65,22 @@ def start_activity(request):
     unit = get_object_or_404(Unit, status=Unit.Status.ACTIVE)
     end_current_activity()
 
-    now = dt.datetime.now()
-    activity_name = request.GET["action"]
-    activity = Activity.objects.get(name=activity_name)
+    activity = get_object_or_404(Activity, name=request.POST["action"])
 
-    action_time = ActivityLog(activity=activity, start=now, unit=unit)
-    action_time.save()
+    ActivityLog.objects.create(activity=activity, start=timezone.now(), unit=unit)
+
     return redirect("piecework:home")
 
 
 def stop_current_activity(request):
     end_current_activity()
+    return redirect("piecework:home")
+
+
+@require_POST
+def start_boarding_sprint(request):
+    BoardingSprint.objects.start_sprint()
+
     return redirect("piecework:home")
 
 

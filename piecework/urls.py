@@ -15,4 +15,9 @@ urlpatterns = [
     path("units/<int:pk>/edit", views.units_edit, name="units_edit"),
     path("units/<int:pk>/complete", views.unit_complete, name="units_complete"),
     path("units/<int:pk>/delete", views.unit_delete, name="units_delete"),
+    path(
+        "boarding-sprints/start",
+        views.start_boarding_sprint,
+        name="start_boarding_sprint",
+    ),
 ]

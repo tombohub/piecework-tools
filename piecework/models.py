@@ -884,6 +884,10 @@ class ActivityLog(models.Model):
     is_boarding = models.BooleanField(default=False)
     duration = models.DurationField(null=True, blank=True)
 
+    @property
+    def is_boarding_activity(self) -> bool:
+        return self.activity.name == "board"
+
     objects: ActivityLogManager = ActivityLogManager()
 
     def save(self, *args, **kwargs):
@@ -907,6 +911,13 @@ class BoardingSprintManager(models.Manager["BoardingSprint"]):
             .filter(end_time__isnull=True)
             .select_related("activity_log__activity")
             .first()
+        )
+
+    def can_start(self, activity_log: ActivityLog | None) -> bool:
+        return (
+            activity_log is not None
+            and activity_log.is_boarding_activity
+            and self.current() is None
         )
 
     def start_sprint(self) -> BoardingSprint:
@@ -933,7 +944,6 @@ class BoardingSprint(models.Model):
     activity_log = models.ForeignKey(ActivityLog, on_delete=models.PROTECT)
     start_time = models.DateTimeField()
     end_time = models.DateTimeField(null=True, blank=True)
-    sheets_installed = models.PositiveSmallIntegerField(null=True, blank=True)
 
     objects: BoardingSprintManager = BoardingSprintManager()
 
@@ -954,9 +964,29 @@ class BoardingSprint(models.Model):
             raise ValidationError("This boarding sprint has already stopped")
 
         self.end_time = timezone.now()
-        self.sheets_installed = sheets_installed
         self.full_clean()
-        self.save(update_fields=["end_time", "sheets_installed"])
+        self.save(update_fields=["end_time"])
+
+
+class BoardingSprintSheetCount(models.Model):
+    boarding_sprint = models.ForeignKey(BoardingSprint, on_delete=models.CASCADE)
+    drywall_material = models.ForeignKey(UnitDrywallMaterial, on_delete=models.PROTECT)
+    count = models.PositiveSmallIntegerField()
+
+    class Meta:
+        constraints: ClassVar = [
+            models.UniqueConstraint(
+                fields=["boarding_sprint", "drywall_material"],
+                name="unique_material_per_boarding_sprint",
+            )
+        ]
+
+    @property
+    def square_footage(self) -> int:
+        return self.drywall_material.square_footage * self.count
+
+    def __str__(self) -> str:
+        return f"{self.drywall_material} {self.count}"
 
 
 ## WORKFLOW
