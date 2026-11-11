@@ -25,4 +25,9 @@ urlpatterns = [
         views.stop_boarding_sprint,
         name="stop_boarding_sprint",
     ),
+    path(
+        "boarding-sprints/<int:pk>/sheet-counts",
+        views.boarding_sprint_sheet_counts,
+        name="boarding_sprint_sheet_counts",
+    ),
 ]

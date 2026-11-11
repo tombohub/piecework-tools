@@ -1,0 +1,91 @@
+{% extends "piecework/base.html" %}
+
+{% block body %}
+<div class="container py-4">
+  <div class="card">
+    <div class="card-body">
+      <h1 class="h3">Sprint sheet counts</h1>
+
+      <p class="text-body-secondary">
+        Enter the drywall installed during the sprint that started
+        {{ sprint.start_time }}.
+      </p>
+
+      <form method="post">
+        {% csrf_token %}
+        {{ formset.management_form }}
+
+        {% for error in formset.non_form_errors %}
+        <div class="alert alert-danger" role="alert">
+          {{ error }}
+        </div>
+        {% endfor %}
+
+        <div class="vstack gap-3">
+          {% for form in formset %}
+          <div class="border rounded p-3">
+            {{ form.id }}
+
+            <div class="row g-3">
+              <div class="col-md-7">
+                <label
+                  class="form-label"
+                  for="{{ form.drywall_material.id_for_label }}"
+                >
+                  Drywall material
+                </label>
+
+                {{ form.drywall_material }}
+
+                {% for error in form.drywall_material.errors %}
+                <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+              </div>
+
+              <div class="col-md-3">
+                <label
+                  class="form-label"
+                  for="{{ form.count.id_for_label }}"
+                >
+                  Sheet count
+                </label>
+
+                {{ form.count }}
+
+                {% for error in form.count.errors %}
+                <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+              </div>
+
+              {% if form.instance.pk %}
+              <div class="col-md-2">
+                <div class="form-check mt-md-4">
+                  {{ form.DELETE }}
+                  <label
+                    class="form-check-label"
+                    for="{{ form.DELETE.id_for_label }}"
+                  >
+                    Remove
+                  </label>
+                </div>
+              </div>
+              {% endif %}
+            </div>
+
+            {% for error in form.non_field_errors %}
+            <div class="text-danger mt-2">{{ error }}</div>
+            {% endfor %}
+          </div>
+          {% endfor %}
+        </div>
+
+        <div class="d-grid mt-4">
+          <button type="submit" class="btn btn-success btn-lg">
+            Save sprint results
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock body %}

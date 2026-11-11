@@ -7,7 +7,12 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-from .forms import NoteModelForm, UnitForm, UnitStatsFilterForm
+from .forms import (
+    BoardingSprintSheetCountFormSet,
+    NoteModelForm,
+    UnitForm,
+    UnitStatsFilterForm,
+)
 from .models import Activity, ActivityLog, BoardingSprint, Note, Project, Unit
 
 
@@ -94,7 +99,21 @@ def stop_boarding_sprint(request):
 
     sprint.stop_sprint()
 
-    return redirect("piecework:home")
+    return redirect("piecework:boarding_sprint_sheet_counts", pk=sprint.pk)
+
+
+def boarding_sprint_sheet_counts(request, pk):
+    sprint = get_object_or_404(BoardingSprint, pk=pk, end_time__isnull=False)
+
+    formset = BoardingSprintSheetCountFormSet(request.POST or None, instance=sprint)
+
+    if request.method == "POST" and formset.is_valid():
+        formset.save()
+        return redirect("piecework:home")
+
+    context = {"sprint": sprint, "formset": formset}
+
+    return render(request, "piecework/boarding_sprints/sheet_counts.html", context)
 
 
 ## NOTES

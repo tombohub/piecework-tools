@@ -3,7 +3,15 @@ from typing import ClassVar
 
 from django import forms
 
-from .models import HeightCategory, Note, Project, Unit, UnitSheetCount
+from .models import (
+    BoardingSprint,
+    BoardingSprintSheetCount,
+    HeightCategory,
+    Note,
+    Project,
+    Unit,
+    UnitSheetCount,
+)
 
 
 class UnitForm(forms.ModelForm):
@@ -46,3 +54,31 @@ class UnitStatsFilterForm(forms.Form):
         choices=[("", "All heights"), *HeightCategory.choices],
         widget=forms.Select(attrs={"class": "form-select"}),
     )
+
+
+class BoardingSprintSheetCountForm(forms.ModelForm):
+    class Meta:
+        model = BoardingSprintSheetCount
+        fields = ("drywall_material", "count")
+        widgets: ClassVar = {
+            "drywall_material": forms.Select(
+                attrs={"class": "form-select"},
+            ),
+            "count": forms.NumberInput(
+                attrs={
+                    "class": "form-control",
+                    "min": 1,
+                }
+            ),
+        }
+
+
+BoardingSprintSheetCountFormSet = forms.inlineformset_factory(
+    BoardingSprint,
+    BoardingSprintSheetCount,
+    form=BoardingSprintSheetCountForm,
+    extra=3,
+    can_delete=True,
+    min_num=1,
+    validate_min=True,
+)
