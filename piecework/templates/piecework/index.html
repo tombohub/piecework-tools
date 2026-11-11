@@ -118,9 +118,21 @@
       </button>
     </form>
     {% elif current_boarding_sprint %}
-    <div class="alert alert-info mb-0" role="status">
-      Sprint in progress since
-      {{ current_boarding_sprint.start_time }}.
+    <div
+      class="alert alert-info mb-0 d-flex flex-wrap justify-content-between align-items-center gap-3"
+      role="status"
+    >
+      <span>
+        Sprint in progress since
+        <strong>{{ current_boarding_sprint.start_time }}</strong>.
+      </span>
+
+      <form method="post" action="{% url 'piecework:stop_boarding_sprint' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger btn-lg">
+          Stop sprint
+        </button>
+      </form>
     </div>
     {% endif %}
 

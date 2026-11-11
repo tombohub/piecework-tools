@@ -20,4 +20,9 @@ urlpatterns = [
         views.start_boarding_sprint,
         name="start_boarding_sprint",
     ),
+    path(
+        "boarding-sprints/stop",
+        views.stop_boarding_sprint,
+        name="stop_boarding_sprint",
+    ),
 ]

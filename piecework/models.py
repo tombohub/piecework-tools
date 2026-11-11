@@ -959,7 +959,7 @@ class BoardingSprint(models.Model):
             f"{self.start_time:%Y-%m-%d %H:%M}"
         )
 
-    def stop_sprint(self, sheets_installed: int) -> None:
+    def stop_sprint(self) -> None:
         if self.end_time is not None:
             raise ValidationError("This boarding sprint has already stopped")
 

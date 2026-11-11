@@ -2,6 +2,7 @@
 
 import datetime as dt
 
+from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
@@ -80,6 +81,18 @@ def stop_current_activity(request):
 @require_POST
 def start_boarding_sprint(request):
     BoardingSprint.objects.start_sprint()
+
+    return redirect("piecework:home")
+
+
+@require_POST
+def stop_boarding_sprint(request):
+    sprint = BoardingSprint.objects.current()
+
+    if sprint is None:
+        raise Http404("No boarding sprint is currently running")
+
+    sprint.stop_sprint()
 
     return redirect("piecework:home")
 

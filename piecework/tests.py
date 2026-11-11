@@ -64,12 +64,24 @@ class HomeViewTests(TestCase):
         active_unit = Unit.objects.create(number="101", status=Unit.Status.ACTIVE)
         Unit.objects.create(number="102", status=Unit.Status.ON_HOLD)
 
-        self.client.get(
+        self.client.post(
             reverse("piecework:start-activity"),
             {"action": activity.name},
         )
 
         self.assertEqual(ActivityLog.objects.get().unit, active_unit)
+
+    def test_start_activity_rejects_get_request(self):
+        Activity.objects.create(name="board")
+        Unit.objects.create(number="101", status=Unit.Status.ACTIVE)
+
+        response = self.client.get(
+            reverse("piecework:start-activity"),
+            {"action": "board"},
+        )
+
+        self.assertEqual(response.status_code, 405)
+        self.assertFalse(ActivityLog.objects.exists())
 
 
 class ActivityTests(TestCase):
@@ -844,7 +856,6 @@ class BoardingSprintTests(TestCase):
         self.assertGreaterEqual(sprint.start_time, before_start)
         self.assertLessEqual(sprint.start_time, after_start)
         self.assertIsNone(sprint.end_time)
-        self.assertIsNone(sprint.sheets_installed)
 
     def test_start_sprint_require_current_activity(self):
         with self.assertRaisesMessage(
@@ -887,24 +898,22 @@ class BoardingSprintTests(TestCase):
             activity_log=activity_log,
             start_time=now - dt.timedelta(minutes=30),
             end_time=now,
-            sheets_installed=10,
         )
 
         self.assertIsNone(BoardingSprint.objects.current())
 
-    def test_stop_sprint_records_end_time_and_sheets_installed(self):
+    def test_stop_sprint_records_end_time(self):
         self._create_current_activity_log(self.boarding)
         sprint = BoardingSprint.objects.start_sprint()
         before_stop = timezone.now()
 
-        sprint.stop_sprint(sheets_installed=12)
+        sprint.stop_sprint()
         after_stop = timezone.now()
 
         sprint.refresh_from_db()
         end_time = sprint.end_time
         assert end_time is not None
 
-        self.assertEqual(sprint.sheets_installed, 12)
         self.assertGreaterEqual(end_time, before_stop)
         self.assertLessEqual(end_time, after_stop)
         self.assertIsNone(BoardingSprint.objects.current())
@@ -912,28 +921,41 @@ class BoardingSprintTests(TestCase):
     def test_stop_sprint_rejects_already_stopped_sprint(self):
         self._create_current_activity_log(self.boarding)
         sprint = BoardingSprint.objects.start_sprint()
-        sprint.stop_sprint(sheets_installed=12)
+        sprint.stop_sprint()
 
         original_end_time = sprint.end_time
 
         with self.assertRaisesMessage(
             ValidationError, "This boarding sprint has already stopped"
         ):
-            sprint.stop_sprint(sheets_installed=20)
+            sprint.stop_sprint()
 
         sprint.refresh_from_db()
 
         self.assertEqual(sprint.end_time, original_end_time)
-        self.assertEqual(sprint.sheets_installed, 12)
 
-    def test_stop_sprint_rejects_negative_sheet_count(self):
+    def test_stop_boarding_sprint_view_stops_current_sprint(self):
         self._create_current_activity_log(self.boarding)
         sprint = BoardingSprint.objects.start_sprint()
 
-        with self.assertRaises(ValidationError):
-            sprint.stop_sprint(sheets_installed=-1)
+        self.client.post(reverse("piecework:stop_boarding_sprint"))
 
         sprint.refresh_from_db()
 
+        self.assertIsNotNone(sprint.end_time)
+        self.assertIsNone(BoardingSprint.objects.current())
+
+    def test_stop_boarding_sprint_view_requires_post(self):
+        self._create_current_activity_log(self.boarding)
+        sprint = BoardingSprint.objects.start_sprint()
+
+        response = self.client.get(reverse("piecework:stop_boarding_sprint"))
+
+        self.assertEqual(response.status_code, 405)
+        sprint.refresh_from_db()
         self.assertIsNone(sprint.end_time)
-        self.assertIsNone(sprint.sheets_installed)
+
+    def test_stop_boarding_sprint_view_returns_404_without_current_sprint(self):
+        response = self.client.post(reverse("piecework:stop_boarding_sprint"))
+
+        self.assertEqual(response.status_code, 404)
