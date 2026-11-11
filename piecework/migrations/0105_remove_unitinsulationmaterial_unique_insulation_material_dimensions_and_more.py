@@ -42,6 +42,7 @@ def merge_duplicate_insulation_materials(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
+    atomic = False
 
     dependencies = [
         ('piecework', '0104_unitworkflowstep_created_at_and_more'),
@@ -65,6 +66,7 @@ class Migration(migrations.Migration):
         migrations.RunPython(
             merge_duplicate_insulation_materials,
             reverse_code=migrations.RunPython.noop,
+            atomic=True,
         ),
         migrations.AddConstraint(
             model_name='unitinsulationmaterial',
