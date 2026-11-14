@@ -85,6 +85,19 @@
           </button>
         </div>
       </form>
+
+      <form
+        method="post"
+        action="{% url 'piecework:discard_boarding_sprint' pk=sprint.pk %}"
+        class="d-grid mt-2"
+        onsubmit="return confirm('Discard this sprint? Its time logs and sheet counts will be permanently deleted.');"
+      >
+        {% csrf_token %}
+
+        <button type="submit" class="btn btn-outline-danger btn-lg">
+          Discard sprint
+        </button>
+      </form>
     </div>
   </div>
 </div>

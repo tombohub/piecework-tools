@@ -30,4 +30,9 @@ urlpatterns = [
         views.boarding_sprint_sheet_counts,
         name="boarding_sprint_sheet_counts",
     ),
+    path(
+        "boarding-sprints/<int:pk>/discard",
+        views.discard_boarding_sprint,
+        name="discard_boarding_sprint",
+    ),
 ]

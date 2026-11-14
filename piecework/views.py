@@ -83,6 +83,7 @@ def stop_current_activity(request):
     return redirect("piecework:home")
 
 
+## SPRINT
 @require_POST
 def start_boarding_sprint(request):
     BoardingSprint.objects.start_sprint()
@@ -100,6 +101,16 @@ def stop_boarding_sprint(request):
     sprint.stop_sprint()
 
     return redirect("piecework:boarding_sprint_sheet_counts", pk=sprint.pk)
+
+
+@require_POST
+def discard_boarding_sprint(request, pk):
+    sprint = get_object_or_404(
+        BoardingSprint, pk=pk, status=BoardingSprint.Status.STOPPED
+    )
+    sprint.discard_sprint()
+
+    return redirect("piecework:home")
 
 
 def boarding_sprint_sheet_counts(request, pk):
