@@ -103,7 +103,9 @@ def stop_boarding_sprint(request):
 
 
 def boarding_sprint_sheet_counts(request, pk):
-    sprint = get_object_or_404(BoardingSprint, pk=pk, end_time__isnull=False)
+    sprint = get_object_or_404(
+        BoardingSprint, pk=pk, status=BoardingSprint.Status.STOPPED
+    )
 
     formset = BoardingSprintSheetCountFormSet(request.POST or None, instance=sprint)
 
