@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from .forms import (
@@ -250,15 +251,12 @@ def units_details(request, pk):
 
 
 # helpers
-def end_current_activity():
-    """
-    Ends current activity
-    """
-    # check if there is any current action and end it
-    now = dt.datetime.now()
-    exists_current_action = ActivityLog.objects.filter(is_current=True).exists()
-    if exists_current_action:
-        current_action = ActivityLog.objects.get(is_current=True)
-        current_action.end = now
-        current_action.is_current = False
-        current_action.save()
+def end_current_activity() -> None:
+    """End the current activity if one exists."""
+    current_activity = ActivityLog.objects.current()
+
+    if current_activity is None:
+        return
+
+    current_activity.end = timezone.now()
+    current_activity.save(update_fields=["end", "duration"])

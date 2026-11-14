@@ -72,16 +72,6 @@ class HomeViewTests(TestCase):
 
 
 class ActivityTests(TestCase):
-    @classmethod
-    def setUpTestData(cls) -> None:
-        Activity.objects.create(name="Boarding")
-        Activity.objects.create(name="Taping")
-
-    def test_names_returns_activity_names(self):
-        names = Activity.objects.names()
-
-        self.assertCountEqual(names, ["Boarding", "Taping"])
-
     def test_boarding_requires_active_unit(self):
         activity = Activity(category=Activity.Category.BOARDING)
 
@@ -105,12 +95,31 @@ class ActivityLogTests(TestCase):
             name="Break", category=Activity.Category.OTHER
         )
 
+    def test_current_returns_activity_log_without_end(self):
+        activity_log = ActivityLog.objects.create(
+            activity=self.break_activity, start=timezone.now()
+        )
+
+        result = ActivityLog.objects.current()
+
+        self.assertEqual(result, activity_log)
+
+    def test_current_returns_none_when_activity_has_ended(self):
+        now = timezone.now()
+        ActivityLog.objects.create(
+            activity=self.break_activity, start=now - dt.timedelta(minutes=30), end=now
+        )
+
+        result = ActivityLog.objects.current()
+
+        self.assertIsNone(result)
+
     def test_start_other_activity_without_active_unit(self):
         activity_log = ActivityLog.objects.start(self.break_activity)
 
         self.assertEqual(activity_log.activity, self.break_activity)
         self.assertIsNone(activity_log.unit)
-        self.assertTrue(activity_log.is_current)
+        self.assertIsNone(activity_log.end)
 
     def test_start_boarding_uses_active_unit(self):
         self.unit.status = Unit.Status.ACTIVE
@@ -120,7 +129,7 @@ class ActivityLogTests(TestCase):
 
         self.assertEqual(activity_log.activity, self.boarding)
         self.assertEqual(activity_log.unit, self.unit)
-        self.assertTrue(activity_log.is_current)
+        self.assertIsNone(activity_log.end)
 
     def test_start_boarding_without_active_unit_raises_validation_error(self):
         with self.assertRaisesMessage(
@@ -140,7 +149,7 @@ class ActivityLogTests(TestCase):
 
         current_activity.refresh_from_db()
 
-        self.assertFalse(current_activity.is_current)
+        self.assertIsNotNone(current_activity.end)
         self.assertEqual(current_activity.end, new_activity.start)
         self.assertEqual(
             current_activity.duration, current_activity.end - current_activity.start
@@ -158,7 +167,6 @@ class ActivityLogTests(TestCase):
 
         current_activity.refresh_from_db()
 
-        self.assertTrue(current_activity.is_current)
         self.assertIsNone(current_activity.end)
         self.assertIsNone(current_activity.duration)
         self.assertEqual(ActivityLog.objects.current(), current_activity)
@@ -169,7 +177,6 @@ class ActivityLogTests(TestCase):
             unit=self.unit,
             start=dt.datetime(2026, 11, 4, 9, 0),
             end=dt.datetime(2026, 11, 4, 10, 0),
-            is_current=False,
         )
 
         expected_log = ActivityLog.objects.create(
@@ -177,7 +184,6 @@ class ActivityLogTests(TestCase):
             unit=self.unit,
             start=dt.datetime(2026, 11, 4, 10, 0),
             end=dt.datetime(2026, 11, 4, 10, 30),
-            is_current=False,
         )
 
         result = ActivityLog.objects.last_completed()
@@ -193,14 +199,12 @@ class ActivityLogTests(TestCase):
             unit=self.unit,
             start=dt.datetime(2026, 11, 4, 9, 0),
             end=dt.datetime(2026, 11, 4, 10, 0),
-            is_current=False,
         )
 
         ActivityLog.objects.create(
             activity=self.break_activity,
             unit=self.unit,
             start=dt.datetime(2026, 11, 4, 11, 0),
-            is_current=True,
         )
 
         result = ActivityLog.objects.last_completed()
@@ -463,14 +467,12 @@ class UnitTests(TestCase):
             unit=first_unit,
             start=dt.datetime(2025, 10, 20, 8, tzinfo=dt.UTC),
             end=dt.datetime(2025, 10, 20, 9, tzinfo=dt.UTC),
-            is_current=False,
         )
         ActivityLog.objects.create(
             activity=boarding,
             unit=second_unit,
             start=dt.datetime(2025, 10, 21, 8, tzinfo=dt.UTC),
             end=dt.datetime(2025, 10, 21, 12, tzinfo=dt.UTC),
-            is_current=False,
         )
 
         result = Unit.objects.weighted_sheets_per_hour()
@@ -505,14 +507,12 @@ class UnitTests(TestCase):
             unit=first_unit,
             start=dt.datetime(2025, 10, 20, 8, tzinfo=dt.UTC),
             end=dt.datetime(2025, 10, 20, 9, tzinfo=dt.UTC),
-            is_current=False,
         )
         ActivityLog.objects.create(
             activity=boarding,
             unit=second_unit,
             start=dt.datetime(2025, 10, 21, 8, tzinfo=dt.UTC),
             end=dt.datetime(2025, 10, 21, 12, tzinfo=dt.UTC),
-            is_current=False,
         )
 
         first_project_rate = Unit.objects.weighted_sheets_per_hour(
@@ -565,14 +565,12 @@ class UnitTests(TestCase):
             unit=lower_unit,
             start=dt.datetime(2025, 10, 20, 8, tzinfo=dt.UTC),
             end=dt.datetime(2025, 10, 20, 9, tzinfo=dt.UTC),
-            is_current=False,
         )
         ActivityLog.objects.create(
             activity=boarding,
             unit=higher_unit,
             start=dt.datetime(2025, 10, 21, 8, tzinfo=dt.UTC),
             end=dt.datetime(2025, 10, 21, 12, tzinfo=dt.UTC),
-            is_current=False,
         )
 
         result = Unit.objects.weighted_sheets_per_hour(
@@ -902,7 +900,7 @@ class BoardingSprintTests(TestCase):
 
     def _create_current_activity_log(self, activity: Activity) -> ActivityLog:
         return ActivityLog.objects.create(
-            activity=activity, unit=self.unit, start=timezone.now(), is_current=True
+            activity=activity, unit=self.unit, start=timezone.now()
         )
 
     def _create_boarding_activity_log(self) -> ActivityLog:
@@ -910,7 +908,6 @@ class BoardingSprintTests(TestCase):
             activity=self.boarding,
             unit=self.unit,
             start=timezone.now(),
-            is_current=True,
         )
 
     def _create_break_activity_log(self) -> ActivityLog:
@@ -918,7 +915,6 @@ class BoardingSprintTests(TestCase):
             activity=self.break_activity,
             unit=self.unit,
             start=timezone.now(),
-            is_current=True,
         )
 
     def test_current_returns_none_without_active_sprint(self):

@@ -794,17 +794,6 @@ class UnitInsulationCount(models.Model):
         return f"{self.insulation_material} × {self.count}"
 
 
-## ACTIVITY context
-
-
-class ActivityManager(models.Manager):
-    def names(self):
-        """
-        Retrieve list of avaliable activity names.
-        """
-        return self.get_queryset().values_list("name", flat=True)
-
-
 class Activity(models.Model):
     class Category(models.TextChoices):
         BOARDING = "boarding", "Boarding"
@@ -815,8 +804,6 @@ class Activity(models.Model):
     category = models.CharField(
         max_length=20, choices=Category.choices, default=Category.OTHER
     )
-
-    objects: ActivityManager = ActivityManager()
 
     @property
     def requires_active_unit(self) -> bool:
@@ -839,12 +826,10 @@ class ActivityLogManager(models.Manager["ActivityLog"]):
 
         return duration or dt.timedelta()
 
-    def current(self):
-        """
-        Currently active activity log.
-        """
+    def current(self) -> ActivityLog | None:
+        """Return the current activity log if it exists, otherwise None."""
         try:
-            return self.get_queryset().select_related("activity").get(is_current=True)
+            return self.get_queryset().select_related("activity").get(end__isnull=True)
         except self.model.DoesNotExist:
             return None
 
@@ -873,10 +858,11 @@ class ActivityLogManager(models.Manager["ActivityLog"]):
 
         return duration or dt.timedelta()
 
-    def last_completed(self):
+    def last_completed(self) -> ActivityLog | None:
+        """Return the most recently ended activity log."""
         previous_activity = (
             self.get_queryset()
-            .filter(is_current=False, duration__isnull=False)
+            .filter(end__isnull=False, duration__isnull=False)
             .select_related("activity")
             .order_by("-end")
             .first()
@@ -900,14 +886,16 @@ class ActivityLogManager(models.Manager["ActivityLog"]):
                 raise ValidationError("Boarding cannot start without an active unit.")
 
         now = timezone.now()
-        current_activity = (
-            self.get_queryset().select_for_update().filter(is_current=True).first()
-        )
+        try:
+            current_activity = (
+                self.get_queryset().select_for_update().get(end__isnull=True)
+            )
+        except self.model.DoesNotExist:
+            current_activity = None
 
         if current_activity is not None:
             current_activity.end = now
-            current_activity.is_current = False
-            current_activity.save(update_fields=["end", "duration", "is_current"])
+            current_activity.save(update_fields=["end", "duration"])
 
         new_activity_log = self.create(activity=activity, unit=unit, start=now)
 
@@ -920,9 +908,7 @@ class ActivityLog(models.Model):
     start = models.DateTimeField()
     end = models.DateTimeField(null=True, blank=True)
     unit = models.ForeignKey(Unit, on_delete=models.PROTECT, null=True, blank=True)
-    is_current = models.BooleanField(default=True)
-    is_boarding = models.BooleanField(default=False)
-    duration = models.DurationField(null=True, blank=True)
+    duration = models.DurationField(null=True, bla nk=True)
 
     @property
     def is_boarding_activity(self) -> bool:
