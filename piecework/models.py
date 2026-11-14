@@ -908,7 +908,7 @@ class ActivityLog(models.Model):
     start = models.DateTimeField()
     end = models.DateTimeField(null=True, blank=True)
     unit = models.ForeignKey(Unit, on_delete=models.PROTECT, null=True, blank=True)
-    duration = models.DurationField(null=True, bla nk=True)
+    duration = models.DurationField(null=True, blank=True)
 
     @property
     def is_boarding_activity(self) -> bool:
