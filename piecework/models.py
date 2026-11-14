@@ -806,16 +806,27 @@ class ActivityManager(models.Manager):
 
 
 class Activity(models.Model):
+    class Category(models.TextChoices):
+        BOARDING = "boarding", "Boarding"
+        OTHER = "other", "Other"
+
     name = models.CharField(max_length=20, unique=True)
     description = models.TextField(null=True, blank=True)
+    category = models.CharField(
+        max_length=20, choices=Category.choices, default=Category.OTHER
+    )
 
     objects: ActivityManager = ActivityManager()
+
+    @property
+    def requires_active_unit(self) -> bool:
+        return self.category == self.Category.BOARDING
 
     def __str__(self) -> str:
         return str(self.name)
 
 
-class ActivityLogManager(models.Manager):
+class ActivityLogManager(models.Manager["ActivityLog"]):
     def break_duration_today(self) -> dt.timedelta:
         """
         Retrieves the break activity today's total duration.
@@ -873,13 +884,42 @@ class ActivityLogManager(models.Manager):
 
         return previous_activity
 
+    @transaction.atomic
+    def start(self, activity: Activity) -> ActivityLog:
+        """
+        Start an activity log.
+
+        Stop the current activity, if one exists, before starting the new one.
+        """
+        unit = None
+
+        if activity.requires_active_unit:
+            unit = Unit.objects.active_unit()
+
+            if unit is None:
+                raise ValidationError("Boarding cannot start without an active unit.")
+
+        now = timezone.now()
+        current_activity = (
+            self.get_queryset().select_for_update().filter(is_current=True).first()
+        )
+
+        if current_activity is not None:
+            current_activity.end = now
+            current_activity.is_current = False
+            current_activity.save(update_fields=["end", "duration", "is_current"])
+
+        new_activity_log = self.create(activity=activity, unit=unit, start=now)
+
+        return new_activity_log
+
 
 class ActivityLog(models.Model):
     activity = models.ForeignKey(Activity, on_delete=models.PROTECT)
     date = models.DateField(auto_now_add=True)
     start = models.DateTimeField()
     end = models.DateTimeField(null=True, blank=True)
-    unit = models.ForeignKey(Unit, on_delete=models.PROTECT)
+    unit = models.ForeignKey(Unit, on_delete=models.PROTECT, null=True, blank=True)
     is_current = models.BooleanField(default=True)
     is_boarding = models.BooleanField(default=False)
     duration = models.DurationField(null=True, blank=True)

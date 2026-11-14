@@ -37,12 +37,17 @@
 ## Activity
 - name: string required unique
 - description: string optional
+- category: string enum boarding | other required
+
+### Rules
+1. Boarding activities require an active unit.
+2. Other activities do not require a unit.
 
 ## ActivityLog
-- activity: Activity
-- start: datetime require
+- activity: Activity required
+- start: datetime required
 - end: datetime optional
-- unit: Unit required
+- unit: Unit optional
 
 # Project context
 ## Project

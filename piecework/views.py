@@ -3,9 +3,9 @@
 import datetime as dt
 
 from django.contrib import messages
+from django.core.exceptions import ValidationError
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
-from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from .forms import (
@@ -19,7 +19,7 @@ from .models import Activity, ActivityLog, BoardingSprint, Note, Project, Unit
 
 def index(request):
 
-    activity_names = Activity.objects.names()
+    activities = Activity.objects.order_by("name")
     current_activity_log = ActivityLog.objects.current()
     current_boarding_sprint = BoardingSprint.objects.current()
     can_start_boarding_sprint = BoardingSprint.objects.can_start(current_activity_log)
@@ -46,7 +46,7 @@ def index(request):
     )
 
     context = {
-        "activity_names": activity_names,
+        "activities": activities,
         "current_activity_log": current_activity_log,
         "current_boarding_sprint": current_boarding_sprint,
         "can_start_boarding_sprint": can_start_boarding_sprint,
@@ -67,15 +67,16 @@ def index(request):
 @require_POST
 def start_activity(request):
     """
-    Starts the new activity.
+    Starts the selected activity.
     """
-    unit = get_object_or_404(Unit, status=Unit.Status.ACTIVE)
-    end_current_activity()
-
     activity = get_object_or_404(Activity, name=request.POST["action"])
 
-    ActivityLog.objects.create(activity=activity, start=timezone.now(), unit=unit)
-    messages.success(request, "Activity started.")
+    try:
+        ActivityLog.objects.start(activity=activity)
+    except ValidationError as error:
+        messages.error(request, error.messages[0])
+    else:
+        messages.success(request, "Activity started")
 
     return redirect("piecework:home")
 

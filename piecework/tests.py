@@ -58,18 +58,6 @@ class HomeViewTests(TestCase):
 
         self.assertEqual(response.status_code, 405)
 
-    def test_start_activity_uses_active_unit(self):
-        activity = Activity.objects.create(name="board")
-        active_unit = Unit.objects.create(number="101", status=Unit.Status.ACTIVE)
-        Unit.objects.create(number="102", status=Unit.Status.ON_HOLD)
-
-        self.client.post(
-            reverse("piecework:start-activity"),
-            {"action": activity.name},
-        )
-
-        self.assertEqual(ActivityLog.objects.get().unit, active_unit)
-
     def test_start_activity_rejects_get_request(self):
         Activity.objects.create(name="board")
         Unit.objects.create(number="101", status=Unit.Status.ACTIVE)
@@ -94,13 +82,86 @@ class ActivityTests(TestCase):
 
         self.assertCountEqual(names, ["Boarding", "Taping"])
 
+    def test_boarding_requires_active_unit(self):
+        activity = Activity(category=Activity.Category.BOARDING)
+
+        self.assertTrue(activity.requires_active_unit)
+
+    def test_other_activity_does_not_require_active_unit(self):
+        activity = Activity(category=Activity.Category.OTHER)
+
+        self.assertFalse(activity.requires_active_unit)
+
 
 class ActivityLogTests(TestCase):
     @classmethod
     def setUpTestData(cls) -> None:
         cls.unit = Unit.objects.create(number="101")
-        cls.boarding = Activity.objects.create(name="Boarding")
-        cls.break_activity = Activity.objects.create(name="Break")
+        cls.boarding = Activity.objects.create(
+            name="Boarding",
+            category=Activity.Category.BOARDING,
+        )
+        cls.break_activity = Activity.objects.create(
+            name="Break", category=Activity.Category.OTHER
+        )
+
+    def test_start_other_activity_without_active_unit(self):
+        activity_log = ActivityLog.objects.start(self.break_activity)
+
+        self.assertEqual(activity_log.activity, self.break_activity)
+        self.assertIsNone(activity_log.unit)
+        self.assertTrue(activity_log.is_current)
+
+    def test_start_boarding_uses_active_unit(self):
+        self.unit.status = Unit.Status.ACTIVE
+        self.unit.save(update_fields=["status"])
+
+        activity_log = ActivityLog.objects.start(self.boarding)
+
+        self.assertEqual(activity_log.activity, self.boarding)
+        self.assertEqual(activity_log.unit, self.unit)
+        self.assertTrue(activity_log.is_current)
+
+    def test_start_boarding_without_active_unit_raises_validation_error(self):
+        with self.assertRaisesMessage(
+            ValidationError,
+            "Boarding cannot start without an active unit.",
+        ):
+            ActivityLog.objects.start(self.boarding)
+        self.assertFalse(ActivityLog.objects.exists())
+
+    def test_start_stops_current_activity_before_starting_new_one(self):
+        current_activity = ActivityLog.objects.create(
+            activity=self.break_activity,
+            start=timezone.now() - dt.timedelta(minutes=30),
+        )
+
+        new_activity = ActivityLog.objects.start(self.break_activity)
+
+        current_activity.refresh_from_db()
+
+        self.assertFalse(current_activity.is_current)
+        self.assertEqual(current_activity.end, new_activity.start)
+        self.assertEqual(
+            current_activity.duration, current_activity.end - current_activity.start
+        )
+        self.assertEqual(ActivityLog.objects.current(), new_activity)
+
+    def test_failed_boarding_start_does_not_stop_current_activity(self):
+        current_activity = ActivityLog.objects.create(
+            activity=self.break_activity,
+            start=timezone.now(),
+        )
+
+        with self.assertRaises(ValidationError):
+            ActivityLog.objects.start(self.boarding)
+
+        current_activity.refresh_from_db()
+
+        self.assertTrue(current_activity.is_current)
+        self.assertIsNone(current_activity.end)
+        self.assertIsNone(current_activity.duration)
+        self.assertEqual(ActivityLog.objects.current(), current_activity)
 
     def test_last_completed_returns_most_recent_completed_log(self):
         ActivityLog.objects.create(
