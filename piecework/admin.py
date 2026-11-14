@@ -7,6 +7,7 @@ from django.http.request import HttpRequest
 from .models import (
     Activity,
     ActivityLog,
+    BoardingSprint,
     DrywallRate,
     InsulationRate,
     JmouldRate,
@@ -107,7 +108,7 @@ class ActivityTimeAdmin(admin.ModelAdmin):
     )
 
 
-admin.site.register([Activity, Note])
+admin.site.register([Activity, BoardingSprint, Note])
 
 
 @admin.register(UnitDrywallMaterial)

@@ -5,7 +5,7 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, ClassVar
 
 from django.core.exceptions import ValidationError
-from django.db import models
+from django.db import models, transaction
 from django.db.models import F, Q, Sum
 from django.utils import timezone
 
@@ -902,37 +902,50 @@ class ActivityLog(models.Model):
 class BoardingSprintManager(models.Manager["BoardingSprint"]):
     def current(self) -> BoardingSprint | None:
         """
-        Return the currently running boarding sprint, or None if there is none.
+        Return the active boarding sprint, or None if there is none.
 
-        A sprint is considered current while its end time has not been recorded.
+        Running and paused sprints are considered active.
         """
         return (
             self.get_queryset()
-            .filter(end_time__isnull=True)
+            .filter(
+                status__in=[BoardingSprint.Status.RUNNING, BoardingSprint.Status.PAUSED]
+            )
             .select_related("activity_log__activity")
             .first()
         )
 
     def can_start(self, activity_log: ActivityLog | None) -> bool:
+        """Return whether a boarding sprint can start for the current activity."""
         return (
             activity_log is not None
             and activity_log.is_boarding_activity
             and self.current() is None
         )
 
+    @transaction.atomic
     def start_sprint(self) -> BoardingSprint:
         activity_log = ActivityLog.objects.current()
 
         if activity_log is None:
             raise ValidationError("sprint cannot start without current activity")
 
-        if activity_log.activity.name != "board":
+        if not activity_log.is_boarding_activity:
             raise ValidationError("A sprint can only start during boarding activity")
 
         if self.current() is not None:
-            raise ValidationError("A boarding sprint is already running")
+            raise ValidationError("A boarding sprint is already active")
 
-        new_sprint = self.create(activity_log=activity_log, start_time=timezone.now())
+        started_at = timezone.now()
+
+        new_sprint = self.create(
+            activity_log=activity_log, status=BoardingSprint.Status.RUNNING
+        )
+
+        BoardingSprintTimeLog.objects.create(
+            boarding_sprint=new_sprint,
+            start_time=started_at,
+        )
 
         return new_sprint
 
@@ -941,31 +954,125 @@ class BoardingSprint(models.Model):
     if TYPE_CHECKING:
         activity_log_id: int | None
 
-    activity_log = models.ForeignKey(ActivityLog, on_delete=models.PROTECT)
-    start_time = models.DateTimeField()
-    end_time = models.DateTimeField(null=True, blank=True)
+    class Status(models.TextChoices):
+        RUNNING = "running", "Running"
+        PAUSED = "paused", "Paused"
+        STOPPED = "stopped", "Stopped"
 
+    activity_log = models.ForeignKey(ActivityLog, on_delete=models.PROTECT)
+    status = models.CharField(
+        max_length=20, choices=Status.choices, default=Status.RUNNING
+    )
     objects: BoardingSprintManager = BoardingSprintManager()
 
+    @transaction.atomic
+    def stop_sprint(self) -> None:
+        """Stop an active sprint, closing its time log when currently running."""
+        if self.status == self.Status.STOPPED:
+            raise ValidationError("This boarding sprint has already stopped")
+
+        open_time_log = BoardingSprintTimeLog.objects.filter(
+            boarding_sprint=self, end_time__isnull=True
+        ).first()
+
+        if self.status == self.Status.RUNNING:
+            if open_time_log is None:
+                raise ValidationError(
+                    "The running boarding sprint has no open time log"
+                )
+            open_time_log.end_time = timezone.now()
+            open_time_log.full_clean()
+            open_time_log.save(update_fields=["end_time"])
+
+        elif open_time_log is not None:
+            raise ValidationError(
+                "A paused boarding sprint cannot have an open time log"
+            )
+
+        self.status = self.Status.STOPPED
+        self.full_clean()
+        self.save(update_fields=["status"])
+
+    @transaction.atomic
+    def pause_sprint(self) -> None:
+        """Pause a running sprint by closing its open time log."""
+        if self.status != self.Status.RUNNING:
+            raise ValidationError("Only a running boarding sprint can be paused")
+
+        open_time_log = BoardingSprintTimeLog.objects.filter(
+            boarding_sprint=self, end_time__isnull=True
+        ).first()
+
+        if open_time_log is None:
+            raise ValidationError("The running boarding sprint has no open time log")
+
+        open_time_log.end_time = timezone.now()
+        open_time_log.full_clean()
+        open_time_log.save(update_fields=["end_time"])
+
+        self.status = self.Status.PAUSED
+        self.full_clean()
+        self.save(update_fields=["status"])
+
+    @transaction.atomic
+    def resume_sprint(self) -> None:
+        """Resume a paused sprint"""
+        if self.status != self.Status.PAUSED:
+            raise ValidationError("Only a paused boarding sprint can be resumed")
+
+        if BoardingSprintTimeLog.objects.filter(
+            boarding_sprint=self, end_time__isnull=True
+        ).exists():
+            raise ValidationError(
+                "A paused boarding sprint cannot have an open time log"
+            )
+
+        BoardingSprintTimeLog.objects.create(
+            boarding_sprint=self, start_time=timezone.now()
+        )
+        self.status = self.Status.RUNNING
+        self.full_clean()
+        self.save(update_fields=["status"])
+
     def clean(self):
-        if self.activity_log_id and self.activity_log.activity.name != "board":
+        if self.activity_log_id and not self.activity_log.is_boarding_activity:
             raise ValidationError(
                 "A boarding sprint must belong to boarding activity log"
             )
 
     def __str__(self) -> str:
-        return (
-            f"Unit {self.activity_log.unit} boarding sprint - "
-            f"{self.start_time:%Y-%m-%d %H:%M}"
-        )
+        return f"Unit {self.activity_log.unit} boarding sprint {self.pk}"
 
-    def stop_sprint(self) -> None:
-        if self.end_time is not None:
-            raise ValidationError("This boarding sprint has already stopped")
+    class Meta:
+        constraints: ClassVar = [
+            models.UniqueConstraint(
+                models.Value(1),
+                condition=Q(status__in=["running", "paused"]),
+                name="one_active_boarding_sprint",
+            )
+        ]
 
-        self.end_time = timezone.now()
-        self.full_clean()
-        self.save(update_fields=["end_time"])
+
+class BoardingSprintTimeLog(models.Model):
+    boarding_sprint = models.ForeignKey(BoardingSprint, on_delete=models.CASCADE)
+    start_time = models.DateTimeField()
+    end_time = models.DateTimeField(null=True, blank=True)
+
+    @property
+    def duration(self):
+        if self.end_time is None:
+            return timezone.now() - self.start_time
+
+        return self.end_time - self.start_time
+
+    class Meta:
+        constraints: ClassVar = [
+            models.UniqueConstraint(
+                fields=["boarding_sprint"],
+                condition=Q(end_time__isnull=True),
+                name="one_open_time_log_per_boarding_sprint",
+            )
+        ]
 
 
 class BoardingSprintSheetCount(models.Model):

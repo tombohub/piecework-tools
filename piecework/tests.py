@@ -14,6 +14,7 @@ from .models import (
     Activity,
     ActivityLog,
     BoardingSprint,
+    BoardingSprintTimeLog,
     DrywallRate,
     DrywallRateCategory,
     HeightCategory,
@@ -845,28 +846,107 @@ class BoardingSprintTests(TestCase):
             activity=activity, unit=self.unit, start=timezone.now(), is_current=True
         )
 
-    def test_start_sprint_creates_sprint_for_current_boarding_activity(self):
+    def _create_boarding_activity_log(self) -> ActivityLog:
+        return ActivityLog.objects.create(
+            activity=self.boarding,
+            unit=self.unit,
+            start=timezone.now(),
+            is_current=True,
+        )
+
+    def _create_break_activity_log(self) -> ActivityLog:
+        return ActivityLog.objects.create(
+            activity=self.break_activity,
+            unit=self.unit,
+            start=timezone.now(),
+            is_current=True,
+        )
+
+    def test_current_returns_none_without_active_sprint(self):
+        self.assertIsNone(BoardingSprint.objects.current())
+
+    def test_current_returns_running_sprint(self):
         activity_log = self._create_current_activity_log(self.boarding)
+
+        sprint = BoardingSprint.objects.create(
+            activity_log=activity_log, status=BoardingSprint.Status.RUNNING
+        )
+
+        self.assertEqual(BoardingSprint.objects.current(), sprint)
+
+    def test_current_returns_paused_sprint(self):
+        activity_log = self._create_current_activity_log(self.boarding)
+
+        sprint = BoardingSprint.objects.create(
+            activity_log=activity_log, status=BoardingSprint.Status.PAUSED
+        )
+
+        self.assertEqual(BoardingSprint.objects.current(), sprint)
+
+    def test_current_ignores_stopped_sprint(self):
+        activity_log = self._create_current_activity_log(self.boarding)
+
+        BoardingSprint.objects.create(
+            activity_log=activity_log, status=BoardingSprint.Status.STOPPED
+        )
+
+        self.assertIsNone(BoardingSprint.objects.current())
+
+    def test_can_start_returns_false_without_activity_log(self):
+        self.assertFalse(BoardingSprint.objects.can_start(None))
+
+    def test_can_start_returns_false_for_non_boarding_activity(self):
+        activity_log = self._create_current_activity_log(self.break_activity)
+
+        self.assertFalse(BoardingSprint.objects.can_start(activity_log))
+
+    def test_can_start_returns_true_for_boarding_without_active_sprint(self):
+        activity_log = self._create_current_activity_log(self.boarding)
+
+        self.assertTrue(BoardingSprint.objects.can_start(activity_log))
+
+    def test_can_start_returns_false_with_running_sprint(self):
+        boarding_activity_log = self._create_boarding_activity_log()
+        BoardingSprint.objects.create(
+            activity_log=boarding_activity_log, status=BoardingSprint.Status.RUNNING
+        )
+
+        self.assertFalse(BoardingSprint.objects.can_start(boarding_activity_log))
+
+    def test_can_start_returns_false_with_paused_sprint(self):
+        boarding_activity_log = self._create_boarding_activity_log()
+        BoardingSprint.objects.create(
+            activity_log=boarding_activity_log, status=BoardingSprint.Status.PAUSED
+        )
+
+        self.assertFalse(BoardingSprint.objects.can_start(boarding_activity_log))
+
+    def test_start_sprint_creates_running_sprint_and_time_log(self):
+        boarding_activity_log = self._create_boarding_activity_log()
         before_start = timezone.now()
 
         sprint = BoardingSprint.objects.start_sprint()
+
         after_start = timezone.now()
+        time_log = BoardingSprintTimeLog.objects.get(boarding_sprint=sprint)
 
-        self.assertEqual(sprint.activity_log, activity_log)
-        self.assertGreaterEqual(sprint.start_time, before_start)
-        self.assertLessEqual(sprint.start_time, after_start)
-        self.assertIsNone(sprint.end_time)
+        self.assertEqual(sprint.activity_log, boarding_activity_log)
+        self.assertEqual(sprint.status, BoardingSprint.Status.RUNNING)
+        self.assertGreaterEqual(time_log.start_time, before_start)
+        self.assertLessEqual(time_log.start_time, after_start)
+        self.assertIsNone(time_log.end_time)
 
-    def test_start_sprint_require_current_activity(self):
+    def test_start_sprint_requires_current_activity(self):
         with self.assertRaisesMessage(
             ValidationError, "sprint cannot start without current activity"
         ):
             BoardingSprint.objects.start_sprint()
 
         self.assertFalse(BoardingSprint.objects.exists())
+        self.assertFalse(BoardingSprintTimeLog.objects.exists())
 
     def test_start_sprint_requires_boarding_activity(self):
-        self._create_current_activity_log(self.break_activity)
+        self._create_break_activity_log()
 
         with self.assertRaisesMessage(
             ValidationError, "A sprint can only start during boarding activity"
@@ -874,56 +954,48 @@ class BoardingSprintTests(TestCase):
             BoardingSprint.objects.start_sprint()
 
         self.assertFalse(BoardingSprint.objects.exists())
+        self.assertFalse(BoardingSprintTimeLog.objects.exists())
 
-    def test_start_sprint_rejects_second_running_sprint(self):
-        self._create_current_activity_log(self.boarding)
+    def test_start_sprint_rejects_second_active_sprint(self):
+        self._create_boarding_activity_log()
         first_sprint = BoardingSprint.objects.start_sprint()
 
         with self.assertRaisesMessage(
-            ValidationError, "A boarding sprint is already running"
+            ValidationError, "A boarding sprint is already active"
         ):
             BoardingSprint.objects.start_sprint()
 
         self.assertEqual(BoardingSprint.objects.count(), 1)
+        self.assertEqual(BoardingSprintTimeLog.objects.count(), 1)
         self.assertEqual(BoardingSprint.objects.current(), first_sprint)
 
-    def test_current_returns_none_without_running_sprint(self):
-        self.assertIsNone(BoardingSprint.objects.current())
-
-    def test_current_ignores_completed_sprint(self):
-        activity_log = self._create_current_activity_log(self.boarding)
-        now = timezone.now()
-
-        BoardingSprint.objects.create(
-            activity_log=activity_log,
-            start_time=now - dt.timedelta(minutes=30),
-            end_time=now,
-        )
-
-        self.assertIsNone(BoardingSprint.objects.current())
-
-    def test_stop_sprint_records_end_time(self):
-        self._create_current_activity_log(self.boarding)
+    def test_stop_running_sprint_closes_open_time_log(self):
+        self._create_boarding_activity_log()
         sprint = BoardingSprint.objects.start_sprint()
+        time_log = BoardingSprintTimeLog.objects.get(boarding_sprint=sprint)
         before_stop = timezone.now()
 
         sprint.stop_sprint()
-        after_stop = timezone.now()
 
+        after_stop = timezone.now()
         sprint.refresh_from_db()
-        end_time = sprint.end_time
+        time_log.refresh_from_db()
+
+        end_time = time_log.end_time
         assert end_time is not None
 
+        self.assertEqual(sprint.status, BoardingSprint.Status.STOPPED)
         self.assertGreaterEqual(end_time, before_stop)
         self.assertLessEqual(end_time, after_stop)
         self.assertIsNone(BoardingSprint.objects.current())
 
     def test_stop_sprint_rejects_already_stopped_sprint(self):
-        self._create_current_activity_log(self.boarding)
+        self._create_boarding_activity_log()
         sprint = BoardingSprint.objects.start_sprint()
         sprint.stop_sprint()
 
-        original_end_time = sprint.end_time
+        time_log = BoardingSprintTimeLog.objects.get(boarding_sprint=sprint)
+        original_end_time = time_log.end_time
 
         with self.assertRaisesMessage(
             ValidationError, "This boarding sprint has already stopped"
@@ -931,31 +1003,286 @@ class BoardingSprintTests(TestCase):
             sprint.stop_sprint()
 
         sprint.refresh_from_db()
+        time_log.refresh_from_db()
 
-        self.assertEqual(sprint.end_time, original_end_time)
+        self.assertEqual(sprint.status, BoardingSprint.Status.STOPPED)
+        self.assertEqual(time_log.end_time, original_end_time)
 
-    def test_stop_boarding_sprint_view_stops_current_sprint(self):
-        self._create_current_activity_log(self.boarding)
-        sprint = BoardingSprint.objects.start_sprint()
+    def test_stop_paused_sprint_does_not_create_time_log(self):
+        boarding_activity_log = self._create_boarding_activity_log()
+        now = timezone.now()
 
-        self.client.post(reverse("piecework:stop_boarding_sprint"))
+        sprint = BoardingSprint.objects.create(
+            activity_log=boarding_activity_log, status=BoardingSprint.Status.PAUSED
+        )
+        BoardingSprintTimeLog.objects.create(
+            boarding_sprint=sprint,
+            start_time=now - dt.timedelta(minutes=20),
+            end_time=now - dt.timedelta(minutes=10),
+        )
+
+        sprint.stop_sprint()
 
         sprint.refresh_from_db()
 
-        self.assertIsNotNone(sprint.end_time)
+        self.assertEqual(sprint.status, BoardingSprint.Status.STOPPED)
+        self.assertEqual(
+            BoardingSprintTimeLog.objects.filter(boarding_sprint=sprint).count(), 1
+        )
+        self.assertFalse(
+            BoardingSprintTimeLog.objects.filter(
+                boarding_sprint=sprint, end_time__isnull=True
+            ).exists()
+        )
         self.assertIsNone(BoardingSprint.objects.current())
 
-    def test_stop_boarding_sprint_view_requires_post(self):
-        self._create_current_activity_log(self.boarding)
+    def test_stop_paused_sprint_rejects_open_time_log(self):
+        boarding_activity_log = self._create_boarding_activity_log()
+
+        sprint = BoardingSprint.objects.create(
+            activity_log=boarding_activity_log,
+            status=BoardingSprint.Status.PAUSED,
+        )
+        time_log = BoardingSprintTimeLog.objects.create(
+            boarding_sprint=sprint,
+            start_time=timezone.now(),
+        )
+
+        with self.assertRaisesMessage(
+            ValidationError,
+            "A paused boarding sprint cannot have an open time log",
+        ):
+            sprint.stop_sprint()
+
+        sprint.refresh_from_db()
+        time_log.refresh_from_db()
+
+        self.assertEqual(sprint.status, BoardingSprint.Status.PAUSED)
+        self.assertIsNone(time_log.end_time)
+        self.assertEqual(BoardingSprint.objects.current(), sprint)
+
+    def test_stop_running_sprint_requires_open_time_log(self):
+        boarding_activity_log = self._create_boarding_activity_log()
+
+        sprint = BoardingSprint.objects.create(
+            activity_log=boarding_activity_log, status=BoardingSprint.Status.RUNNING
+        )
+
+        with self.assertRaisesMessage(
+            ValidationError, "The running boarding sprint has no open time log"
+        ):
+            sprint.stop_sprint()
+
+        sprint.refresh_from_db()
+
+        self.assertEqual(sprint.status, BoardingSprint.Status.RUNNING)
+        self.assertEqual(BoardingSprint.objects.current(), sprint)
+
+    def test_pause_sprint_close_open_time_log(self):
+        self._create_boarding_activity_log()
+        sprint = BoardingSprint.objects.start_sprint()
+        time_log = BoardingSprintTimeLog.objects.get(boarding_sprint=sprint)
+        before_pause = timezone.now()
+
+        sprint.pause_sprint()
+
+        after_pause = timezone.now()
+        sprint.refresh_from_db()
+        time_log.refresh_from_db()
+
+        end_time = time_log.end_time
+        assert end_time is not None
+
+        self.assertEqual(sprint.status, BoardingSprint.Status.PAUSED)
+        self.assertGreaterEqual(end_time, before_pause)
+        self.assertLessEqual(end_time, after_pause)
+        self.assertEqual(BoardingSprint.objects.current(), sprint)
+        self.assertFalse(
+            BoardingSprintTimeLog.objects.filter(
+                boarding_sprint=sprint, end_time__isnull=True
+            ).exists()
+        )
+
+    def test_pause_sprint_rejects_already_paused_sprint(self):
+        self._create_boarding_activity_log()
+        sprint = BoardingSprint.objects.start_sprint()
+        sprint.pause_sprint()
+
+        time_log = BoardingSprintTimeLog.objects.get(boarding_sprint=sprint)
+        original_end_time = time_log.end_time
+
+        with self.assertRaisesMessage(
+            ValidationError, "Only a running boarding sprint can be paused"
+        ):
+            sprint.pause_sprint()
+
+        sprint.refresh_from_db()
+        time_log.refresh_from_db()
+
+        self.assertEqual(sprint.status, BoardingSprint.Status.PAUSED)
+        self.assertEqual(time_log.end_time, original_end_time)
+
+    def test_pause_sprint_rejects_stopped_sprint(self):
+        self._create_boarding_activity_log()
+        sprint = BoardingSprint.objects.start_sprint()
+        sprint.stop_sprint()
+
+        with self.assertRaisesMessage(
+            ValidationError,
+            "Only a running boarding sprint can be paused",
+        ):
+            sprint.pause_sprint()
+
+        sprint.refresh_from_db()
+
+        self.assertEqual(
+            sprint.status,
+            BoardingSprint.Status.STOPPED,
+        )
+
+    def test_pause_sprint_requires_open_time_log(self):
+        boarding_activity_log = self._create_boarding_activity_log()
+        sprint = BoardingSprint.objects.create(
+            activity_log=boarding_activity_log,
+            status=BoardingSprint.Status.RUNNING,
+        )
+
+        with self.assertRaisesMessage(
+            ValidationError,
+            "The running boarding sprint has no open time log",
+        ):
+            sprint.pause_sprint()
+
+        sprint.refresh_from_db()
+
+        self.assertEqual(sprint.status, BoardingSprint.Status.RUNNING)
+        self.assertEqual(BoardingSprint.objects.current(), sprint)
+
+    def test_resume_sprint_creates_new_open_time_log(self):
+        self._create_boarding_activity_log()
+        sprint = BoardingSprint.objects.start_sprint()
+        sprint.pause_sprint()
+        before_resume = timezone.now()
+
+        sprint.resume_sprint()
+
+        after_resume = timezone.now()
+        sprint.refresh_from_db()
+
+        open_time_log = BoardingSprintTimeLog.objects.get(
+            boarding_sprint=sprint,
+            end_time__isnull=True,
+        )
+
+        self.assertEqual(
+            sprint.status,
+            BoardingSprint.Status.RUNNING,
+        )
+        self.assertEqual(
+            BoardingSprintTimeLog.objects.filter(boarding_sprint=sprint).count(),
+            2,
+        )
+        self.assertGreaterEqual(
+            open_time_log.start_time,
+            before_resume,
+        )
+        self.assertLessEqual(
+            open_time_log.start_time,
+            after_resume,
+        )
+        self.assertEqual(
+            BoardingSprint.objects.current(),
+            sprint,
+        )
+
+    def test_resume_sprint_rejects_running_sprint(self):
+        self._create_boarding_activity_log()
         sprint = BoardingSprint.objects.start_sprint()
 
-        response = self.client.get(reverse("piecework:stop_boarding_sprint"))
+        with self.assertRaisesMessage(
+            ValidationError,
+            "Only a paused boarding sprint can be resumed",
+        ):
+            sprint.resume_sprint()
 
-        self.assertEqual(response.status_code, 405)
+        self.assertEqual(sprint.status, BoardingSprint.Status.RUNNING)
+        self.assertEqual(
+            BoardingSprintTimeLog.objects.filter(
+                boarding_sprint=sprint,
+                end_time__isnull=True,
+            ).count(),
+            1,
+        )
+
+    def test_resume_sprint_rejects_stopped_sprint(self):
+        self._create_boarding_activity_log()
+        sprint = BoardingSprint.objects.start_sprint()
+        sprint.stop_sprint()
+
+        with self.assertRaisesMessage(
+            ValidationError,
+            "Only a paused boarding sprint can be resumed",
+        ):
+            sprint.resume_sprint()
+
+        self.assertEqual(sprint.status, BoardingSprint.Status.STOPPED)
+        self.assertFalse(
+            BoardingSprintTimeLog.objects.filter(
+                boarding_sprint=sprint,
+                end_time__isnull=True,
+            ).exists()
+        )
+
+    def test_resume_sprint_rejects_open_time_log(self):
+        activity_log = self._create_boarding_activity_log()
+
+        sprint = BoardingSprint.objects.create(
+            activity_log=activity_log,
+            status=BoardingSprint.Status.PAUSED,
+        )
+        BoardingSprintTimeLog.objects.create(
+            boarding_sprint=sprint,
+            start_time=timezone.now(),
+        )
+
+        with self.assertRaisesMessage(
+            ValidationError,
+            "A paused boarding sprint cannot have an open time log",
+        ):
+            sprint.resume_sprint()
+
         sprint.refresh_from_db()
-        self.assertIsNone(sprint.end_time)
 
-    def test_stop_boarding_sprint_view_returns_404_without_current_sprint(self):
-        response = self.client.post(reverse("piecework:stop_boarding_sprint"))
+        self.assertEqual(sprint.status, BoardingSprint.Status.PAUSED)
+        self.assertTrue(
+            BoardingSprintTimeLog.objects.filter(
+                boarding_sprint=sprint,
+                end_time__isnull=True,
+            ).exists()
+        )
 
-        self.assertEqual(response.status_code, 404)
+    def test_clean_rejects_non_boarding_activity(self):
+        activity_log = self._create_break_activity_log()
+        sprint = BoardingSprint(activity_log=activity_log)
+
+        with self.assertRaisesMessage(
+            ValidationError,
+            "A boarding sprint must belong to boarding activity log",
+        ):
+            sprint.full_clean()
+
+        self.assertFalse(BoardingSprint.objects.exists())
+
+    def test_database_rejects_second_active_sprint(self):
+        boarding_activity_log = self._create_boarding_activity_log()
+        BoardingSprint.objects.create(
+            activity_log=boarding_activity_log, status=BoardingSprint.Status.RUNNING
+        )
+
+        with self.assertRaises(IntegrityError), transaction.atomic():
+            BoardingSprint.objects.create(
+                activity_log=boarding_activity_log,
+                status=BoardingSprint.Status.PAUSED,
+            )
+
+        self.assertEqual(BoardingSprint.objects.count(), 1)
