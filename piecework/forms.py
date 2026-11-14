@@ -79,6 +79,4 @@ BoardingSprintSheetCountFormSet = forms.inlineformset_factory(
     form=BoardingSprintSheetCountForm,
     extra=3,
     can_delete=True,
-    min_num=1,
-    validate_min=True,
 )
