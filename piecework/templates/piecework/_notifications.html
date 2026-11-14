@@ -1,0 +1,20 @@
+{% if messages %}
+  <div class="my-3">
+    {% for message in messages %}
+      <div
+        class="alert alert-{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% elif message.level == DEFAULT_MESSAGE_LEVELS.WARNING %}warning{% elif message.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %}success{% elif message.level == DEFAULT_MESSAGE_LEVELS.DEBUG %}secondary{% else %}info{% endif %} alert-dismissible fade show"
+        role="{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}alert{% else %}status{% endif %}"
+        aria-atomic="true"
+      >
+        {{ message }}
+
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="alert"
+          aria-label="Dismiss notification"
+        ></button>
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}

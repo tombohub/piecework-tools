@@ -2,6 +2,7 @@
 
 import datetime as dt
 
+from django.contrib import messages
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -74,12 +75,14 @@ def start_activity(request):
     activity = get_object_or_404(Activity, name=request.POST["action"])
 
     ActivityLog.objects.create(activity=activity, start=timezone.now(), unit=unit)
+    messages.success(request, "Activity started.")
 
     return redirect("piecework:home")
 
 
 def stop_current_activity(request):
     end_current_activity()
+    messages.success(request, "Activity stopped.")
     return redirect("piecework:home")
 
 
@@ -87,6 +90,7 @@ def stop_current_activity(request):
 @require_POST
 def start_boarding_sprint(request):
     BoardingSprint.objects.start_sprint()
+    messages.success(request, "Sprint started.")
 
     return redirect("piecework:home")
 
@@ -99,6 +103,7 @@ def stop_boarding_sprint(request):
         raise Http404("No boarding sprint is currently running")
 
     sprint.stop_sprint()
+    messages.success(request, "Sprint stopped. Enter the sheet counts.")
 
     return redirect("piecework:boarding_sprint_sheet_counts", pk=sprint.pk)
 
@@ -109,6 +114,7 @@ def discard_boarding_sprint(request, pk):
         BoardingSprint, pk=pk, status=BoardingSprint.Status.STOPPED
     )
     sprint.discard_sprint()
+    messages.success(request, "Sprint discarded.")
 
     return redirect("piecework:home")
 
@@ -122,6 +128,7 @@ def boarding_sprint_sheet_counts(request, pk):
 
     if request.method == "POST" and formset.is_valid():
         formset.save()
+        messages.success(request, "Sprint results saved.")
         return redirect("piecework:home")
 
     context = {"sprint": sprint, "formset": formset}
@@ -137,6 +144,7 @@ def notes_index(request):
         form = NoteModelForm(request.POST)
         if form.is_valid():
             form.save()
+            messages.success(request, "Note added.")
             # return to this same view , but now with GET request.
             # So the form is not resubmitted upon refreshing the page
             return redirect("piecework:notes")
@@ -150,6 +158,7 @@ def notes_index(request):
 def notes_delete(request, pk):
     note = Note.objects.get(pk=pk)
     note.delete()
+    messages.success(request, "Note deleted.")
     return redirect("piecework:notes")
 
 
@@ -167,7 +176,8 @@ def units_create(request):
         form = UnitForm(request.POST)
 
         if form.is_valid():
-            form.save()
+            unit = form.save()
+            messages.success(request, f"Unit {unit.number} created.")
             return redirect("piecework:units_index")
     else:
         form = UnitForm(initial={"project": Project.objects.active_project()})
@@ -183,6 +193,7 @@ def units_edit(request, pk):
 
         if form.is_valid():
             form.save()
+            messages.success(request, f"Unit {unit.number} updated.")
             return redirect("piecework:units_detail", pk=unit.pk)
     else:
         form = UnitForm(instance=unit)
@@ -195,6 +206,7 @@ def units_edit(request, pk):
 def unit_complete(request, pk):
     unit = get_object_or_404(Unit, pk=pk, status=Unit.Status.ACTIVE)
     unit.mark_completed()
+    messages.success(request, f"Unit {unit.number} marked complete.")
 
     return redirect("piecework:home")
 
@@ -202,7 +214,9 @@ def unit_complete(request, pk):
 @require_POST
 def unit_delete(request, pk):
     unit = get_object_or_404(Unit, pk=pk)
+    unit_number = unit.number
     unit.delete()
+    messages.success(request, f"Unit {unit_number} deleted.")
 
     return redirect("piecework:units_index")
 
