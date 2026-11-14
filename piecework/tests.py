@@ -6,14 +6,12 @@ from django.db import IntegrityError, transaction
 from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
 from django.utils import timezone
-from numpy import number
-
-from piecework.forms import UnitForm
 
 from .models import (
     Activity,
     ActivityLog,
     BoardingSprint,
+    BoardingSprintSheetCount,
     BoardingSprintTimeLog,
     DrywallRate,
     DrywallRateCategory,
@@ -1260,6 +1258,79 @@ class BoardingSprintTests(TestCase):
                 end_time__isnull=True,
             ).exists()
         )
+
+    def test_discard_sprint_deletes_sprint(self):
+        self._create_boarding_activity_log()
+        sprint = BoardingSprint.objects.start_sprint()
+        sprint_id = sprint.pk
+
+        sprint.discard_sprint()
+
+        self.assertFalse(BoardingSprint.objects.filter(pk=sprint_id).exists())
+
+    def test_discard_sprint_deletes_time_logs(self):
+        self._create_boarding_activity_log()
+        sprint = BoardingSprint.objects.start_sprint()
+        time_log_id = BoardingSprintTimeLog.objects.get(boarding_sprint=sprint).pk
+
+        sprint.discard_sprint()
+
+        self.assertFalse(BoardingSprintTimeLog.objects.filter(pk=time_log_id).exists())
+
+    def test_discard_sprint_deletes_sheet_count(self):
+        self._create_boarding_activity_log()
+        sprint = BoardingSprint.objects.start_sprint()
+        material = UnitDrywallMaterial.objects.get(
+            drywall_type=UnitDrywallMaterial.DrywallType.REGULAR,
+            length_feet=UnitDrywallMaterial.Length.TWELVE,
+        )
+        sheet_count = BoardingSprintSheetCount.objects.create(
+            boarding_sprint=sprint, drywall_material=material, count=5
+        )
+        sheet_count_id = sheet_count.pk
+
+        sprint.discard_sprint()
+
+        self.assertFalse(
+            BoardingSprintSheetCount.objects.filter(pk=sheet_count_id).exists()
+        )
+
+    def test_discard_sprint_preserves_activity_log(self):
+        activity_log = self._create_boarding_activity_log()
+        activity_log_id = activity_log.pk
+        sprint = BoardingSprint.objects.start_sprint()
+
+        sprint.discard_sprint()
+
+        self.assertTrue(ActivityLog.objects.filter(pk=activity_log_id).exists())
+
+    def test_discard_sprint_preserves_drywall_material(self):
+        self._create_boarding_activity_log()
+        sprint = BoardingSprint.objects.start_sprint()
+        material = UnitDrywallMaterial.objects.get(
+            drywall_type=UnitDrywallMaterial.DrywallType.REGULAR,
+            length_feet=UnitDrywallMaterial.Length.TWELVE,
+        )
+        material_id = material.pk
+        BoardingSprintSheetCount.objects.create(
+            boarding_sprint=sprint,
+            drywall_material=material,
+            count=5,
+        )
+
+        sprint.discard_sprint()
+
+        self.assertTrue(UnitDrywallMaterial.objects.filter(pk=material_id).exists())
+
+    def test_can_start_new_sprint_after_discarding_active_sprint(self):
+        self._create_boarding_activity_log()
+        sprint = BoardingSprint.objects.start_sprint()
+
+        sprint.discard_sprint()
+        new_sprint = BoardingSprint.objects.start_sprint()
+
+        self.assertEqual(BoardingSprint.objects.current(), new_sprint)
+        self.assertEqual(BoardingSprint.objects.count(), 1)
 
     def test_clean_rejects_non_boarding_activity(self):
         activity_log = self._create_break_activity_log()

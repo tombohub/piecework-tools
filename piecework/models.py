@@ -1034,6 +1034,10 @@ class BoardingSprint(models.Model):
         self.full_clean()
         self.save(update_fields=["status"])
 
+    def discard_sprint(self):
+        """Permanently delete this sprint and all data owned by it."""
+        self.delete()
+
     def clean(self):
         if self.activity_log_id and not self.activity_log.is_boarding_activity:
             raise ValidationError(
