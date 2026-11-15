@@ -8,6 +8,7 @@ from .models import (
     Activity,
     ActivityLog,
     BoardingSprint,
+    BoardingSprintTimeLog,
     DrywallRate,
     InsulationRate,
     JmouldRate,
@@ -108,7 +109,7 @@ class ActivityTimeAdmin(admin.ModelAdmin):
     )
 
 
-admin.site.register([Activity, BoardingSprint, Note])
+admin.site.register([Activity, BoardingSprint, BoardingSprintTimeLog, Note])
 
 
 @admin.register(UnitDrywallMaterial)
