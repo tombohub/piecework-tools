@@ -34,7 +34,7 @@ from .models import (
 
 
 class HomeViewTests(TestCase):
-    def test_mark_complete_updates_active_unit(self):
+    def test__mark_complete__updates_active_unit(self):
         active_unit = Unit.objects.create(number="101", status=Unit.Status.ACTIVE)
 
         self.client.post(
@@ -48,7 +48,7 @@ class HomeViewTests(TestCase):
         self.assertEqual(active_unit.status, Unit.Status.COMPLETED)
         self.assertEqual(active_unit.completed_on, dt.date.today())
 
-    def test_mark_complete_rejects_get_request(self):
+    def test__mark_complete__rejects_get_request(self):
         active_unit = Unit.objects.create(number="101", status=Unit.Status.ACTIVE)
 
         response = self.client.get(
@@ -60,7 +60,7 @@ class HomeViewTests(TestCase):
 
         self.assertEqual(response.status_code, 405)
 
-    def test_start_activity_rejects_get_request(self):
+    def test__start_activity__rejects_get_request(self):
         Activity.objects.create(name="board")
         Unit.objects.create(number="101", status=Unit.Status.ACTIVE)
 
@@ -74,12 +74,12 @@ class HomeViewTests(TestCase):
 
 
 class ActivityTests(TestCase):
-    def test_boarding_requires_active_unit(self):
+    def test__requires_active_unit__returns_true_for_boarding(self):
         activity = Activity(category=Activity.Category.BOARDING)
 
         self.assertTrue(activity.requires_active_unit)
 
-    def test_other_activity_does_not_require_active_unit(self):
+    def test__requires_active_unit__returns_false_for_other_activity(self):
         activity = Activity(category=Activity.Category.OTHER)
 
         self.assertFalse(activity.requires_active_unit)
@@ -97,7 +97,7 @@ class ActivityLogTests(TestCase):
             name="Break", category=Activity.Category.OTHER
         )
 
-    def test_current_returns_activity_log_without_end(self):
+    def test__current__returns_activity_log_without_end(self):
         activity_log = ActivityLog.objects.create(
             activity=self.break_activity, start=timezone.now()
         )
@@ -106,7 +106,7 @@ class ActivityLogTests(TestCase):
 
         self.assertEqual(result, activity_log)
 
-    def test_current_returns_none_when_activity_has_ended(self):
+    def test__current__returns_none_when_activity_has_ended(self):
         now = timezone.now()
         ActivityLog.objects.create(
             activity=self.break_activity, start=now - dt.timedelta(minutes=30), end=now
@@ -116,14 +116,14 @@ class ActivityLogTests(TestCase):
 
         self.assertIsNone(result)
 
-    def test_start_other_activity_without_active_unit(self):
+    def test__start__starts_other_activity_without_active_unit(self):
         activity_log = ActivityLog.objects.start(self.break_activity)
 
         self.assertEqual(activity_log.activity, self.break_activity)
         self.assertIsNone(activity_log.unit)
         self.assertIsNone(activity_log.end)
 
-    def test_start_boarding_uses_active_unit(self):
+    def test__start__uses_active_unit_for_boarding(self):
         self.unit.status = Unit.Status.ACTIVE
         self.unit.save(update_fields=["status"])
 
@@ -133,7 +133,7 @@ class ActivityLogTests(TestCase):
         self.assertEqual(activity_log.unit, self.unit)
         self.assertIsNone(activity_log.end)
 
-    def test_start_boarding_without_active_unit_raises_validation_error(self):
+    def test__start__raises_validation_error_when_boarding_has_no_active_unit(self):
         with self.assertRaisesMessage(
             ValidationError,
             "Boarding cannot start without an active unit.",
@@ -141,7 +141,7 @@ class ActivityLogTests(TestCase):
             ActivityLog.objects.start(self.boarding)
         self.assertFalse(ActivityLog.objects.exists())
 
-    def test_start_stops_current_activity_before_starting_new_one(self):
+    def test__start__stops_current_activity_before_starting_new_one(self):
         current_activity = ActivityLog.objects.create(
             activity=self.break_activity,
             start=timezone.now() - dt.timedelta(minutes=30),
@@ -158,7 +158,7 @@ class ActivityLogTests(TestCase):
         )
         self.assertEqual(ActivityLog.objects.current(), new_activity)
 
-    def test_failed_boarding_start_does_not_stop_current_activity(self):
+    def test__start__preserves_current_activity_when_boarding_start_fails(self):
         current_activity = ActivityLog.objects.create(
             activity=self.break_activity,
             start=timezone.now(),
@@ -173,7 +173,7 @@ class ActivityLogTests(TestCase):
         self.assertIsNone(current_activity.duration)
         self.assertEqual(ActivityLog.objects.current(), current_activity)
 
-    def test_last_completed_returns_most_recent_completed_log(self):
+    def test__last_completed__returns_most_recent_completed_log(self):
         ActivityLog.objects.create(
             activity=self.boarding,
             unit=self.unit,
@@ -195,7 +195,7 @@ class ActivityLogTests(TestCase):
         self.assertEqual(result.activity.name, "Break")
         self.assertEqual(result.duration, dt.timedelta(minutes=30))
 
-    def test_last_completed_ignores_current_log(self):
+    def test__last_completed__ignores_current_log(self):
         completed_log = ActivityLog.objects.create(
             activity=self.boarding,
             unit=self.unit,
@@ -296,7 +296,7 @@ class UnitTests(TestCase):
 
         return Unit.objects.create(number=number, **defaults)
 
-    def test_active_returns_active_unit(self):
+    def test__active_unit__returns_active_unit(self):
         Unit.objects.create(
             number="101",
             status=Unit.Status.COMPLETED,
@@ -310,7 +310,7 @@ class UnitTests(TestCase):
 
         self.assertEqual(result, active_unit)
 
-    def test_active_returns_none_when_no_unit_is_active(self):
+    def test__active_unit__returns_none_when_no_unit_is_active(self):
         Unit.objects.create(
             number="101",
             status=Unit.Status.COMPLETED,
@@ -324,7 +324,7 @@ class UnitTests(TestCase):
 
         self.assertIsNone(result)
 
-    def test_only_one_unit_can_be_active(self):
+    def test__active_unit_constraint__rejects_second_active_unit(self):
         Unit.objects.create(number="101", status=Unit.Status.ACTIVE)
 
         with self.assertRaises(IntegrityError), transaction.atomic():
@@ -332,7 +332,7 @@ class UnitTests(TestCase):
 
         self.assertEqual(Unit.objects.filter(status=Unit.Status.ACTIVE).count(), 1)
 
-    def test_total_unit_square_footage_calculates_correct(self):
+    def test__total_square_footage__calculates_correctly(self):
         unit = Unit.objects.create(number="101")
 
         UnitSheetCount.objects.create(
@@ -348,7 +348,7 @@ class UnitTests(TestCase):
 
         self.assertEqual(unit.total_square_footage, 640)
 
-    def test_drywall_price_is_calculated(self):
+    def test__drywall_price__returns_calculated_price(self):
         unit = self.create_unit()
         UnitSheetCount.objects.create(
             unit=unit,
@@ -360,7 +360,7 @@ class UnitTests(TestCase):
         # 480 sq ft × $0.3520 = $168.96
         self.assertEqual(unit.drywall_price, Decimal("168.96"))
 
-    def test_jmould_price_is_calculated(self):
+    def test__jmould_price__returns_calculated_price(self):
         unit = self.create_unit()
         UnitJmouldCount.objects.create(unit=unit, length_feet=8, count=2)
         UnitJmouldCount.objects.create(unit=unit, length_feet=10, count=3)
@@ -369,21 +369,21 @@ class UnitTests(TestCase):
         # 46 linear ft × $0.1250 = $5.75
         self.assertEqual(unit.jmould_price, Decimal("5.75"))
 
-    def test_sprinkler_price_is_calculated(self):
+    def test__sprinkler_price__returns_calculated_price(self):
         unit = self.create_unit(sprinklers_count=8)
 
         # 8 total - 5 unpaid = 3 payable
         # 3 x $1.25 = $3.75
         self.assertEqual(unit.sprinkler_price, Decimal("3.75"))
 
-    def test_potlight_price_is_calculated(self):
+    def test__potlight_price__returns_calculated_price(self):
         unit = self.create_unit(potlights_count=8)
 
         # 8 total - 5 unpaid = 3 payable
         # 3 x $1.50 = $4.50
         self.assertEqual(unit.potlight_price, Decimal("4.50"))
 
-    def test_total_insulation_square_footage_is_calculated(self):
+    def test__total_insulation_square_footage__returns_calculated_area(self):
         unit = self.create_unit()
         UnitInsulationCount.objects.create(
             unit=unit,
@@ -395,7 +395,7 @@ class UnitTests(TestCase):
         # 8 sq ft × 2 pieces = 16 sq ft
         self.assertEqual(unit.total_insulation_square_footage, Decimal("16"))
 
-    def test_insulation_price_is_calculated(self):
+    def test__insulation_price__returns_calculated_price(self):
         unit = self.create_unit()
         UnitInsulationCount.objects.create(
             unit=unit,
@@ -406,7 +406,7 @@ class UnitTests(TestCase):
         # 16 sq ft × $0.1850 = $2.96
         self.assertEqual(unit.insulation_price, Decimal("2.9600"))
 
-    def test_total_price_is_calculated(self):
+    def test__total_price__returns_calculated_price(self):
         unit = self.create_unit(
             sprinklers_count=8,
             potlights_count=8,
@@ -428,7 +428,7 @@ class UnitTests(TestCase):
         # + $4.50 potlights + $2.96 insulation = $185.92
         self.assertEqual(unit.total_price, Decimal("185.92"))
 
-    def test_mark_completed_updates_status(self):
+    def test__mark_completed__updates_status(self):
         unit = Unit.objects.create(number="102", status=Unit.Status.ON_HOLD)
 
         completed_on = dt.date(2026, 10, 25)
@@ -439,12 +439,12 @@ class UnitTests(TestCase):
         self.assertEqual(unit.status, Unit.Status.COMPLETED)
         self.assertEqual(unit.completed_on, completed_on)
 
-    def test_drywall_rate_returns_matching_standard_rate(self):
+    def test__drywall_rate__returns_matching_standard_rate(self):
         unit = self.create_unit(number="103")
 
         self.assertEqual(unit.drywall_rate, self.drywall_rate.rate)
 
-    def test_weighted_sheets_per_hour(self):
+    def test__weighted_sheets_per_hour__returns_weighted_rate(self):
         boarding = Activity.objects.create(name="board")
 
         first_unit = self.create_unit(
@@ -481,7 +481,7 @@ class UnitTests(TestCase):
 
         self.assertEqual(result, Decimal("12.00"))
 
-    def test_weighted_sheets_per_hour_filters_by_project(self):
+    def test__weighted_sheets_per_hour__filters_by_project(self):
         boarding = Activity.objects.create(name="board")
 
         first_project = Project.objects.create(name="First project")
@@ -530,14 +530,14 @@ class UnitTests(TestCase):
         # Second project: 40 sheets / 4 hours
         self.assertEqual(second_project_rate, Decimal("10.00"))
 
-    def test_weighted_sheets_per_hour_returns_zero_for_project_without_data(self):
+    def test__weighted_sheets_per_hour__returns_zero_for_project_without_data(self):
         project = Project.objects.create(name="Empty project")
 
         result = Unit.objects.weighted_sheets_per_hour(project=project)
 
         self.assertEqual(result, Decimal("0.00"))
 
-    def test_weighted_sheets_per_hour_filters_by_height(self):
+    def test__weighted_sheets_per_hour__filters_by_height(self):
         boarding = Activity.objects.create(name="board")
 
         lower_unit = self.create_unit(
@@ -581,7 +581,7 @@ class UnitTests(TestCase):
 
         self.assertEqual(result, Decimal("20.0"))
 
-    def test_weighted_square_feet_per_hour(self):
+    def test__weighted_square_feet_per_hour__returns_weighted_rate(self):
         boarding = Activity.objects.create(name="board")
 
         first_unit = self.create_unit(
@@ -621,7 +621,7 @@ class UnitTests(TestCase):
         # (480 sq ft + 320 sq ft) / 4 hours
         self.assertEqual(result, Decimal("200.00"))
 
-    def test_weighted_square_feet_per_hour_filters_by_project(self):
+    def test__weighted_square_feet_per_hour__filters_by_project(self):
         boarding = Activity.objects.create(name="board")
         first_project = Project.objects.create(name="First project")
         second_project = Project.objects.create(name="Second project")
@@ -671,7 +671,7 @@ class UnitTests(TestCase):
         self.assertEqual(first_project_rate, Decimal("480.00"))
         self.assertEqual(second_project_rate, Decimal("160.00"))
 
-    def test_weighted_square_feet_per_hour_returns_zero_for_project_without_data(
+    def test__weighted_square_feet_per_hour__returns_zero_for_project_without_data(
         self,
     ):
         project = Project.objects.create(name="Empty project")
@@ -680,7 +680,7 @@ class UnitTests(TestCase):
 
         self.assertEqual(result, Decimal("0.00"))
 
-    def test_weighted_square_feet_per_hour_filters_by_height(self):
+    def test__weighted_square_feet_per_hour__filters_by_height(self):
         boarding = Activity.objects.create(name="board")
 
         lower_unit = self.create_unit(
@@ -726,7 +726,7 @@ class UnitTests(TestCase):
 
 
 class UnitSheetCountTests(TestCase):
-    def test_square_footage_is_calculated_correct(self):
+    def test__square_footage__returns_material_area_times_count(self):
         material = UnitDrywallMaterial(
             drywall_type=UnitDrywallMaterial.DrywallType.REGULAR,
             length_feet=UnitDrywallMaterial.Length.TWELVE,
@@ -737,7 +737,7 @@ class UnitSheetCountTests(TestCase):
 
 
 class UnitDrywallMaterialTests(TestCase):
-    def test_square_footage_is_calculated_correctly(self):
+    def test__square_footage__returns_sheet_area(self):
         material = UnitDrywallMaterial(drywall_type="Regular", length_feet=12)
 
         self.assertEqual(material.square_footage, 48)
@@ -750,14 +750,14 @@ class SprinklerRateTests(SimpleTestCase):
             unpaid_quantity=5,
         )
 
-    def test_price_for_excludes_unpaid_quantity(self):
+    def test__price_for__excludes_unpaid_quantity(self):
         result = self.sprinkler_rate.price_for(8)
 
         # 8 total - 5 unpaid = 3 payable
         # 3 x $1.25 = $3.75
         self.assertEqual(result, Decimal("3.75"))
 
-    def test_price_for_returns_zero_at_or_below_unpaid_quantity(self):
+    def test__price_for__returns_zero_at_or_below_unpaid_quantity(self):
         for quantity in (0, 3, 5):
             with self.subTest(quantity=quantity):
                 result = self.sprinkler_rate.price_for(quantity)
@@ -772,14 +772,14 @@ class PotlightRateTests(SimpleTestCase):
             unpaid_quantity=5,
         )
 
-    def test_price_for_excludes_unpaid_quantity(self):
+    def test__price_for__excludes_unpaid_quantity(self):
         result = self.potlight_rate.price_for(8)
 
         # 8 total - 5 unpaid = 3 payable
         # 3 x $1.50 = $4.50
         self.assertEqual(result, Decimal("4.50"))
 
-    def test_price_for_returns_zero_at_or_below_unpaid_quantity(self):
+    def test__price_for__returns_zero_at_or_below_unpaid_quantity(self):
         for quantity in (0, 3, 5):
             with self.subTest(quantity=quantity):
                 result = self.potlight_rate.price_for(quantity)
@@ -796,23 +796,23 @@ class RatePeriodTests(TestCase):
             ends_on=dt.date(2026, 4, 30),
         )
 
-    def test_get_for_date_returns_period_containin_date(self):
+    def test__get_for_date__returns_period_containing_date(self):
         result = RatePeriod.objects.get_for_date(dt.date(2025, 10, 25))
 
         self.assertEqual(result, self.rate_period)
 
-    def test_get_for_date_includes_period_boundaries(self):
+    def test__get_for_date__includes_period_boundaries(self):
         for on_date in (self.rate_period.starts_on, self.rate_period.ends_on):
             with self.subTest(on_date=on_date):
                 result = RatePeriod.objects.get_for_date(on_date)
 
                 self.assertEqual(result, self.rate_period)
 
-    def test_get_for_date_raises_when_no_period_containes_date(self):
+    def test__get_for_date__raises_when_no_period_contains_date(self):
         with self.assertRaises(RatePeriod.DoesNotExist):
             RatePeriod.objects.get_for_date(dt.date(2026, 5, 1))
 
-    def test_get_for_date_raises_when_periods_overlap(self):
+    def test__get_for_date__raises_when_periods_overlap(self):
         RatePeriod.objects.create(
             name="Overlapping period",
             starts_on=dt.date(2025, 10, 1),
@@ -824,7 +824,7 @@ class RatePeriodTests(TestCase):
 
 
 class InsulationRateTests(TestCase):
-    def test_get_rate_value_for_period_returns_matching_rate(self):
+    def test__get_rate_value_for_period__returns_matching_rate(self):
         rate_period = RatePeriod.objects.create(
             name="2025-2026",
             starts_on=dt.date(2025, 5, 1),
@@ -841,7 +841,7 @@ class InsulationRateTests(TestCase):
 
 
 class UnitInsulationMaterialTests(TestCase):
-    def test_square_footage_is_calculated_from_width_and_length(self):
+    def test__square_footage__calculates_from_width_and_length(self):
         material = UnitInsulationMaterial(
             insulation_type=UnitInsulationMaterial.InsulationType.INTERIOR,
             width_inches=24,
@@ -852,7 +852,7 @@ class UnitInsulationMaterialTests(TestCase):
         # 1,152 ÷ 144 = 8 sq ft
         self.assertEqual(material.square_footage, Decimal("8"))
 
-    def test_type_and_dimensions_must_be_unique(self):
+    def test__type_and_dimensions_constraint__rejects_duplicate_material(self):
         material_data = {
             "insulation_type": UnitInsulationMaterial.InsulationType.INTERIOR,
             "width_inches": 24,
@@ -863,7 +863,7 @@ class UnitInsulationMaterialTests(TestCase):
         with self.assertRaises(IntegrityError), transaction.atomic():
             UnitInsulationMaterial.objects.create(**material_data)
 
-    def test_same_dimensions_allow_different_insulation_types(self):
+    def test__type_and_dimensions_constraint__allows_different_insulation_types(self):
         UnitInsulationMaterial.objects.create(
             insulation_type=UnitInsulationMaterial.InsulationType.INTERIOR,
             width_inches=24,
@@ -881,7 +881,7 @@ class UnitInsulationMaterialTests(TestCase):
             UnitInsulationMaterial.InsulationType.EXTERIOR,
         )
 
-    def test_insulation_type_has_expected_choices(self):
+    def test__insulation_type__has_expected_choices(self):
         self.assertEqual(
             UnitInsulationMaterial.InsulationType.choices,
             [
@@ -890,7 +890,7 @@ class UnitInsulationMaterialTests(TestCase):
             ],
         )
 
-    def test_insulation_type_must_be_one_of_the_choices(self):
+    def test__insulation_type__rejects_unsupported_choice(self):
         material = UnitInsulationMaterial(
             insulation_type="unsupported",
             width_inches=24,
@@ -902,7 +902,7 @@ class UnitInsulationMaterialTests(TestCase):
 
 
 class UnitInsulationCountTests(SimpleTestCase):
-    def test_square_footage_multiplies_material_area_by_count(self):
+    def test__square_footage__multiplies_material_area_by_count(self):
         material = UnitInsulationMaterial(
             insulation_type=UnitInsulationMaterial.InsulationType.INTERIOR,
             width_inches=24,
@@ -917,7 +917,7 @@ class UnitInsulationCountTests(SimpleTestCase):
 
 
 class UnitViewTests(TestCase):
-    def test_unit_delete_removes_unit(self):
+    def test__unit_delete__removes_unit(self):
         unit = Unit.objects.create(number="101")
         delete_url = reverse("piecework:units_delete", kwargs={"pk": unit.pk})
 
@@ -925,7 +925,7 @@ class UnitViewTests(TestCase):
 
         self.assertFalse(Unit.objects.filter(pk=unit.pk).exists())
 
-    def test_unit_delete_rejects_get_request(self):
+    def test__unit_delete__rejects_get_request(self):
         unit = Unit.objects.create(number="1")
         delete_url = reverse(
             "piecework:units_delete",
@@ -937,14 +937,14 @@ class UnitViewTests(TestCase):
         self.assertEqual(response.status_code, 405)
         self.assertTrue(Unit.objects.filter(pk=unit.pk).exists())
 
-    def test_unit_delete_returns_404_for_uknown_unit(self):
+    def test__unit_delete__returns_404_for_unknown_unit(self):
         response = self.client.post(
             reverse("piecework:units_delete", kwargs={"pk": 99999})
         )
 
         self.assertEqual(response.status_code, 404)
 
-    def test_units_create_saves_valid_unit(self):
+    def test__units_create__saves_valid_unit(self):
         self.client.post(
             reverse("piecework:units_create"),
             {
@@ -956,13 +956,13 @@ class UnitViewTests(TestCase):
 
         self.assertTrue(Unit.objects.filter(number="101").exists())
 
-    def test_units_detail_returns_404_for_uknown_unit(self):
+    def test__units_detail__returns_404_for_unknown_unit(self):
         response = self.client.get(
             reverse("piecework:units_detail", kwargs={"pk": 99999})
         )
         self.assertEqual(response.status_code, 404)
 
-    def test_units_updates_unit(self):
+    def test__units_edit__updates_unit(self):
         unit = Unit.objects.create(
             number="101",
             status=Unit.Status.ON_HOLD,
@@ -984,7 +984,7 @@ class UnitViewTests(TestCase):
 
 
 class ProjectTests(TestCase):
-    def test_active_project_returns_active_project(self):
+    def test__active_project__returns_active_project(self):
         Project.objects.create(
             name="Completed project",
             status=Project.ProjectStatus.COMPLETED,
@@ -998,7 +998,7 @@ class ProjectTests(TestCase):
 
         self.assertEqual(result, active_project)
 
-    def test_active_project_returns_none_when_none_is_active(self):
+    def test__active_project__returns_none_when_none_is_active(self):
         Project.objects.create(
             name="on hold porject", status=Project.ProjectStatus.ON_HOLD
         )
@@ -1007,7 +1007,7 @@ class ProjectTests(TestCase):
 
         self.assertIsNone(result)
 
-    def test_only_one_project_can_be_active(self):
+    def test__active_project_constraint__rejects_second_active_project(self):
         Project.objects.create(
             name="First project",
             status=Project.ProjectStatus.ACTIVE,
@@ -1023,7 +1023,7 @@ class ProjectTests(TestCase):
             Project.objects.filter(status=Project.ProjectStatus.ACTIVE).count(), 1
         )
 
-    def test_multiple_non_active_projects_are_allowed(self):
+    def test__active_project_constraint__allows_multiple_non_active_projects(self):
         Project.objects.create(
             name="First project",
             status=Project.ProjectStatus.ON_HOLD,
@@ -1062,10 +1062,10 @@ class BoardingSprintTests(TestCase):
             start=timezone.now(),
         )
 
-    def test_current_returns_none_without_active_sprint(self):
+    def test__current__returns_none_without_active_sprint(self):
         self.assertIsNone(BoardingSprint.objects.current())
 
-    def test_current_returns_running_sprint(self):
+    def test__current__returns_running_sprint(self):
         activity_log = self._create_current_activity_log(self.boarding)
 
         sprint = BoardingSprint.objects.create(
@@ -1074,7 +1074,7 @@ class BoardingSprintTests(TestCase):
 
         self.assertEqual(BoardingSprint.objects.current(), sprint)
 
-    def test_current_returns_paused_sprint(self):
+    def test__current__returns_paused_sprint(self):
         activity_log = self._create_current_activity_log(self.boarding)
 
         sprint = BoardingSprint.objects.create(
@@ -1083,7 +1083,7 @@ class BoardingSprintTests(TestCase):
 
         self.assertEqual(BoardingSprint.objects.current(), sprint)
 
-    def test_current_ignores_stopped_sprint(self):
+    def test__current__ignores_stopped_sprint(self):
         activity_log = self._create_current_activity_log(self.boarding)
 
         BoardingSprint.objects.create(
@@ -1092,20 +1092,20 @@ class BoardingSprintTests(TestCase):
 
         self.assertIsNone(BoardingSprint.objects.current())
 
-    def test_can_start_returns_false_without_activity_log(self):
+    def test__can_start__returns_false_without_activity_log(self):
         self.assertFalse(BoardingSprint.objects.can_start(None))
 
-    def test_can_start_returns_false_for_non_boarding_activity(self):
+    def test__can_start__returns_false_for_non_boarding_activity(self):
         activity_log = self._create_current_activity_log(self.break_activity)
 
         self.assertFalse(BoardingSprint.objects.can_start(activity_log))
 
-    def test_can_start_returns_true_for_boarding_without_active_sprint(self):
+    def test__can_start__returns_true_for_boarding_without_active_sprint(self):
         activity_log = self._create_current_activity_log(self.boarding)
 
         self.assertTrue(BoardingSprint.objects.can_start(activity_log))
 
-    def test_can_start_returns_false_with_running_sprint(self):
+    def test__can_start__returns_false_with_running_sprint(self):
         boarding_activity_log = self._create_boarding_activity_log()
         BoardingSprint.objects.create(
             activity_log=boarding_activity_log, status=BoardingSprint.Status.RUNNING
@@ -1113,7 +1113,7 @@ class BoardingSprintTests(TestCase):
 
         self.assertFalse(BoardingSprint.objects.can_start(boarding_activity_log))
 
-    def test_can_start_returns_false_with_paused_sprint(self):
+    def test__can_start__returns_false_with_paused_sprint(self):
         boarding_activity_log = self._create_boarding_activity_log()
         BoardingSprint.objects.create(
             activity_log=boarding_activity_log, status=BoardingSprint.Status.PAUSED
@@ -1121,7 +1121,7 @@ class BoardingSprintTests(TestCase):
 
         self.assertFalse(BoardingSprint.objects.can_start(boarding_activity_log))
 
-    def test_start_sprint_creates_running_sprint_and_time_log(self):
+    def test__start_sprint__creates_running_sprint_and_time_log(self):
         boarding_activity_log = self._create_boarding_activity_log()
         before_start = timezone.now()
 
@@ -1136,7 +1136,7 @@ class BoardingSprintTests(TestCase):
         self.assertLessEqual(time_log.start_time, after_start)
         self.assertIsNone(time_log.end_time)
 
-    def test_start_sprint_requires_current_activity(self):
+    def test__start_sprint__raises_without_current_activity(self):
         with self.assertRaisesMessage(
             ValidationError, "sprint cannot start without current activity"
         ):
@@ -1145,7 +1145,7 @@ class BoardingSprintTests(TestCase):
         self.assertFalse(BoardingSprint.objects.exists())
         self.assertFalse(BoardingSprintTimeLog.objects.exists())
 
-    def test_start_sprint_requires_boarding_activity(self):
+    def test__start_sprint__raises_for_non_boarding_activity(self):
         self._create_break_activity_log()
 
         with self.assertRaisesMessage(
@@ -1156,7 +1156,7 @@ class BoardingSprintTests(TestCase):
         self.assertFalse(BoardingSprint.objects.exists())
         self.assertFalse(BoardingSprintTimeLog.objects.exists())
 
-    def test_start_sprint_rejects_second_active_sprint(self):
+    def test__start_sprint__rejects_second_active_sprint(self):
         self._create_boarding_activity_log()
         first_sprint = BoardingSprint.objects.start_sprint()
 
@@ -1169,7 +1169,7 @@ class BoardingSprintTests(TestCase):
         self.assertEqual(BoardingSprintTimeLog.objects.count(), 1)
         self.assertEqual(BoardingSprint.objects.current(), first_sprint)
 
-    def test_stop_running_sprint_closes_open_time_log(self):
+    def test__stop_sprint__closes_open_time_log_for_running_sprint(self):
         self._create_boarding_activity_log()
         sprint = BoardingSprint.objects.start_sprint()
         time_log = BoardingSprintTimeLog.objects.get(boarding_sprint=sprint)
@@ -1189,7 +1189,7 @@ class BoardingSprintTests(TestCase):
         self.assertLessEqual(end_time, after_stop)
         self.assertIsNone(BoardingSprint.objects.current())
 
-    def test_stop_sprint_rejects_already_stopped_sprint(self):
+    def test__stop_sprint__rejects_already_stopped_sprint(self):
         self._create_boarding_activity_log()
         sprint = BoardingSprint.objects.start_sprint()
         sprint.stop_sprint()
@@ -1208,7 +1208,7 @@ class BoardingSprintTests(TestCase):
         self.assertEqual(sprint.status, BoardingSprint.Status.STOPPED)
         self.assertEqual(time_log.end_time, original_end_time)
 
-    def test_stop_paused_sprint_does_not_create_time_log(self):
+    def test__stop_sprint__does_not_create_time_log_for_paused_sprint(self):
         boarding_activity_log = self._create_boarding_activity_log()
         now = timezone.now()
 
@@ -1236,7 +1236,7 @@ class BoardingSprintTests(TestCase):
         )
         self.assertIsNone(BoardingSprint.objects.current())
 
-    def test_stop_paused_sprint_rejects_open_time_log(self):
+    def test__stop_sprint__rejects_open_time_log_for_paused_sprint(self):
         boarding_activity_log = self._create_boarding_activity_log()
 
         sprint = BoardingSprint.objects.create(
@@ -1261,7 +1261,7 @@ class BoardingSprintTests(TestCase):
         self.assertIsNone(time_log.end_time)
         self.assertEqual(BoardingSprint.objects.current(), sprint)
 
-    def test_stop_running_sprint_requires_open_time_log(self):
+    def test__stop_sprint__requires_open_time_log_for_running_sprint(self):
         boarding_activity_log = self._create_boarding_activity_log()
 
         sprint = BoardingSprint.objects.create(
@@ -1278,7 +1278,7 @@ class BoardingSprintTests(TestCase):
         self.assertEqual(sprint.status, BoardingSprint.Status.RUNNING)
         self.assertEqual(BoardingSprint.objects.current(), sprint)
 
-    def test_pause_sprint_close_open_time_log(self):
+    def test__pause_sprint__closes_open_time_log(self):
         self._create_boarding_activity_log()
         sprint = BoardingSprint.objects.start_sprint()
         time_log = BoardingSprintTimeLog.objects.get(boarding_sprint=sprint)
@@ -1303,7 +1303,7 @@ class BoardingSprintTests(TestCase):
             ).exists()
         )
 
-    def test_pause_sprint_rejects_already_paused_sprint(self):
+    def test__pause_sprint__rejects_already_paused_sprint(self):
         self._create_boarding_activity_log()
         sprint = BoardingSprint.objects.start_sprint()
         sprint.pause_sprint()
@@ -1322,7 +1322,7 @@ class BoardingSprintTests(TestCase):
         self.assertEqual(sprint.status, BoardingSprint.Status.PAUSED)
         self.assertEqual(time_log.end_time, original_end_time)
 
-    def test_pause_sprint_rejects_stopped_sprint(self):
+    def test__pause_sprint__rejects_stopped_sprint(self):
         self._create_boarding_activity_log()
         sprint = BoardingSprint.objects.start_sprint()
         sprint.stop_sprint()
@@ -1340,7 +1340,7 @@ class BoardingSprintTests(TestCase):
             BoardingSprint.Status.STOPPED,
         )
 
-    def test_pause_sprint_requires_open_time_log(self):
+    def test__pause_sprint__requires_open_time_log(self):
         boarding_activity_log = self._create_boarding_activity_log()
         sprint = BoardingSprint.objects.create(
             activity_log=boarding_activity_log,
@@ -1358,7 +1358,7 @@ class BoardingSprintTests(TestCase):
         self.assertEqual(sprint.status, BoardingSprint.Status.RUNNING)
         self.assertEqual(BoardingSprint.objects.current(), sprint)
 
-    def test_resume_sprint_creates_new_open_time_log(self):
+    def test__resume_sprint__creates_new_open_time_log(self):
         self._create_boarding_activity_log()
         sprint = BoardingSprint.objects.start_sprint()
         sprint.pause_sprint()
@@ -1395,7 +1395,7 @@ class BoardingSprintTests(TestCase):
             sprint,
         )
 
-    def test_resume_sprint_rejects_running_sprint(self):
+    def test__resume_sprint__rejects_running_sprint(self):
         self._create_boarding_activity_log()
         sprint = BoardingSprint.objects.start_sprint()
 
@@ -1414,7 +1414,7 @@ class BoardingSprintTests(TestCase):
             1,
         )
 
-    def test_resume_sprint_rejects_stopped_sprint(self):
+    def test__resume_sprint__rejects_stopped_sprint(self):
         self._create_boarding_activity_log()
         sprint = BoardingSprint.objects.start_sprint()
         sprint.stop_sprint()
@@ -1433,7 +1433,7 @@ class BoardingSprintTests(TestCase):
             ).exists()
         )
 
-    def test_resume_sprint_rejects_open_time_log(self):
+    def test__resume_sprint__rejects_open_time_log(self):
         activity_log = self._create_boarding_activity_log()
 
         sprint = BoardingSprint.objects.create(
@@ -1461,7 +1461,7 @@ class BoardingSprintTests(TestCase):
             ).exists()
         )
 
-    def test_discard_sprint_deletes_sprint(self):
+    def test__discard_sprint__deletes_sprint(self):
         self._create_boarding_activity_log()
         sprint = BoardingSprint.objects.start_sprint()
         sprint_id = sprint.pk
@@ -1470,7 +1470,7 @@ class BoardingSprintTests(TestCase):
 
         self.assertFalse(BoardingSprint.objects.filter(pk=sprint_id).exists())
 
-    def test_discard_sprint_deletes_time_logs(self):
+    def test__discard_sprint__deletes_time_logs(self):
         self._create_boarding_activity_log()
         sprint = BoardingSprint.objects.start_sprint()
         time_log_id = BoardingSprintTimeLog.objects.get(boarding_sprint=sprint).pk
@@ -1479,7 +1479,7 @@ class BoardingSprintTests(TestCase):
 
         self.assertFalse(BoardingSprintTimeLog.objects.filter(pk=time_log_id).exists())
 
-    def test_discard_sprint_deletes_sheet_count(self):
+    def test__discard_sprint__deletes_sheet_count(self):
         self._create_boarding_activity_log()
         sprint = BoardingSprint.objects.start_sprint()
         material = UnitDrywallMaterial.objects.get(
@@ -1497,7 +1497,7 @@ class BoardingSprintTests(TestCase):
             BoardingSprintSheetCount.objects.filter(pk=sheet_count_id).exists()
         )
 
-    def test_discard_sprint_preserves_activity_log(self):
+    def test__discard_sprint__preserves_activity_log(self):
         activity_log = self._create_boarding_activity_log()
         activity_log_id = activity_log.pk
         sprint = BoardingSprint.objects.start_sprint()
@@ -1506,7 +1506,7 @@ class BoardingSprintTests(TestCase):
 
         self.assertTrue(ActivityLog.objects.filter(pk=activity_log_id).exists())
 
-    def test_discard_sprint_preserves_drywall_material(self):
+    def test__discard_sprint__preserves_drywall_material(self):
         self._create_boarding_activity_log()
         sprint = BoardingSprint.objects.start_sprint()
         material = UnitDrywallMaterial.objects.get(
@@ -1524,7 +1524,7 @@ class BoardingSprintTests(TestCase):
 
         self.assertTrue(UnitDrywallMaterial.objects.filter(pk=material_id).exists())
 
-    def test_can_start_new_sprint_after_discarding_active_sprint(self):
+    def test__can_start__returns_true_after_discarding_active_sprint(self):
         self._create_boarding_activity_log()
         sprint = BoardingSprint.objects.start_sprint()
 
@@ -1534,7 +1534,7 @@ class BoardingSprintTests(TestCase):
         self.assertEqual(BoardingSprint.objects.current(), new_sprint)
         self.assertEqual(BoardingSprint.objects.count(), 1)
 
-    def test_clean_rejects_non_boarding_activity(self):
+    def test__clean__rejects_non_boarding_activity(self):
         activity_log = self._create_break_activity_log()
         sprint = BoardingSprint(activity_log=activity_log)
 
@@ -1546,7 +1546,7 @@ class BoardingSprintTests(TestCase):
 
         self.assertFalse(BoardingSprint.objects.exists())
 
-    def test_database_rejects_second_active_sprint(self):
+    def test__active_sprint_constraint__rejects_second_active_sprint(self):
         boarding_activity_log = self._create_boarding_activity_log()
         BoardingSprint.objects.create(
             activity_log=boarding_activity_log, status=BoardingSprint.Status.RUNNING
