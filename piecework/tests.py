@@ -579,6 +579,149 @@ class UnitTests(TestCase):
 
         self.assertEqual(result, Decimal("20.0"))
 
+    def test_weighted_square_feet_per_hour(self):
+        boarding = Activity.objects.create(name="board")
+
+        first_unit = self.create_unit(
+            number="101",
+            status=Unit.Status.COMPLETED,
+        )
+        second_unit = self.create_unit(
+            number="102",
+            status=Unit.Status.COMPLETED,
+        )
+
+        UnitSheetCount.objects.create(
+            unit=first_unit,
+            drywall_material=self.twelve_foot_material,
+            count=10,
+        )
+        UnitSheetCount.objects.create(
+            unit=second_unit,
+            drywall_material=self.eight_foot_material,
+            count=10,
+        )
+        ActivityLog.objects.create(
+            activity=boarding,
+            unit=first_unit,
+            start=dt.datetime(2025, 10, 20, 8, tzinfo=dt.UTC),
+            end=dt.datetime(2025, 10, 20, 9, tzinfo=dt.UTC),
+        )
+        ActivityLog.objects.create(
+            activity=boarding,
+            unit=second_unit,
+            start=dt.datetime(2025, 10, 21, 8, tzinfo=dt.UTC),
+            end=dt.datetime(2025, 10, 21, 11, tzinfo=dt.UTC),
+        )
+
+        result = Unit.objects.weighted_square_feet_per_hour()
+
+        # (480 sq ft + 320 sq ft) / 4 hours
+        self.assertEqual(result, Decimal("200.00"))
+
+    def test_weighted_square_feet_per_hour_filters_by_project(self):
+        boarding = Activity.objects.create(name="board")
+        first_project = Project.objects.create(name="First project")
+        second_project = Project.objects.create(name="Second project")
+
+        first_unit = self.create_unit(
+            number="101",
+            status=Unit.Status.COMPLETED,
+            project=first_project,
+        )
+        second_unit = self.create_unit(
+            number="102",
+            status=Unit.Status.COMPLETED,
+            project=second_project,
+        )
+
+        UnitSheetCount.objects.create(
+            unit=first_unit,
+            drywall_material=self.twelve_foot_material,
+            count=10,
+        )
+        UnitSheetCount.objects.create(
+            unit=second_unit,
+            drywall_material=self.eight_foot_material,
+            count=10,
+        )
+
+        ActivityLog.objects.create(
+            activity=boarding,
+            unit=first_unit,
+            start=dt.datetime(2025, 10, 20, 8, tzinfo=dt.UTC),
+            end=dt.datetime(2025, 10, 20, 9, tzinfo=dt.UTC),
+        )
+        ActivityLog.objects.create(
+            activity=boarding,
+            unit=second_unit,
+            start=dt.datetime(2025, 10, 21, 8, tzinfo=dt.UTC),
+            end=dt.datetime(2025, 10, 21, 10, tzinfo=dt.UTC),
+        )
+
+        first_project_rate = Unit.objects.weighted_square_feet_per_hour(
+            project=first_project
+        )
+        second_project_rate = Unit.objects.weighted_square_feet_per_hour(
+            project=second_project
+        )
+
+        self.assertEqual(first_project_rate, Decimal("480.00"))
+        self.assertEqual(second_project_rate, Decimal("160.00"))
+
+    def test_weighted_square_feet_per_hour_returns_zero_for_project_without_data(
+        self,
+    ):
+        project = Project.objects.create(name="Empty project")
+
+        result = Unit.objects.weighted_square_feet_per_hour(project=project)
+
+        self.assertEqual(result, Decimal("0.00"))
+
+    def test_weighted_square_feet_per_hour_filters_by_height(self):
+        boarding = Activity.objects.create(name="board")
+
+        lower_unit = self.create_unit(
+            number="101",
+            status=Unit.Status.COMPLETED,
+            height_feet=HeightCategory.OVER_EIGHT_TO_NINE_INCLUSIVE,
+        )
+        higher_unit = self.create_unit(
+            number="102",
+            status=Unit.Status.COMPLETED,
+            height_feet=HeightCategory.OVER_NINE_TO_TEN_INCLUSIVE,
+        )
+
+        UnitSheetCount.objects.create(
+            unit=lower_unit,
+            drywall_material=self.twelve_foot_material,
+            count=10,
+        )
+        UnitSheetCount.objects.create(
+            unit=higher_unit,
+            drywall_material=self.eight_foot_material,
+            count=10,
+        )
+
+        ActivityLog.objects.create(
+            activity=boarding,
+            unit=lower_unit,
+            start=dt.datetime(2025, 10, 20, 8, tzinfo=dt.UTC),
+            end=dt.datetime(2025, 10, 20, 9, tzinfo=dt.UTC),
+        )
+        ActivityLog.objects.create(
+            activity=boarding,
+            unit=higher_unit,
+            start=dt.datetime(2025, 10, 21, 8, tzinfo=dt.UTC),
+            end=dt.datetime(2025, 10, 21, 10, tzinfo=dt.UTC),
+        )
+
+        result = Unit.objects.weighted_square_feet_per_hour(
+            height_feet=HeightCategory.OVER_EIGHT_TO_NINE_INCLUSIVE
+        )
+
+        self.assertEqual(result, Decimal("480.00"))
+
 
 class UnitSheetCountTests(TestCase):
     def test_square_footage_is_calculated_correct(self):

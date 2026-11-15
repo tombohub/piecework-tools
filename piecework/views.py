@@ -45,6 +45,10 @@ def index(request):
     weighted_sheets_per_hour = Unit.objects.weighted_sheets_per_hour(
         project=selected_project, height_feet=selected_height_feet
     )
+    weighted_square_feet_per_hour = Unit.objects.weighted_square_feet_per_hour(
+        project=selected_project,
+        height_feet=selected_height_feet,
+    )
 
     context = {
         "activities": activities,
@@ -61,6 +65,7 @@ def index(request):
         "selected_project": selected_project,
         "selected_height_feet": selected_height_feet,
         "weighted_sheets_per_hour": weighted_sheets_per_hour,
+        "weighted_square_feet_per_hour": weighted_square_feet_per_hour,
     }
     return render(request, "piecework/index.html", context)
 

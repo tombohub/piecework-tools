@@ -445,7 +445,58 @@ class UnitManager(models.Manager["Unit"]):
         if total_seconds <= 0:
             return Decimal("0.00")
 
-        rate = Decimal(total_sheets) / Decimal(str(total_seconds)) * Decimal("3600")
+        rate = Decimal(total_sheets) / Decimal(str(total_seconds)) * Decimal(3600)
+
+        return rate.quantize(Decimal("0.01"))
+
+    def weighted_square_feet_per_hour(
+        self, project: Project | None = None, height_feet: str | None = None
+    ) -> Decimal:
+        """
+        Return the weighted square-feet-per-hour rate across completed units.
+
+        Filter by project and unit height.
+        """
+        units = self.get_queryset().filter(status=self.model.Status.COMPLETED)
+
+        if project is not None:
+            units = units.filter(project=project)
+
+        if height_feet:
+            units = units.filter(height_feet=height_feet)
+
+        eligible_unit_ids = (
+            units.filter(
+                unitsheetcount__count__gt=0,
+                activitylog__activity__name="board",
+                activitylog__duration__gt=dt.timedelta(),
+            )
+            .values("pk")
+            .distinct()
+        )
+
+        total_square_feet = (
+            UnitSheetCount.objects.filter(unit_id__in=eligible_unit_ids).aggregate(
+                total=Sum(F("count") * F("drywall_material__length_feet") * 4)
+            )["total"]
+            or 0
+        )
+
+        total_duration = (
+            ActivityLog.objects.filter(
+                unit_id__in=eligible_unit_ids,
+                activity__name="board",
+                duration__gt=dt.timedelta(),
+            ).aggregate(total=Sum("duration"))["total"]
+            or dt.timedelta()
+        )
+
+        total_seconds = total_duration.total_seconds()
+
+        if total_seconds <= 0:
+            return Decimal("0.00")
+
+        rate = Decimal(total_square_feet) / Decimal(str(total_seconds)) * Decimal(3600)
 
         return rate.quantize(Decimal("0.01"))
 
