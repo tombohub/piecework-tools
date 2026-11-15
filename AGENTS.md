@@ -12,6 +12,7 @@
 
 ## Testing Policy
 
+- Name tests using `test__<method_or_property>__<result>[_when_<condition>]`.
 - Prioritize tests that verify functionality, business behavior, and resulting state changes.
 - Test outcomes such as records being created, updated, or deleted; status changes; calculations; validation; request-method restrictions; and error handling.
 - Do not add tests for presentation that can be checked visually, such as rendered text, template selection, layout, or basic form display, unless the user explicitly requests them.

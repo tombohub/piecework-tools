@@ -1,3 +1,5 @@
+"""Test names follow: test__<method_or_property>__<result>[_when_<condition>]."""
+
 import datetime as dt
 from decimal import Decimal
 
