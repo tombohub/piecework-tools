@@ -102,8 +102,8 @@
     <form action="{% url 'piecework:start-activity' %}" method="post">
       {% csrf_token %}
       <div class="vstack gap-3">
-        {# buttons for starting an action #}
         {% for activity in activities %}
+        {% if activity.category == "boarding" %}
         <button
           class="btn btn-lg btn-dark"
           name="action"
@@ -112,7 +112,36 @@
         >
           {{ activity.name|capfirst }}
         </button>
+        {% endif %}
         {% endfor %}
+
+        <button
+          class="btn btn-lg btn-outline-dark"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#other-activities"
+          aria-expanded="false"
+          aria-controls="other-activities"
+        >
+          Other activities
+        </button>
+
+        <div class="collapse" id="other-activities">
+          <div class="vstack gap-2">
+            {% for activity in activities %}
+            {% if activity.category != "boarding" %}
+            <button
+              class="btn btn-lg btn-dark"
+              name="action"
+              value="{{ activity.name }}"
+              {% if activity.requires_active_unit and not active_unit %}disabled{% endif %}
+            >
+              {{ activity.name|capfirst }}
+            </button>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
       </div>
     </form>
 
