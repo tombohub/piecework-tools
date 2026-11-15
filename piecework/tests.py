@@ -1557,3 +1557,46 @@ class BoardingSprintTests(TestCase):
             )
 
         self.assertEqual(BoardingSprint.objects.count(), 1)
+
+    def test__duration__returns_zero_without_time_logs(self):
+        sprint = BoardingSprint.objects.create(
+            activity_log=self._create_boarding_activity_log(),
+            status=BoardingSprint.Status.STOPPED,
+        )
+
+        self.assertEqual(sprint.duration, dt.timedelta())
+
+    def test__duration__sums_time_logs_and_excludes_gaps(self):
+        sprint = BoardingSprint.objects.create(
+            activity_log=self._create_boarding_activity_log(),
+            status=BoardingSprint.Status.STOPPED,
+        )
+        now = timezone.now()
+
+        BoardingSprintTimeLog.objects.create(
+            boarding_sprint=sprint,
+            start_time=now - dt.timedelta(hours=3),
+            end_time=now - dt.timedelta(hours=2),
+        )
+        BoardingSprintTimeLog.objects.create(
+            boarding_sprint=sprint,
+            start_time=now - dt.timedelta(hours=1, minutes=30),
+            end_time=now - dt.timedelta(hours=1),
+        )
+
+        result = sprint.duration
+        expected = dt.timedelta(hours=1, minutes=30)
+        self.assertEqual(result, expected)
+
+    def test__duration__includes_elapsed_time_for_open_log(self):
+        sprint = BoardingSprint.objects.create(
+            activity_log=self._create_boarding_activity_log(),
+            status=BoardingSprint.Status.RUNNING,
+        )
+        BoardingSprintTimeLog.objects.create(
+            boarding_sprint=sprint, start_time=timezone.now() - dt.timedelta(minutes=30)
+        )
+
+        result = sprint.duration.total_seconds()
+        expected = dt.timedelta(minutes=30).total_seconds()
+        self.assertAlmostEqual(result, expected, delta=1)

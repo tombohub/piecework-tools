@@ -1030,6 +1030,7 @@ class BoardingSprintManager(models.Manager["BoardingSprint"]):
 class BoardingSprint(models.Model):
     if TYPE_CHECKING:
         activity_log_id: int | None
+        boardingsprinttimelog_set: models.Manager[BoardingSprintTimeLog]
 
     class Status(models.TextChoices):
         RUNNING = "running", "Running"
@@ -1041,6 +1042,16 @@ class BoardingSprint(models.Model):
         max_length=20, choices=Status.choices, default=Status.RUNNING
     )
     objects: BoardingSprintManager = BoardingSprintManager()
+
+    @property
+    def duration(self):
+        """Return the sprint's total active duration, excluding paused time."""
+        duration = sum(
+            (time_log.duration for time_log in self.boardingsprinttimelog_set.all()),
+            start=dt.timedelta(),
+        )
+
+        return duration
 
     @transaction.atomic
     def stop_sprint(self) -> None:
@@ -1140,7 +1151,7 @@ class BoardingSprintTimeLog(models.Model):
     end_time = models.DateTimeField(null=True, blank=True)
 
     @property
-    def duration(self):
+    def duration(self) -> dt.timedelta:
         if self.end_time is None:
             return timezone.now() - self.start_time
 
