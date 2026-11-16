@@ -18,6 +18,7 @@ from .models import (
     RatePeriod,
     SprinklerRate,
     Unit,
+    UnitArea,
     UnitDrywallMaterial,
     UnitInsulationCount,
     UnitInsulationMaterial,
@@ -125,3 +126,4 @@ admin.site.register(PotlightRate)
 admin.site.register(InsulationRate)
 admin.site.register(UnitInsulationMaterial)
 admin.site.register(UnitWorkflowStep)
+admin.site.register(UnitArea)

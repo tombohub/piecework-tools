@@ -387,6 +387,19 @@ class UnitInsulationMaterial(models.Model):
         ]
 
 
+class UnitArea(models.Model):
+    """
+    A reusable area definition used to divide units into general sections.
+    """
+
+    name = models.CharField(max_length=100, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self) -> str:
+        return self.name
+
+
 class UnitManager(models.Manager["Unit"]):
     def active_unit(self):
         """
