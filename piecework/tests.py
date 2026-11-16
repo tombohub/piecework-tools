@@ -1042,6 +1042,14 @@ class BoardingSprintTests(TestCase):
         cls.unit = Unit.objects.create(number="101")
         cls.boarding = Activity.objects.create(name="board")
         cls.break_activity = Activity.objects.create(name="break")
+        cls.twelve_foot_board = UnitDrywallMaterial.objects.get(
+            drywall_type=UnitDrywallMaterial.DrywallType.REGULAR,
+            length_feet=UnitDrywallMaterial.Length.TWELVE,
+        )
+        cls.eight_foot_board = UnitDrywallMaterial.objects.get(
+            drywall_type=UnitDrywallMaterial.DrywallType.REGULAR,
+            length_feet=UnitDrywallMaterial.Length.EIGHT,
+        )
 
     def _create_current_activity_log(self, activity: Activity) -> ActivityLog:
         return ActivityLog.objects.create(
@@ -1632,5 +1640,33 @@ class BoardingSprintTests(TestCase):
         expected = 0
 
         result = sprint.sheet_count
+
+        self.assertEqual(expected, result)
+
+    def test__sheets_per_hour__returns_average_sheets_per_hour(self):
+        sprint = self._create_stopped_boarding_sprint()
+        now = timezone.now()
+        BoardingSprintTimeLog.objects.create(
+            boarding_sprint=sprint,
+            start_time=now - dt.timedelta(minutes=30),
+            end_time=now,
+        )
+        BoardingSprintSheetCount.objects.create(
+            boarding_sprint=sprint, drywall_material=self.twelve_foot_board, count=10
+        )
+
+        expected = 20.0
+        result = sprint.sheets_per_hour
+
+        self.assertEqual(expected, result)
+
+    def test__sheets_per_hour__returns_zero_without_duration(self):
+        sprint = self._create_stopped_boarding_sprint()
+        BoardingSprintSheetCount.objects.create(
+            boarding_sprint=sprint, drywall_material=self.twelve_foot_board, count=10
+        )
+
+        expected = 0.0
+        result = sprint.sheets_per_hour
 
         self.assertEqual(expected, result)

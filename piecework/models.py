@@ -1063,6 +1063,17 @@ class BoardingSprint(models.Model):
 
         return sheet_count
 
+    @property
+    def sheets_per_hour(self) -> float:
+        """Return the average number of sheets installed per active sprint hour."""
+        seconds = self.duration.total_seconds()
+
+        if seconds <= 0:
+            return 0.0
+
+        sheets_per_hour = self.sheet_count / seconds * 3600
+        return round(sheets_per_hour, 2)
+
     @transaction.atomic
     def stop_sprint(self) -> None:
         """Stop an active sprint, closing its time log when currently running."""
