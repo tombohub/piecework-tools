@@ -1031,6 +1031,7 @@ class BoardingSprint(models.Model):
     if TYPE_CHECKING:
         activity_log_id: int | None
         boardingsprinttimelog_set: models.Manager[BoardingSprintTimeLog]
+        boardingsprintsheetcount_set: models.Manager[BoardingSprintSheetCount]
 
     class Status(models.TextChoices):
         RUNNING = "running", "Running"
@@ -1052,6 +1053,15 @@ class BoardingSprint(models.Model):
         )
 
         return duration
+
+    @property
+    def sheet_count(self) -> int:
+        """Return the total number of sheets installed during the sprint."""
+        sheet_count = sum(
+            sheet_count.count for sheet_count in self.boardingsprintsheetcount_set.all()
+        )
+
+        return sheet_count
 
     @transaction.atomic
     def stop_sprint(self) -> None:

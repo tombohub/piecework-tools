@@ -1602,3 +1602,43 @@ class BoardingSprintTests(TestCase):
         result = sprint.duration.total_seconds()
         expected = dt.timedelta(minutes=30).total_seconds()
         self.assertAlmostEqual(result, expected, delta=1)
+
+    def test__sheet_count__sums_sheet_counts(self):
+        sprint = BoardingSprint.objects.create(
+            activity_log=self._create_boarding_activity_log(),
+            status=BoardingSprint.Status.STOPPED,
+        )
+        twelve_foot_material = UnitDrywallMaterial.objects.get(
+            drywall_type=UnitDrywallMaterial.DrywallType.REGULAR,
+            length_feet=UnitDrywallMaterial.Length.TWELVE,
+        )
+        eight_foot_material = UnitDrywallMaterial.objects.get(
+            drywall_type=UnitDrywallMaterial.DrywallType.REGULAR,
+            length_feet=UnitDrywallMaterial.Length.EIGHT,
+        )
+        BoardingSprintSheetCount.objects.create(
+            boarding_sprint=sprint,
+            drywall_material=twelve_foot_material,
+            count=5,
+        )
+        BoardingSprintSheetCount.objects.create(
+            boarding_sprint=sprint,
+            drywall_material=eight_foot_material,
+            count=7,
+        )
+
+        expected = 12
+        result = sprint.sheet_count
+
+        self.assertEqual(expected, result)
+
+    def test__sheet_count__returns_zero_without_sheet_counts(self):
+        sprint = BoardingSprint.objects.create(
+            activity_log=self._create_boarding_activity_log(),
+            status=BoardingSprint.Status.STOPPED,
+        )
+        expected = 0
+
+        result = sprint.sheet_count
+
+        self.assertEqual(expected, result)
