@@ -31,6 +31,11 @@ urlpatterns = [
         name="boarding_sprint_sheet_counts",
     ),
     path(
+        "boarding-sprints/<int:pk>/stats",
+        views.boarding_sprint_stats,
+        name="boarding_sprint_stats",
+    ),
+    path(
         "boarding-sprints/<int:pk>/discard",
         views.discard_boarding_sprint,
         name="discard_boarding_sprint",

@@ -136,11 +136,31 @@ def boarding_sprint_sheet_counts(request, pk):
     if request.method == "POST" and formset.is_valid():
         formset.save()
         messages.success(request, "Sprint results saved.")
-        return redirect("piecework:home")
+        return redirect("piecework:boarding_sprint_stats", pk=sprint.pk)
 
     context = {"sprint": sprint, "formset": formset}
 
     return render(request, "piecework/boarding_sprints/sheet_counts.html", context)
+
+
+def boarding_sprint_stats(request, pk):
+    """Show final statistics for a stopped boarding sprint."""
+    sprint = get_object_or_404(
+        BoardingSprint.objects.select_related(
+            "activity_log__unit",
+        ).prefetch_related(
+            "boardingsprinttimelog_set",
+            "boardingsprintsheetcount_set__drywall_material",
+        ),
+        pk=pk,
+        status=BoardingSprint.Status.STOPPED,
+    )
+
+    return render(
+        request,
+        "piecework/boarding_sprints/stats.html",
+        {"sprint": sprint},
+    )
 
 
 ## NOTES

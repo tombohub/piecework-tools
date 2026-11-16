@@ -1,0 +1,64 @@
+{% extends "piecework/base.html" %}
+{% load duration_tags %}
+
+{% block body %}
+<div class="container py-4">
+  <div class="mb-4">
+    <h1 class="h3 mb-1">Boarding sprint stats</h1>
+    <p class="text-body-secondary mb-0">
+      Unit {{ sprint.activity_log.unit }}
+    </p>
+  </div>
+
+  <div class="row g-3 mb-3">
+    <div class="col-md-6">
+      <div class="card h-100 border-primary">
+        <div class="card-body">
+          <div class="text-body-secondary">Square feet per hour</div>
+          <div class="display-5 fw-semibold">
+            {{ sprint.square_feet_per_hour|floatformat:"-2" }}
+          </div>
+          <div class="text-body-secondary">sq ft/hour</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="text-body-secondary">Sheets per hour</div>
+          <div class="display-5 fw-semibold">
+            {{ sprint.sheets_per_hour|floatformat:"-2" }}
+          </div>
+          <div class="text-body-secondary">sheets/hour</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <dl class="row mb-0">
+        <dt class="col-sm-6">Active duration</dt>
+        <dd class="col-sm-6 text-sm-end">
+          {{ sprint.duration|compact_duration }}
+        </dd>
+
+        <dt class="col-sm-6">Sheets installed</dt>
+        <dd class="col-sm-6 text-sm-end">{{ sprint.sheet_count }}</dd>
+
+        <dt class="col-sm-6">Square footage installed</dt>
+        <dd class="col-sm-6 text-sm-end">
+          {{ sprint.square_footage }} sq ft
+        </dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="d-grid mt-4">
+    <a href="{% url 'piecework:home' %}" class="btn btn-primary btn-lg">
+      Done
+    </a>
+  </div>
+</div>
+{% endblock body %}
