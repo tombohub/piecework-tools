@@ -10,8 +10,8 @@
     </p>
   </div>
 
-  <div class="row g-3 mb-3">
-    <div class="col-md-6">
+  <div class="row row-cols-1 row-cols-md-3 g-3 mb-3">
+    <div class="col">
       <div class="card h-100 border-primary">
         <div class="card-body">
           <div class="text-body-secondary">Square feet per hour</div>
@@ -23,7 +23,7 @@
       </div>
     </div>
 
-    <div class="col-md-6">
+    <div class="col">
       <div class="card h-100">
         <div class="card-body">
           <div class="text-body-secondary">Sheets per hour</div>
@@ -31,6 +31,18 @@
             {{ sprint.sheets_per_hour|floatformat:"-2" }}
           </div>
           <div class="text-body-secondary">sheets/hour</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="card h-100 border-success">
+        <div class="card-body">
+          <div class="text-body-secondary">Dollars per hour</div>
+          <div class="display-5 fw-semibold">
+            ${{ sprint.dollars_per_hour|floatformat:"2" }}
+          </div>
+          <div class="text-body-secondary">estimated earnings</div>
         </div>
       </div>
     </div>

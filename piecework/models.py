@@ -1103,6 +1103,19 @@ class BoardingSprint(models.Model):
         return round(sheets_per_hour, 2)
 
     @property
+    def dollars_per_hour(self) -> float:
+        """Return the sprint's estimated drywall earnings per active hour."""
+        seconds = self.duration.total_seconds()
+        unit = self.activity_log.unit
+
+        if seconds <= 0 or unit is None:
+            return 0.0
+
+        dollars_per_hour = self.square_feet_per_hour * float(unit.drywall_rate)
+
+        return round(dollars_per_hour, 2)
+
+    @property
     def square_feet_per_hour(self) -> float:
         """Return the average square footage installed per active sprint hour."""
         seconds = self.duration.total_seconds()

@@ -1712,3 +1712,75 @@ class BoardingSprintTests(TestCase):
         result = sprint.square_feet_per_hour
 
         self.assertEqual(result, 0.0)
+
+    def test__dollars_per_hour__returns_estimated_earnings_per_hour(self):
+        rate_period = RatePeriod.objects.create(
+            name="2025-2026",
+            starts_on=dt.date(2025, 5, 1),
+            ends_on=dt.date(2026, 4, 30),
+        )
+        DrywallRate.objects.create(
+            rate_period=rate_period,
+            height=self.unit.height_feet,
+            rate_category=DrywallRateCategory.STANDARD,
+            rate=Decimal("0.5000"),
+        )
+        self.unit.started_on = dt.date(2025, 6, 1)
+        self.unit.save(update_fields=["started_on"])
+
+        sprint = self._create_stopped_boarding_sprint()
+        now = timezone.now()
+        BoardingSprintTimeLog.objects.create(
+            boarding_sprint=sprint,
+            start_time=now - dt.timedelta(minutes=30),
+            end_time=now,
+        )
+        BoardingSprintSheetCount.objects.create(
+            boarding_sprint=sprint,
+            drywall_material=self.twelve_foot_board,
+            count=10,
+        )
+
+        result = sprint.dollars_per_hour
+
+        # 10 × 48 sq ft ÷ 0.5 hours × $0.50/sq ft
+        self.assertEqual(result, 480.0)
+
+    def test__dollars_per_hour__returns_zero_without_duration(self):
+        sprint = self._create_stopped_boarding_sprint()
+        BoardingSprintSheetCount.objects.create(
+            boarding_sprint=sprint,
+            drywall_material=self.twelve_foot_board,
+            count=10,
+        )
+
+        result = sprint.dollars_per_hour
+
+        self.assertEqual(result, 0.0)
+
+    def test__dollars_per_hour__returns_zero_without_sheet_counts(self):
+        rate_period = RatePeriod.objects.create(
+            name="2025-2026",
+            starts_on=dt.date(2025, 5, 1),
+            ends_on=dt.date(2026, 4, 30),
+        )
+        DrywallRate.objects.create(
+            rate_period=rate_period,
+            height=self.unit.height_feet,
+            rate_category=DrywallRateCategory.STANDARD,
+            rate=Decimal("0.5000"),
+        )
+        self.unit.started_on = dt.date(2025, 6, 1)
+        self.unit.save(update_fields=["started_on"])
+
+        sprint = self._create_stopped_boarding_sprint()
+        now = timezone.now()
+        BoardingSprintTimeLog.objects.create(
+            boarding_sprint=sprint,
+            start_time=now - dt.timedelta(minutes=30),
+            end_time=now,
+        )
+
+        result = sprint.dollars_per_hour
+
+        self.assertEqual(result, 0.0)
