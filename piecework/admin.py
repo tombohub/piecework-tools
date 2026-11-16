@@ -110,7 +110,12 @@ class ActivityTimeAdmin(admin.ModelAdmin):
     )
 
 
-admin.site.register([Activity, BoardingSprint, BoardingSprintTimeLog, Note])
+@admin.register(BoardingSprint)
+class BoardingSprintAdmin(admin.ModelAdmin):
+    raw_id_fields = ("activity_log",)
+
+
+admin.site.register([Activity, BoardingSprintTimeLog, Note])
 
 
 @admin.register(UnitDrywallMaterial)
