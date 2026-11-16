@@ -1629,6 +1629,31 @@ class BoardingSprintTests(TestCase):
 
         self.assertEqual(expected, result)
 
+    def test__square_footage__sums_sheet_count_square_footage(self):
+        sprint = self._create_stopped_boarding_sprint()
+        BoardingSprintSheetCount.objects.create(
+            boarding_sprint=sprint,
+            drywall_material=self.twelve_foot_board,
+            count=5,
+        )
+        BoardingSprintSheetCount.objects.create(
+            boarding_sprint=sprint,
+            drywall_material=self.eight_foot_board,
+            count=7,
+        )
+
+        result = sprint.square_footage
+
+        # (12 ft × 4 ft × 5) + (8 ft × 4 ft × 7)
+        self.assertEqual(result, 464)
+
+    def test__square_footage__returns_zero_without_sheet_counts(self):
+        sprint = self._create_stopped_boarding_sprint()
+
+        result = sprint.square_footage
+
+        self.assertEqual(result, 0)
+
     def test__sheets_per_hour__returns_average_sheets_per_hour(self):
         sprint = self._create_stopped_boarding_sprint()
         now = timezone.now()
@@ -1656,3 +1681,34 @@ class BoardingSprintTests(TestCase):
         result = sprint.sheets_per_hour
 
         self.assertEqual(expected, result)
+
+    def test__square_feet_per_hour__returns_average_square_feet_per_hour(self):
+        sprint = self._create_stopped_boarding_sprint()
+        now = timezone.now()
+        BoardingSprintTimeLog.objects.create(
+            boarding_sprint=sprint,
+            start_time=now - dt.timedelta(minutes=30),
+            end_time=now,
+        )
+        BoardingSprintSheetCount.objects.create(
+            boarding_sprint=sprint,
+            drywall_material=self.twelve_foot_board,
+            count=10,
+        )
+
+        result = sprint.square_feet_per_hour
+
+        # 10 × 48 sq ft installed in half an hour
+        self.assertEqual(result, 960.0)
+
+    def test__square_feet_per_hour__returns_zero_without_duration(self):
+        sprint = self._create_stopped_boarding_sprint()
+        BoardingSprintSheetCount.objects.create(
+            boarding_sprint=sprint,
+            drywall_material=self.twelve_foot_board,
+            count=10,
+        )
+
+        result = sprint.square_feet_per_hour
+
+        self.assertEqual(result, 0.0)

@@ -1064,6 +1064,15 @@ class BoardingSprint(models.Model):
         return sheet_count
 
     @property
+    def square_footage(self) -> int:
+        """Return the total square footage installed during the sprint."""
+        footage = sum(
+            sheet_count.square_footage
+            for sheet_count in self.boardingsprintsheetcount_set.all()
+        )
+        return footage
+
+    @property
     def sheets_per_hour(self) -> float:
         """Return the average number of sheets installed per active sprint hour."""
         seconds = self.duration.total_seconds()
@@ -1073,6 +1082,18 @@ class BoardingSprint(models.Model):
 
         sheets_per_hour = self.sheet_count / seconds * 3600
         return round(sheets_per_hour, 2)
+
+    @property
+    def square_feet_per_hour(self) -> float:
+        """Return the average square footage installed per active sprint hour."""
+        seconds = self.duration.total_seconds()
+
+        if seconds <= 0:
+            return 0.0
+
+        square_feet_per_hour = self.square_footage / seconds * 3600
+
+        return round(square_feet_per_hour, 2)
 
     @transaction.atomic
     def stop_sprint(self) -> None:
