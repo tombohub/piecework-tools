@@ -10,6 +10,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from .forms import (
+    BoardingSprintAreaForm,
     BoardingSprintSheetCountFormSet,
     NoteModelForm,
     UnitForm,
@@ -131,14 +132,27 @@ def boarding_sprint_sheet_counts(request, pk):
         BoardingSprint, pk=pk, status=BoardingSprint.Status.STOPPED
     )
 
-    formset = BoardingSprintSheetCountFormSet(request.POST or None, instance=sprint)
+    area_form = BoardingSprintAreaForm(request.POST or None, instance=sprint)
+    formset = BoardingSprintSheetCountFormSet(
+        request.POST or None,
+        instance=sprint,
+    )
 
-    if request.method == "POST" and formset.is_valid():
-        formset.save()
-        messages.success(request, "Sprint results saved.")
-        return redirect("piecework:boarding_sprint_stats", pk=sprint.pk)
+    if request.method == "POST":
+        area_form_is_valid = area_form.is_valid()
+        formset_is_valid = formset.is_valid()
 
-    context = {"sprint": sprint, "formset": formset}
+        if area_form_is_valid and formset_is_valid:
+            area_form.save()
+            formset.save()
+            messages.success(request, "Sprint results saved.")
+            return redirect("piecework:boarding_sprint_stats", pk=sprint.pk)
+
+    context = {
+        "sprint": sprint,
+        "area_form": area_form,
+        "formset": formset,
+    }
 
     return render(request, "piecework/boarding_sprints/sheet_counts.html", context)
 
@@ -148,6 +162,7 @@ def boarding_sprint_stats(request, pk):
     sprint = get_object_or_404(
         BoardingSprint.objects.select_related(
             "activity_log__unit",
+            "unit_area",
         ).prefetch_related(
             "boardingsprinttimelog_set",
             "boardingsprintsheetcount_set__drywall_material",

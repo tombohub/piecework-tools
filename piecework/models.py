@@ -1015,6 +1015,8 @@ class BoardingSprintManager(models.Manager["BoardingSprint"]):
 
     @transaction.atomic
     def start_sprint(self) -> BoardingSprint:
+        """Start boarding sprint."""
+
         activity_log = ActivityLog.objects.current()
 
         if activity_log is None:
@@ -1029,7 +1031,8 @@ class BoardingSprintManager(models.Manager["BoardingSprint"]):
         started_at = timezone.now()
 
         new_sprint = self.create(
-            activity_log=activity_log, status=BoardingSprint.Status.RUNNING
+            activity_log=activity_log,
+            status=BoardingSprint.Status.RUNNING,
         )
 
         BoardingSprintTimeLog.objects.create(
@@ -1052,6 +1055,9 @@ class BoardingSprint(models.Model):
         STOPPED = "stopped", "Stopped"
 
     activity_log = models.ForeignKey(ActivityLog, on_delete=models.PROTECT)
+    unit_area = models.ForeignKey(
+        UnitArea, on_delete=models.PROTECT, null=True, blank=True
+    )
     status = models.CharField(
         max_length=20, choices=Status.choices, default=Status.RUNNING
     )

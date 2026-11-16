@@ -10,6 +10,7 @@ from .models import (
     Note,
     Project,
     Unit,
+    UnitArea,
     UnitSheetCount,
 )
 
@@ -54,6 +55,19 @@ class UnitStatsFilterForm(forms.Form):
         choices=[("", "All heights"), *HeightCategory.choices],
         widget=forms.Select(attrs={"class": "form-select"}),
     )
+
+
+class BoardingSprintAreaForm(forms.ModelForm):
+    unit_area = forms.ModelChoiceField(
+        queryset=UnitArea.objects.order_by("name"),
+        required=False,
+        empty_label="Select area",
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
+
+    class Meta:
+        model = BoardingSprint
+        fields = ("unit_area",)
 
 
 class BoardingSprintSheetCountForm(forms.ModelForm):

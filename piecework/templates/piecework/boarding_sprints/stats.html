@@ -39,6 +39,11 @@
   <div class="card">
     <div class="card-body">
       <dl class="row mb-0">
+        <dt class="col-sm-6">Unit area</dt>
+        <dd class="col-sm-6 text-sm-end">
+          {{ sprint.unit_area|default:"Not assigned" }}
+        </dd>
+
         <dt class="col-sm-6">Active duration</dt>
         <dd class="col-sm-6 text-sm-end">
           {{ sprint.duration|compact_duration }}

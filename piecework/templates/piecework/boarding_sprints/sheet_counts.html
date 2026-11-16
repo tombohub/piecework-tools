@@ -13,6 +13,22 @@
 
       <form method="post">
         {% csrf_token %}
+
+        <div class="mb-4">
+          <label
+            class="form-label"
+            for="{{ area_form.unit_area.id_for_label }}"
+          >
+            Unit area
+          </label>
+
+          {{ area_form.unit_area }}
+
+          {% for error in area_form.unit_area.errors %}
+          <div class="text-danger mt-1">{{ error }}</div>
+          {% endfor %}
+        </div>
+
         {{ formset.management_form }}
 
         {% for error in formset.non_form_errors %}
