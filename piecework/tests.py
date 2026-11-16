@@ -1494,12 +1494,10 @@ class BoardingSprintTests(TestCase):
     def test__discard_sprint__deletes_sheet_count(self):
         self._create_boarding_activity_log()
         sprint = BoardingSprint.objects.start_sprint()
-        material = UnitDrywallMaterial.objects.get(
-            drywall_type=UnitDrywallMaterial.DrywallType.REGULAR,
-            length_feet=UnitDrywallMaterial.Length.TWELVE,
-        )
         sheet_count = BoardingSprintSheetCount.objects.create(
-            boarding_sprint=sprint, drywall_material=material, count=5
+            boarding_sprint=sprint,
+            drywall_material=self.twelve_foot_board,
+            count=5,
         )
         sheet_count_id = sheet_count.pk
 
@@ -1521,14 +1519,10 @@ class BoardingSprintTests(TestCase):
     def test__discard_sprint__preserves_drywall_material(self):
         self._create_boarding_activity_log()
         sprint = BoardingSprint.objects.start_sprint()
-        material = UnitDrywallMaterial.objects.get(
-            drywall_type=UnitDrywallMaterial.DrywallType.REGULAR,
-            length_feet=UnitDrywallMaterial.Length.TWELVE,
-        )
-        material_id = material.pk
+        material_id = self.twelve_foot_board.pk
         BoardingSprintSheetCount.objects.create(
             boarding_sprint=sprint,
-            drywall_material=material,
+            drywall_material=self.twelve_foot_board,
             count=5,
         )
 
@@ -1611,22 +1605,14 @@ class BoardingSprintTests(TestCase):
 
     def test__sheet_count__sums_sheet_counts(self):
         sprint = self._create_stopped_boarding_sprint()
-        twelve_foot_material = UnitDrywallMaterial.objects.get(
-            drywall_type=UnitDrywallMaterial.DrywallType.REGULAR,
-            length_feet=UnitDrywallMaterial.Length.TWELVE,
-        )
-        eight_foot_material = UnitDrywallMaterial.objects.get(
-            drywall_type=UnitDrywallMaterial.DrywallType.REGULAR,
-            length_feet=UnitDrywallMaterial.Length.EIGHT,
-        )
         BoardingSprintSheetCount.objects.create(
             boarding_sprint=sprint,
-            drywall_material=twelve_foot_material,
+            drywall_material=self.twelve_foot_board,
             count=5,
         )
         BoardingSprintSheetCount.objects.create(
             boarding_sprint=sprint,
-            drywall_material=eight_foot_material,
+            drywall_material=self.eight_foot_board,
             count=7,
         )
 
