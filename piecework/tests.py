@@ -1055,6 +1055,14 @@ class BoardingSprintTests(TestCase):
             start=timezone.now(),
         )
 
+    def _create_stopped_boarding_sprint(self) -> BoardingSprint:
+        activity_log = self._create_boarding_activity_log()
+
+        return BoardingSprint.objects.create(
+            activity_log=activity_log,
+            status=BoardingSprint.Status.STOPPED,
+        )
+
     def _create_break_activity_log(self) -> ActivityLog:
         return ActivityLog.objects.create(
             activity=self.break_activity,
@@ -1084,11 +1092,7 @@ class BoardingSprintTests(TestCase):
         self.assertEqual(BoardingSprint.objects.current(), sprint)
 
     def test__current__ignores_stopped_sprint(self):
-        activity_log = self._create_current_activity_log(self.boarding)
-
-        BoardingSprint.objects.create(
-            activity_log=activity_log, status=BoardingSprint.Status.STOPPED
-        )
+        self._create_stopped_boarding_sprint()
 
         self.assertIsNone(BoardingSprint.objects.current())
 
@@ -1561,18 +1565,12 @@ class BoardingSprintTests(TestCase):
         self.assertEqual(BoardingSprint.objects.count(), 1)
 
     def test__duration__returns_zero_without_time_logs(self):
-        sprint = BoardingSprint.objects.create(
-            activity_log=self._create_boarding_activity_log(),
-            status=BoardingSprint.Status.STOPPED,
-        )
+        sprint = self._create_stopped_boarding_sprint()
 
         self.assertEqual(sprint.duration, dt.timedelta())
 
     def test__duration__sums_time_logs_and_excludes_gaps(self):
-        sprint = BoardingSprint.objects.create(
-            activity_log=self._create_boarding_activity_log(),
-            status=BoardingSprint.Status.STOPPED,
-        )
+        sprint = self._create_stopped_boarding_sprint()
         now = timezone.now()
 
         BoardingSprintTimeLog.objects.create(
@@ -1604,10 +1602,7 @@ class BoardingSprintTests(TestCase):
         self.assertAlmostEqual(result, expected, delta=1)
 
     def test__sheet_count__sums_sheet_counts(self):
-        sprint = BoardingSprint.objects.create(
-            activity_log=self._create_boarding_activity_log(),
-            status=BoardingSprint.Status.STOPPED,
-        )
+        sprint = self._create_stopped_boarding_sprint()
         twelve_foot_material = UnitDrywallMaterial.objects.get(
             drywall_type=UnitDrywallMaterial.DrywallType.REGULAR,
             length_feet=UnitDrywallMaterial.Length.TWELVE,
@@ -1633,10 +1628,7 @@ class BoardingSprintTests(TestCase):
         self.assertEqual(expected, result)
 
     def test__sheet_count__returns_zero_without_sheet_counts(self):
-        sprint = BoardingSprint.objects.create(
-            activity_log=self._create_boarding_activity_log(),
-            status=BoardingSprint.Status.STOPPED,
-        )
+        sprint = self._create_stopped_boarding_sprint()
         expected = 0
 
         result = sprint.sheet_count
