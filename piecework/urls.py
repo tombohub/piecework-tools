@@ -21,6 +21,16 @@ urlpatterns = [
         name="start_boarding_sprint",
     ),
     path(
+        "boarding-sprints/pause",
+        views.pause_boarding_sprint,
+        name="pause_boarding_sprint",
+    ),
+    path(
+        "boarding-sprints/resume",
+        views.resume_boarding_sprint,
+        name="resume_boarding_sprint",
+    ),
+    path(
         "boarding-sprints/stop",
         views.stop_boarding_sprint,
         name="stop_boarding_sprint",

@@ -104,6 +104,32 @@ def start_boarding_sprint(request):
 
 
 @require_POST
+def pause_boarding_sprint(request):
+    sprint = get_object_or_404(
+        BoardingSprint,
+        status=BoardingSprint.Status.RUNNING,
+    )
+
+    sprint.pause_sprint()
+    messages.success(request, "Sprint paused.")
+
+    return redirect("piecework:home")
+
+
+@require_POST
+def resume_boarding_sprint(request):
+    sprint = get_object_or_404(
+        BoardingSprint,
+        status=BoardingSprint.Status.PAUSED,
+    )
+
+    sprint.resume_sprint()
+    messages.success(request, "Sprint resumed.")
+
+    return redirect("piecework:home")
+
+
+@require_POST
 def stop_boarding_sprint(request):
     sprint = BoardingSprint.objects.current()
 
