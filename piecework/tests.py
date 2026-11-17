@@ -1401,15 +1401,11 @@ class BoardingSprintTests(TestCase):
             sprint,
         )
 
-    def test__resume_sprint__rejects_running_sprint(self):
+    def test__resume_sprint__does_nothing_when_already_running(self):
         self._create_boarding_activity_log()
         sprint = BoardingSprint.objects.start_sprint()
 
-        with self.assertRaisesMessage(
-            ValidationError,
-            "Only a paused boarding sprint can be resumed",
-        ):
-            sprint.resume_sprint()
+        sprint.resume_sprint()
 
         self.assertEqual(sprint.status, BoardingSprint.Status.RUNNING)
         self.assertEqual(

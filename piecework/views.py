@@ -119,10 +119,11 @@ def pause_boarding_sprint(request, pk):
 
 
 @require_POST
-def resume_boarding_sprint(request):
+@transaction.atomic
+def resume_boarding_sprint(request, pk):
     sprint = get_object_or_404(
-        BoardingSprint,
-        status=BoardingSprint.Status.PAUSED,
+        BoardingSprint.objects.select_for_update(),
+        pk=pk,
     )
 
     sprint.resume_sprint()

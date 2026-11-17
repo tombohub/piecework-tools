@@ -116,7 +116,7 @@
         </button>
       </form>
       {% elif current_boarding_sprint.status == "paused" %}
-      <form method="post" action="{% url 'piecework:resume_boarding_sprint' %}">
+      <form method="post" action="{% url 'piecework:resume_boarding_sprint' current_boarding_sprint.pk %}">
         {% csrf_token %}
         <button type="submit" class="btn btn-success btn-lg">
           Resume sprint

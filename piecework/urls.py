@@ -26,7 +26,7 @@ urlpatterns = [
         name="pause_boarding_sprint",
     ),
     path(
-        "boarding-sprints/resume",
+        "boarding-sprints/<int:pk>/resume",
         views.resume_boarding_sprint,
         name="resume_boarding_sprint",
     ),

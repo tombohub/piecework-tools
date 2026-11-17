@@ -1181,7 +1181,10 @@ class BoardingSprint(models.Model):
 
     @transaction.atomic
     def resume_sprint(self) -> None:
-        """Resume a paused sprint"""
+        """Ensure the sprint is running, opening a new time log when paused."""
+        if self.status == self.Status.RUNNING:
+            return
+
         if self.status != self.Status.PAUSED:
             raise ValidationError("Only a paused boarding sprint can be resumed")
 
