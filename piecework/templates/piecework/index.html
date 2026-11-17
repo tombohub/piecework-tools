@@ -107,9 +107,7 @@
       </button>
     </form>
     {% elif current_boarding_sprint %}
-    <div
-      class="alert alert-info mb-0 d-flex flex-wrap justify-content-between align-items-center gap-3"
-    >
+    <div class="alert alert-info mb-0 d-flex flex-wrap justify-content-between align-items-center gap-3">
       {% if current_boarding_sprint.status == "running" %}
       <form method="post" action="{% url 'piecework:pause_boarding_sprint' %}">
         {% csrf_token %}
@@ -126,7 +124,7 @@
       </form>
       {% endif %}
 
-      <form method="post" action="{% url 'piecework:stop_boarding_sprint' %}">
+      <form method="post" action="{% url 'piecework:stop_boarding_sprint' current_boarding_sprint.pk %}">
         {% csrf_token %}
         <button type="submit" class="btn btn-danger btn-lg">
           Stop sprint
@@ -140,25 +138,15 @@
       <div class="vstack gap-3">
         {% for activity in activities %}
         {% if activity.category == "boarding" %}
-        <button
-          class="btn btn-lg btn-dark"
-          name="action"
-          value="{{ activity.name }}"
-          {% if activity.requires_active_unit and not active_unit %}disabled{% endif %}
-        >
+        <button class="btn btn-lg btn-dark" name="action" value="{{ activity.name }}" {% if
+          activity.requires_active_unit and not active_unit %}disabled{% endif %}>
           {{ activity.name|capfirst }}
         </button>
         {% endif %}
         {% endfor %}
 
-        <button
-          class="btn btn-lg btn-outline-dark"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#other-activities"
-          aria-expanded="false"
-          aria-controls="other-activities"
-        >
+        <button class="btn btn-lg btn-outline-dark" type="button" data-bs-toggle="collapse"
+          data-bs-target="#other-activities" aria-expanded="false" aria-controls="other-activities">
           Other activities
         </button>
 
@@ -166,12 +154,8 @@
           <div class="vstack gap-2">
             {% for activity in activities %}
             {% if activity.category != "boarding" %}
-            <button
-              class="btn btn-lg btn-dark"
-              name="action"
-              value="{{ activity.name }}"
-              {% if activity.requires_active_unit and not active_unit %}disabled{% endif %}
-            >
+            <button class="btn btn-lg btn-dark" name="action" value="{{ activity.name }}" {% if
+              activity.requires_active_unit and not active_unit %}disabled{% endif %}>
               {{ activity.name|capfirst }}
             </button>
             {% endif %}

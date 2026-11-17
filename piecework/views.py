@@ -4,6 +4,7 @@ import datetime as dt
 
 from django.contrib import messages
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -130,14 +131,15 @@ def resume_boarding_sprint(request):
 
 
 @require_POST
-def stop_boarding_sprint(request):
-    sprint = BoardingSprint.objects.current()
-
-    if sprint is None:
-        raise Http404("No boarding sprint is currently running")
+@transaction.atomic
+def stop_boarding_sprint(request, pk):
+    sprint = get_object_or_404(
+        BoardingSprint.objects.select_for_update(),
+        pk=pk,
+    )
 
     sprint.stop_sprint()
-    messages.success(request, "Sprint stopped. Enter the sheet counts.")
+    messages.success(request, "Sprint stopped. Enter the sheet counts")
 
     return redirect("piecework:boarding_sprint_sheet_counts", pk=sprint.pk)
 

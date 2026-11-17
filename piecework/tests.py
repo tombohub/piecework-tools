@@ -1201,7 +1201,7 @@ class BoardingSprintTests(TestCase):
         self.assertLessEqual(end_time, after_stop)
         self.assertIsNone(BoardingSprint.objects.current())
 
-    def test__stop_sprint__rejects_already_stopped_sprint(self):
+    def test__stop_sprint__does_nothing_when_already_stopped(self):
         self._create_boarding_activity_log()
         sprint = BoardingSprint.objects.start_sprint()
         sprint.stop_sprint()
@@ -1209,10 +1209,7 @@ class BoardingSprintTests(TestCase):
         time_log = BoardingSprintTimeLog.objects.get(boarding_sprint=sprint)
         original_end_time = time_log.end_time
 
-        with self.assertRaisesMessage(
-            ValidationError, "This boarding sprint has already stopped"
-        ):
-            sprint.stop_sprint()
+        sprint.stop_sprint()
 
         sprint.refresh_from_db()
         time_log.refresh_from_db()

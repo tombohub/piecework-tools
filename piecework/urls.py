@@ -31,7 +31,7 @@ urlpatterns = [
         name="resume_boarding_sprint",
     ),
     path(
-        "boarding-sprints/stop",
+        "boarding-sprints/<int:pk>/stop",
         views.stop_boarding_sprint,
         name="stop_boarding_sprint",
     ),

@@ -1129,9 +1129,9 @@ class BoardingSprint(models.Model):
 
     @transaction.atomic
     def stop_sprint(self) -> None:
-        """Stop an active sprint, closing its time log when currently running."""
+        """Ensure the sprint is stopped, closing its open time log when running."""
         if self.status == self.Status.STOPPED:
-            raise ValidationError("This boarding sprint has already stopped")
+            return
 
         open_time_log = BoardingSprintTimeLog.objects.filter(
             boarding_sprint=self, end_time__isnull=True
