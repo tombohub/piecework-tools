@@ -109,7 +109,7 @@
     {% elif current_boarding_sprint %}
     <div class="alert alert-info mb-0 d-flex flex-wrap justify-content-between align-items-center gap-3">
       {% if current_boarding_sprint.status == "running" %}
-      <form method="post" action="{% url 'piecework:pause_boarding_sprint' %}">
+      <form method="post" action="{% url 'piecework:pause_boarding_sprint' current_boarding_sprint.pk %}">
         {% csrf_token %}
         <button type="submit" class="btn btn-warning btn-lg">
           Pause sprint

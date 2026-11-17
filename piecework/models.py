@@ -1157,7 +1157,10 @@ class BoardingSprint(models.Model):
 
     @transaction.atomic
     def pause_sprint(self) -> None:
-        """Pause a running sprint by closing its open time log."""
+        """Ensure the sprint is paused, closing its open time log when running."""
+        if self.status == self.Status.PAUSED:
+            return
+
         if self.status != self.Status.RUNNING:
             raise ValidationError("Only a running boarding sprint can be paused")
 

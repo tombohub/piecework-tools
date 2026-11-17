@@ -1312,7 +1312,7 @@ class BoardingSprintTests(TestCase):
             ).exists()
         )
 
-    def test__pause_sprint__rejects_already_paused_sprint(self):
+    def test__pause_sprint__does_nothing_when_already_paused(self):
         self._create_boarding_activity_log()
         sprint = BoardingSprint.objects.start_sprint()
         sprint.pause_sprint()
@@ -1320,10 +1320,7 @@ class BoardingSprintTests(TestCase):
         time_log = BoardingSprintTimeLog.objects.get(boarding_sprint=sprint)
         original_end_time = time_log.end_time
 
-        with self.assertRaisesMessage(
-            ValidationError, "Only a running boarding sprint can be paused"
-        ):
-            sprint.pause_sprint()
+        sprint.pause_sprint()
 
         sprint.refresh_from_db()
         time_log.refresh_from_db()

@@ -21,7 +21,7 @@ urlpatterns = [
         name="start_boarding_sprint",
     ),
     path(
-        "boarding-sprints/pause",
+        "boarding-sprints/<int:pk>/pause",
         views.pause_boarding_sprint,
         name="pause_boarding_sprint",
     ),
