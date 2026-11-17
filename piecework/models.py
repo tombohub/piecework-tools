@@ -1015,9 +1015,16 @@ class BoardingSprintManager(models.Manager["BoardingSprint"]):
 
     @transaction.atomic
     def start_sprint(self) -> BoardingSprint:
-        """Start boarding sprint."""
+        """Ensure the current boarding activity has an active sprint."""
 
-        activity_log = ActivityLog.objects.current()
+        try:
+            activity_log = (
+                ActivityLog.objects.select_for_update()
+                .select_related("activity")
+                .get(end__isnull=True)
+            )
+        except ActivityLog.DoesNotExist:
+            activity_log = None
 
         if activity_log is None:
             raise ValidationError("sprint cannot start without current activity")
@@ -1025,7 +1032,15 @@ class BoardingSprintManager(models.Manager["BoardingSprint"]):
         if not activity_log.is_boarding_activity:
             raise ValidationError("A sprint can only start during boarding activity")
 
-        if self.current() is not None:
+        current_sprint = self.current()
+
+        if (
+            current_sprint is not None
+            and current_sprint.activity_log_id == activity_log.pk
+        ):
+            return current_sprint
+
+        if current_sprint is not None:
             raise ValidationError("A boarding sprint is already active")
 
         started_at = timezone.now()

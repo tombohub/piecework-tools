@@ -1168,17 +1168,15 @@ class BoardingSprintTests(TestCase):
         self.assertFalse(BoardingSprint.objects.exists())
         self.assertFalse(BoardingSprintTimeLog.objects.exists())
 
-    def test__start_sprint__rejects_second_active_sprint(self):
+    def test__start_sprint__returns_active_sprint_when_already_started(self):
         self._create_boarding_activity_log()
         first_sprint = BoardingSprint.objects.start_sprint()
 
-        with self.assertRaisesMessage(
-            ValidationError, "A boarding sprint is already active"
-        ):
-            BoardingSprint.objects.start_sprint()
+        second_sprint = BoardingSprint.objects.start_sprint()
 
         self.assertEqual(BoardingSprint.objects.count(), 1)
         self.assertEqual(BoardingSprintTimeLog.objects.count(), 1)
+        self.assertEqual(second_sprint, first_sprint)
         self.assertEqual(BoardingSprint.objects.current(), first_sprint)
 
     def test__stop_sprint__closes_open_time_log_for_running_sprint(self):
