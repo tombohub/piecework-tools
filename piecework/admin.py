@@ -113,7 +113,13 @@ class ActivityTimeAdmin(admin.ModelAdmin):
 @admin.register(BoardingSprint)
 class BoardingSprintAdmin(admin.ModelAdmin):
     raw_id_fields = ("activity_log",)
-    list_display = ("__str__", "duration")
+    list_display = (
+        "__str__",
+        "duration",
+        "sheets_per_hour",
+        "square_feet_per_hour",
+        "dollars_per_hour",
+    )
 
 
 admin.site.register([Activity, BoardingSprintTimeLog, Note])
