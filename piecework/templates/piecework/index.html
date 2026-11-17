@@ -138,8 +138,8 @@
       <div class="vstack gap-3">
         {% for activity in activities %}
         {% if activity.category == "boarding" %}
-        <button class="btn btn-lg btn-dark" name="action" value="{{ activity.name }}" {% if
-          activity.requires_active_unit and not active_unit %}disabled{% endif %}>
+        <button class="btn btn-lg btn-dark" name="action" value="{{ activity.name }}"
+          {% if activity.requires_active_unit and not active_unit %}disabled{% endif %}>
           {{ activity.name|capfirst }}
         </button>
         {% endif %}
@@ -154,8 +154,8 @@
           <div class="vstack gap-2">
             {% for activity in activities %}
             {% if activity.category != "boarding" %}
-            <button class="btn btn-lg btn-dark" name="action" value="{{ activity.name }}" {% if
-              activity.requires_active_unit and not active_unit %}disabled{% endif %}>
+            <button class="btn btn-lg btn-dark" name="action" value="{{ activity.name }}"
+              {% if activity.requires_active_unit and not active_unit %}disabled{% endif %}>
               {{ activity.name|capfirst }}
             </button>
             {% endif %}
