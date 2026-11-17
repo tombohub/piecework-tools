@@ -75,24 +75,26 @@
   </div>
   <div class="vstack gap-4 pt-2">
     {% if can_start_boarding_sprint %}
-    <form method="post" action="{% url 'piecework:start_boarding_sprint' %}" class="d-grid" up-submit>
+    <form method="post" action="{% url 'piecework:start_boarding_sprint' %}" class="d-grid" up-submit up-disable>
       {% csrf_token %}
       <button type="submit" class="btn btn-success btn-lg">Start sprint</button>
     </form>
     {% elif current_boarding_sprint %}
     <div class="alert alert-info mb-0 d-flex flex-wrap justify-content-between align-items-center gap-3">
       {% if current_boarding_sprint.status == "running" %}
-      <form method="post" action="{% url 'piecework:pause_boarding_sprint' current_boarding_sprint.pk %}">
+      <form method="post" action="{% url 'piecework:pause_boarding_sprint' current_boarding_sprint.pk %}" up-disable
+        up-submit>
         {% csrf_token %}
         <button type="submit" class="btn btn-warning btn-lg">Pause sprint</button>
       </form>
       {% elif current_boarding_sprint.status == "paused" %}
-      <form method="post" action="{% url 'piecework:resume_boarding_sprint' current_boarding_sprint.pk %}">
+      <form method="post" action="{% url 'piecework:resume_boarding_sprint' current_boarding_sprint.pk %}" up-disable
+        up-submit>
         {% csrf_token %}
         <button type="submit" class="btn btn-success btn-lg">Resume sprint</button>
       </form>
       {% endif %}
-      <form method="post" action="{% url 'piecework:stop_boarding_sprint' current_boarding_sprint.pk %}">
+      <form method="post" action="{% url 'piecework:stop_boarding_sprint' current_boarding_sprint.pk %}" up-disable>
         {% csrf_token %}
         <button type="submit" class="btn btn-danger btn-lg">Stop sprint</button>
       </form>
@@ -103,12 +105,15 @@
       <div class="vstack gap-3">
         {% for activity in activities %}
         {% if activity.category == "boarding" %}
-        <button class="btn btn-lg btn-dark" name="action" value="{{ activity.name }}"
-          {% if activity.requires_active_unit %}
-            {% if not active_unit %}disabled{% endif %}
-          {% endif %}>
+        {% if activity.requires_active_unit and not active_unit %}
+        <button class="btn btn-lg btn-dark" name="action" value="{{ activity.name }}" disabled>
           {{ activity.name|capfirst }}
         </button>
+        {% else %}
+        <button class="btn btn-lg btn-dark" name="action" value="{{ activity.name }}">
+          {{ activity.name|capfirst }}
+        </button>
+        {% endif %}
         {% endif %}
         {% endfor %}
         <button class="btn btn-lg btn-outline-dark" type="button" data-bs-toggle="collapse"
@@ -118,12 +123,15 @@
           <div class="vstack gap-2">
             {% for activity in activities %}
             {% if activity.category != "boarding" %}
-            <button class="btn btn-lg btn-dark" name="action" value="{{ activity.name }}"
-              {% if activity.requires_active_unit %}
-                {% if not active_unit %}disabled{% endif %}
-              {% endif %}>
+            {% if activity.requires_active_unit and not active_unit %}
+            <button class="btn btn-lg btn-dark" name="action" value="{{ activity.name }}" disabled>
               {{ activity.name|capfirst }}
             </button>
+            {% else %}
+            <button class="btn btn-lg btn-dark" name="action" value="{{ activity.name }}">
+              {{ activity.name|capfirst }}
+            </button>
+            {% endif %}
             {% endif %}
             {% endfor %}
           </div>
