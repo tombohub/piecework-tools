@@ -1,123 +1,119 @@
 {% extends "piecework/base.html" %}
-
 {% block body %}
-<div class="card mt-4">
-    <div class="card-header">
-        <h1 class="text-center">Unit {{ unit.number }}</h1>
-    </div>
-
-    <div class="card-body">
-        <dl class="row">
-            <dt class="col-sm-4">Status</dt>
-            <dd class="col-sm-8">{{ unit.get_status_display }}</dd>
-
-            <dt class="col-sm-4">Project</dt>
-            <dd class="col-sm-8">{{ unit.project|default:"—" }}</dd>
-
-            <dt class="col-sm-4">Height</dt>
-            <dd class="col-sm-8">{{ unit.get_height_feet_display }}</dd>
-
-            <dt class="col-sm-4">Potlights</dt>
-            <dd class="col-sm-8">{{ unit.potlights_count|default_if_none:"—" }}</dd>
-
-            <dt class="col-sm-4">Sprinklers</dt>
-            <dd class="col-sm-8">{{ unit.sprinklers_count|default_if_none:"—" }}</dd>
-
-            <dt class="col-sm-4">Started on</dt>
-            <dd class="col-sm-8">{{ unit.started_on|default:"—" }}</dd>
-
-            <dt class="col-sm-4">Completed on</dt>
-            <dd class="col-sm-8">{{ unit.completed_on|default:"—" }}</dd>
-        </dl>
-
-        <h2 class="h5 mt-4">Drywall materials</h2>
-
-        <div class="table-responsive">
-            <table class="table table-sm align-middle mb-0">
-                <thead>
-                    <tr>
-                        <th scope="col">Material</th>
-                        <th scope="col" class="text-end">Sheets</th>
-                        <th scope="col" class="text-end">Square footage</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for sheet_count in drywall_sheet_counts %}
-                    <tr>
-                        <td>{{ sheet_count.drywall_material }}</td>
-                        <td class="text-end">{{ sheet_count.count }}</td>
-                        <td class="text-end">{{ sheet_count.square_footage }} sq ft</td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="3" class="text-muted">No drywall materials recorded.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+    <div class="card mt-4">
+        <div class="card-header">
+            <h1 class="text-center">Unit {{ unit.number }}</h1>
         </div>
-
-        <h2 class="h5 mt-4">J-mould materials</h2>
-
-        <div class="table-responsive">
-            <table class="table table-sm align-middle mb-0">
-                <thead>
-                    <tr>
-                        <th scope="col">Length</th>
-                        <th scope="col" class="text-end">Pieces</th>
-                        <th scope="col" class="text-end">Linear footage</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for jmould_count in jmould_counts %}
-                    <tr>
-                        <td>{{ jmould_count.get_length_feet_display }}</td>
-                        <td class="text-end">{{ jmould_count.count }}</td>
-                        <td class="text-end">{{ jmould_count.linear_feet }} linear ft</td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="3" class="text-muted">No J-mould materials recorded.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-4">Status</dt>
+                <dd class="col-sm-8">
+                    {{ unit.get_status_display }}
+                </dd>
+                <dt class="col-sm-4">Project</dt>
+                <dd class="col-sm-8">
+                    {{ unit.project|default:"—" }}
+                </dd>
+                <dt class="col-sm-4">Height</dt>
+                <dd class="col-sm-8">
+                    {{ unit.get_height_feet_display }}
+                </dd>
+                <dt class="col-sm-4">Potlights</dt>
+                <dd class="col-sm-8">
+                    {{ unit.potlights_count|default_if_none:"—" }}
+                </dd>
+                <dt class="col-sm-4">Sprinklers</dt>
+                <dd class="col-sm-8">
+                    {{ unit.sprinklers_count|default_if_none:"—" }}
+                </dd>
+                <dt class="col-sm-4">Started on</dt>
+                <dd class="col-sm-8">
+                    {{ unit.started_on|default:"—" }}
+                </dd>
+                <dt class="col-sm-4">Completed on</dt>
+                <dd class="col-sm-8">
+                    {{ unit.completed_on|default:"—" }}
+                </dd>
+            </dl>
+            <h2 class="h5 mt-4">Drywall materials</h2>
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th scope="col">Material</th>
+                            <th scope="col" class="text-end">Sheets</th>
+                            <th scope="col" class="text-end">Square footage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sheet_count in drywall_sheet_counts %}
+                            <tr>
+                                <td>{{ sheet_count.drywall_material }}</td>
+                                <td class="text-end">{{ sheet_count.count }}</td>
+                                <td class="text-end">{{ sheet_count.square_footage }} sq ft</td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-muted">No drywall materials recorded.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <h2 class="h5 mt-4">J-mould materials</h2>
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th scope="col">Length</th>
+                            <th scope="col" class="text-end">Pieces</th>
+                            <th scope="col" class="text-end">Linear footage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for jmould_count in jmould_counts %}
+                            <tr>
+                                <td>{{ jmould_count.get_length_feet_display }}</td>
+                                <td class="text-end">{{ jmould_count.count }}</td>
+                                <td class="text-end">{{ jmould_count.linear_feet }} linear ft</td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-muted">No J-mould materials recorded.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <h2 class="h5 mt-4">Insulation materials</h2>
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th scope="col">Material</th>
+                            <th scope="col" class="text-end">Pieces</th>
+                            <th scope="col" class="text-end">Square footage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for insulation_count in insulation_counts %}
+                            <tr>
+                                <td>{{ insulation_count.insulation_material }}</td>
+                                <td class="text-end">{{ insulation_count.count }}</td>
+                                <td class="text-end">{{ insulation_count.square_footage|floatformat:"-2" }} sq ft</td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-muted">No insulation materials recorded.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
-
-        <h2 class="h5 mt-4">Insulation materials</h2>
-
-        <div class="table-responsive">
-            <table class="table table-sm align-middle mb-0">
-                <thead>
-                    <tr>
-                        <th scope="col">Material</th>
-                        <th scope="col" class="text-end">Pieces</th>
-                        <th scope="col" class="text-end">Square footage</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for insulation_count in insulation_counts %}
-                    <tr>
-                        <td>{{ insulation_count.insulation_material }}</td>
-                        <td class="text-end">{{ insulation_count.count }}</td>
-                        <td class="text-end">
-                            {{ insulation_count.square_footage|floatformat:"-2" }} sq ft
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="3" class="text-muted">No insulation materials recorded.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <div class="card-footer">
+            <a href="{% url 'piecework:units_index' %}"
+               class="btn btn-outline-secondary w-100">Back to units</a>
         </div>
     </div>
-
-    <div class="card-footer">
-        <a href="{% url 'piecework:units_index' %}" class="btn btn-outline-secondary w-100">
-            Back to units
-        </a>
-    </div>
-</div>
 {% endblock body %}

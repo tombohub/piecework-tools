@@ -1,17 +1,10 @@
 {% extends "piecework/base.html" %}
-
 {% block body %}
-<h1 class="text-center">Edit unit {{ unit.number }}</h1>
-
-<form method="post">
-    {% include "piecework/units/_form.html" %}
-
-    <button class="btn btn-primary w-100">
-        Save changes
-    </button>
-
-    <a href="{% url 'piecework:units_detail' unit.pk %}" class="btn btn-outline-secondary w-100">
-        Cancel
-    </a>
-</form>
+    <h1 class="text-center">Edit unit {{ unit.number }}</h1>
+    <form method="post">
+        {% include "piecework/units/_form.html" %}
+        <button class="btn btn-primary w-100">Save changes</button>
+        <a href="{% url 'piecework:units_detail' unit.pk %}"
+           class="btn btn-outline-secondary w-100">Cancel</a>
+    </form>
 {% endblock body %}
