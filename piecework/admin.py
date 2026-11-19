@@ -118,6 +118,7 @@ class ActivityTimeAdmin(admin.ModelAdmin):
 
 @admin.register(BoardingSprint)
 class BoardingSprintAdmin(admin.ModelAdmin):
+    list_per_page = 10
     raw_id_fields = ("activity_log",)
     inlines: ClassVar = [BoardingSprintSheetCountInline]
     list_display = (
