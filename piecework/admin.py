@@ -123,6 +123,7 @@ class BoardingSprintAdmin(admin.ModelAdmin):
     list_display = (
         "__str__",
         "duration",
+        "time_per_piece",
         "sheets_per_hour",
         "square_feet_per_hour",
         "dollars_per_hour",

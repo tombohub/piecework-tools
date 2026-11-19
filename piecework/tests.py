@@ -1591,6 +1591,35 @@ class BoardingSprintTests(TestCase):
         expected = dt.timedelta(minutes=30).total_seconds()
         self.assertAlmostEqual(result, expected, delta=1)
 
+    def test__time_per_piece__returns_average_active_duration_per_piece(self):
+        sprint = self._create_stopped_boarding_sprint()
+        sprint.piece_count = 5
+        now = timezone.now()
+        BoardingSprintTimeLog.objects.create(
+            boarding_sprint=sprint,
+            start_time=now - dt.timedelta(minutes=10),
+            end_time=now,
+        )
+
+        expected = dt.timedelta(minutes=2)
+        result = sprint.time_per_piece
+
+        self.assertEqual(expected, result)
+
+    def test__time_per_piece__returns_zero_without_piece_count(self):
+        sprint = self._create_stopped_boarding_sprint()
+        now = timezone.now()
+        BoardingSprintTimeLog.objects.create(
+            boarding_sprint=sprint,
+            start_time=now - dt.timedelta(minutes=10),
+            end_time=now,
+        )
+
+        expected = dt.timedelta()
+        result = sprint.time_per_piece
+
+        self.assertEqual(expected, result)
+
     def test__sheet_count__sums_sheet_counts(self):
         sprint = self._create_stopped_boarding_sprint()
         BoardingSprintSheetCount.objects.create(

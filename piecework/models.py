@@ -1090,6 +1090,14 @@ class BoardingSprint(models.Model):
         return duration
 
     @property
+    def time_per_piece(self) -> dt.timedelta:
+        """Return the average active sprint time spent per piece."""
+        if not self.piece_count:
+            return dt.timedelta()
+
+        return self.duration / self.piece_count
+
+    @property
     def sheet_count(self) -> int:
         """Return the total number of sheets installed during the sprint."""
         sheet_count = sum(
