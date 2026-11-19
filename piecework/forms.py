@@ -58,6 +58,15 @@ class UnitStatsFilterForm(forms.Form):
 
 
 class BoardingSprintAreaForm(forms.ModelForm):
+    piece_count = forms.IntegerField(
+        label="Number of pieces",
+        required=False,
+        widget=forms.NumberInput(
+            attrs={
+                "class": "form-control",
+            }
+        ),
+    )
     unit_area = forms.ModelChoiceField(
         queryset=UnitArea.objects.order_by("name"),
         required=False,
@@ -67,7 +76,7 @@ class BoardingSprintAreaForm(forms.ModelForm):
 
     class Meta:
         model = BoardingSprint
-        fields = ("unit_area",)
+        fields = ("unit_area", "piece_count")
 
 
 class BoardingSprintSheetCountForm(forms.ModelForm):

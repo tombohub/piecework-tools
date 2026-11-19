@@ -1070,6 +1070,7 @@ class BoardingSprint(models.Model):
         STOPPED = "stopped", "Stopped"
 
     activity_log = models.ForeignKey(ActivityLog, on_delete=models.PROTECT)
+    piece_count = models.PositiveSmallIntegerField(null=True, blank=True)
     unit_area = models.ForeignKey(
         UnitArea, on_delete=models.PROTECT, null=True, blank=True
     )

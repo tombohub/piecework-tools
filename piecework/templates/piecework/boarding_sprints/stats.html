@@ -50,6 +50,10 @@
                     <dd class="col-sm-6 text-sm-end">
                         {{ sprint.sheet_count }}
                     </dd>
+                    <dt class="col-sm-6">Pieces produced</dt>
+                    <dd class="col-sm-6 text-sm-end">
+                        {{ sprint.piece_count|default_if_none:"Not entered" }}
+                    </dd>
                     <dt class="col-sm-6">Square footage installed</dt>
                     <dd class="col-sm-6 text-sm-end">
                         {{ sprint.square_footage }} sq ft
