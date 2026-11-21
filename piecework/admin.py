@@ -116,6 +116,7 @@ class BoardingSprintAdmin(admin.ModelAdmin):
     raw_id_fields = ("activity_log",)
     list_display = (
         "__str__",
+        "unit_area",
         "duration",
         "time_per_piece",
     )
