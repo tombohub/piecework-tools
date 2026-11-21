@@ -6,35 +6,6 @@
             <h1 class="h3 mb-1">Boarding sprint stats</h1>
             <p class="text-body-secondary mb-0">Unit {{ sprint.activity_log.unit }}</p>
         </div>
-        <div class="row row-cols-1 row-cols-md-3 g-3 mb-3">
-            <div class="col">
-                <div class="card h-100 border-primary">
-                    <div class="card-body">
-                        <div class="text-body-secondary">Square feet per hour</div>
-                        <div class="display-5 fw-semibold">{{ sprint.square_feet_per_hour|floatformat:"-2" }}</div>
-                        <div class="text-body-secondary">sq ft/hour</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <div class="text-body-secondary">Sheets per hour</div>
-                        <div class="display-5 fw-semibold">{{ sprint.sheets_per_hour|floatformat:"-2" }}</div>
-                        <div class="text-body-secondary">sheets/hour</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col">
-                <div class="card h-100 border-success">
-                    <div class="card-body">
-                        <div class="text-body-secondary">Dollars per hour</div>
-                        <div class="display-5 fw-semibold">${{ sprint.dollars_per_hour|floatformat:"2" }}</div>
-                        <div class="text-body-secondary">estimated earnings</div>
-                    </div>
-                </div>
-            </div>
-        </div>
         <div class="card">
             <div class="card-body">
                 <dl class="row mb-0">
@@ -46,11 +17,7 @@
                     <dd class="col-sm-6 text-sm-end">
                         {{ sprint.duration|compact_duration }}
                     </dd>
-                    <dt class="col-sm-6">Sheets installed</dt>
-                    <dd class="col-sm-6 text-sm-end">
-                        {{ sprint.sheet_count }}
-                    </dd>
-                    <dt class="col-sm-6">Pieces produced</dt>
+                    <dt class="col-sm-6">Pieces installed</dt>
                     <dd class="col-sm-6 text-sm-end">
                         {{ sprint.piece_count|default_if_none:"Not entered" }}
                     </dd>
@@ -61,10 +28,6 @@
                         {% else %}
                             Not available
                         {% endif %}
-                    </dd>
-                    <dt class="col-sm-6">Square footage installed</dt>
-                    <dd class="col-sm-6 text-sm-end">
-                        {{ sprint.square_footage }} sq ft
                     </dd>
                 </dl>
             </div>

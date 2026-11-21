@@ -11,8 +11,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from .forms import (
-    BoardingSprintAreaForm,
-    BoardingSprintSheetCountFormSet,
+    BoardingSprintResultsForm,
     NoteModelForm,
     UnitForm,
     UnitStatsFilterForm,
@@ -141,9 +140,9 @@ def stop_boarding_sprint(request, pk):
     )
 
     sprint.stop_sprint()
-    messages.success(request, "Sprint stopped. Enter the sheet counts")
+    messages.success(request, "Sprint stopped.")
 
-    return redirect("piecework:boarding_sprint_sheet_counts", pk=sprint.pk)
+    return redirect("piecework:boarding_sprint_results", pk=sprint.pk)
 
 
 @require_POST
@@ -157,34 +156,30 @@ def discard_boarding_sprint(request, pk):
     return redirect("piecework:home")
 
 
-def boarding_sprint_sheet_counts(request, pk):
+def boarding_sprint_results(request, pk):
     sprint = get_object_or_404(
-        BoardingSprint, pk=pk, status=BoardingSprint.Status.STOPPED
+        BoardingSprint,
+        pk=pk,
+        status=BoardingSprint.Status.STOPPED,
     )
-
-    area_form = BoardingSprintAreaForm(request.POST or None, instance=sprint)
-    formset = BoardingSprintSheetCountFormSet(
+    form = BoardingSprintResultsForm(
         request.POST or None,
         instance=sprint,
     )
 
-    if request.method == "POST":
-        area_form_is_valid = area_form.is_valid()
-        formset_is_valid = formset.is_valid()
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "Sprint results saved.")
+        return redirect("piecework:boarding_sprint_stats", pk=sprint.pk)
 
-        if area_form_is_valid and formset_is_valid:
-            area_form.save()
-            formset.save()
-            messages.success(request, "Sprint results saved.")
-            return redirect("piecework:boarding_sprint_stats", pk=sprint.pk)
-
-    context = {
-        "sprint": sprint,
-        "area_form": area_form,
-        "formset": formset,
-    }
-
-    return render(request, "piecework/boarding_sprints/sheet_counts.html", context)
+    return render(
+        request,
+        "piecework/boarding_sprints/results.html",
+        {
+            "sprint": sprint,
+            "form": form,
+        },
+    )
 
 
 def boarding_sprint_stats(request, pk):
@@ -195,7 +190,6 @@ def boarding_sprint_stats(request, pk):
             "unit_area",
         ).prefetch_related(
             "boardingsprinttimelog_set",
-            "boardingsprintsheetcount_set__drywall_material",
         ),
         pk=pk,
         status=BoardingSprint.Status.STOPPED,

@@ -36,9 +36,9 @@ urlpatterns = [
         name="stop_boarding_sprint",
     ),
     path(
-        "boarding-sprints/<int:pk>/sheet-counts",
-        views.boarding_sprint_sheet_counts,
-        name="boarding_sprint_sheet_counts",
+        "boarding-sprints/<int:pk>/results",
+        views.boarding_sprint_results,
+        name="boarding_sprint_results",
     ),
     path(
         "boarding-sprints/<int:pk>/stats",

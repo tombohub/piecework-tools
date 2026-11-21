@@ -13,7 +13,6 @@ from .models import (
     Activity,
     ActivityLog,
     BoardingSprint,
-    BoardingSprintSheetCount,
     BoardingSprintTimeLog,
     DrywallRate,
     DrywallRateCategory,
@@ -1479,22 +1478,6 @@ class BoardingSprintTests(TestCase):
 
         self.assertFalse(BoardingSprintTimeLog.objects.filter(pk=time_log_id).exists())
 
-    def test__discard_sprint__deletes_sheet_count(self):
-        self._create_boarding_activity_log()
-        sprint = BoardingSprint.objects.start_sprint()
-        sheet_count = BoardingSprintSheetCount.objects.create(
-            boarding_sprint=sprint,
-            drywall_material=self.twelve_foot_board,
-            count=5,
-        )
-        sheet_count_id = sheet_count.pk
-
-        sprint.discard_sprint()
-
-        self.assertFalse(
-            BoardingSprintSheetCount.objects.filter(pk=sheet_count_id).exists()
-        )
-
     def test__discard_sprint__preserves_activity_log(self):
         activity_log = self._create_boarding_activity_log()
         activity_log_id = activity_log.pk
@@ -1503,20 +1486,6 @@ class BoardingSprintTests(TestCase):
         sprint.discard_sprint()
 
         self.assertTrue(ActivityLog.objects.filter(pk=activity_log_id).exists())
-
-    def test__discard_sprint__preserves_drywall_material(self):
-        self._create_boarding_activity_log()
-        sprint = BoardingSprint.objects.start_sprint()
-        material_id = self.twelve_foot_board.pk
-        BoardingSprintSheetCount.objects.create(
-            boarding_sprint=sprint,
-            drywall_material=self.twelve_foot_board,
-            count=5,
-        )
-
-        sprint.discard_sprint()
-
-        self.assertTrue(UnitDrywallMaterial.objects.filter(pk=material_id).exists())
 
     def test__can_start__returns_true_after_discarding_active_sprint(self):
         self._create_boarding_activity_log()
@@ -1620,184 +1589,4 @@ class BoardingSprintTests(TestCase):
 
         self.assertEqual(expected, result)
 
-    def test__sheet_count__sums_sheet_counts(self):
-        sprint = self._create_stopped_boarding_sprint()
-        BoardingSprintSheetCount.objects.create(
-            boarding_sprint=sprint,
-            drywall_material=self.twelve_foot_board,
-            count=5,
-        )
-        BoardingSprintSheetCount.objects.create(
-            boarding_sprint=sprint,
-            drywall_material=self.eight_foot_board,
-            count=7,
-        )
 
-        expected = 12
-        result = sprint.sheet_count
-
-        self.assertEqual(expected, result)
-
-    def test__sheet_count__returns_zero_without_sheet_counts(self):
-        sprint = self._create_stopped_boarding_sprint()
-        expected = 0
-
-        result = sprint.sheet_count
-
-        self.assertEqual(expected, result)
-
-    def test__square_footage__sums_sheet_count_square_footage(self):
-        sprint = self._create_stopped_boarding_sprint()
-        BoardingSprintSheetCount.objects.create(
-            boarding_sprint=sprint,
-            drywall_material=self.twelve_foot_board,
-            count=5,
-        )
-        BoardingSprintSheetCount.objects.create(
-            boarding_sprint=sprint,
-            drywall_material=self.eight_foot_board,
-            count=7,
-        )
-
-        result = sprint.square_footage
-
-        # (12 ft × 4 ft × 5) + (8 ft × 4 ft × 7)
-        self.assertEqual(result, 464)
-
-    def test__square_footage__returns_zero_without_sheet_counts(self):
-        sprint = self._create_stopped_boarding_sprint()
-
-        result = sprint.square_footage
-
-        self.assertEqual(result, 0)
-
-    def test__sheets_per_hour__returns_average_sheets_per_hour(self):
-        sprint = self._create_stopped_boarding_sprint()
-        now = timezone.now()
-        BoardingSprintTimeLog.objects.create(
-            boarding_sprint=sprint,
-            start_time=now - dt.timedelta(minutes=30),
-            end_time=now,
-        )
-        BoardingSprintSheetCount.objects.create(
-            boarding_sprint=sprint, drywall_material=self.twelve_foot_board, count=10
-        )
-
-        expected = 20.0
-        result = sprint.sheets_per_hour
-
-        self.assertEqual(expected, result)
-
-    def test__sheets_per_hour__returns_zero_without_duration(self):
-        sprint = self._create_stopped_boarding_sprint()
-        BoardingSprintSheetCount.objects.create(
-            boarding_sprint=sprint, drywall_material=self.twelve_foot_board, count=10
-        )
-
-        expected = 0.0
-        result = sprint.sheets_per_hour
-
-        self.assertEqual(expected, result)
-
-    def test__square_feet_per_hour__returns_average_square_feet_per_hour(self):
-        sprint = self._create_stopped_boarding_sprint()
-        now = timezone.now()
-        BoardingSprintTimeLog.objects.create(
-            boarding_sprint=sprint,
-            start_time=now - dt.timedelta(minutes=30),
-            end_time=now,
-        )
-        BoardingSprintSheetCount.objects.create(
-            boarding_sprint=sprint,
-            drywall_material=self.twelve_foot_board,
-            count=10,
-        )
-
-        result = sprint.square_feet_per_hour
-
-        # 10 × 48 sq ft installed in half an hour
-        self.assertEqual(result, 960.0)
-
-    def test__square_feet_per_hour__returns_zero_without_duration(self):
-        sprint = self._create_stopped_boarding_sprint()
-        BoardingSprintSheetCount.objects.create(
-            boarding_sprint=sprint,
-            drywall_material=self.twelve_foot_board,
-            count=10,
-        )
-
-        result = sprint.square_feet_per_hour
-
-        self.assertEqual(result, 0.0)
-
-    def test__dollars_per_hour__returns_estimated_earnings_per_hour(self):
-        rate_period = RatePeriod.objects.create(
-            name="2025-2026",
-            starts_on=dt.date(2025, 5, 1),
-            ends_on=dt.date(2026, 4, 30),
-        )
-        DrywallRate.objects.create(
-            rate_period=rate_period,
-            height=self.unit.height_feet,
-            rate_category=DrywallRateCategory.STANDARD,
-            rate=Decimal("0.5000"),
-        )
-        self.unit.started_on = dt.date(2025, 6, 1)
-        self.unit.save(update_fields=["started_on"])
-
-        sprint = self._create_stopped_boarding_sprint()
-        now = timezone.now()
-        BoardingSprintTimeLog.objects.create(
-            boarding_sprint=sprint,
-            start_time=now - dt.timedelta(minutes=30),
-            end_time=now,
-        )
-        BoardingSprintSheetCount.objects.create(
-            boarding_sprint=sprint,
-            drywall_material=self.twelve_foot_board,
-            count=10,
-        )
-
-        result = sprint.dollars_per_hour
-
-        # 10 × 48 sq ft ÷ 0.5 hours × $0.50/sq ft
-        self.assertEqual(result, 480.0)
-
-    def test__dollars_per_hour__returns_zero_without_duration(self):
-        sprint = self._create_stopped_boarding_sprint()
-        BoardingSprintSheetCount.objects.create(
-            boarding_sprint=sprint,
-            drywall_material=self.twelve_foot_board,
-            count=10,
-        )
-
-        result = sprint.dollars_per_hour
-
-        self.assertEqual(result, 0.0)
-
-    def test__dollars_per_hour__returns_zero_without_sheet_counts(self):
-        rate_period = RatePeriod.objects.create(
-            name="2025-2026",
-            starts_on=dt.date(2025, 5, 1),
-            ends_on=dt.date(2026, 4, 30),
-        )
-        DrywallRate.objects.create(
-            rate_period=rate_period,
-            height=self.unit.height_feet,
-            rate_category=DrywallRateCategory.STANDARD,
-            rate=Decimal("0.5000"),
-        )
-        self.unit.started_on = dt.date(2025, 6, 1)
-        self.unit.save(update_fields=["started_on"])
-
-        sprint = self._create_stopped_boarding_sprint()
-        now = timezone.now()
-        BoardingSprintTimeLog.objects.create(
-            boarding_sprint=sprint,
-            start_time=now - dt.timedelta(minutes=30),
-            end_time=now,
-        )
-
-        result = sprint.dollars_per_hour
-
-        self.assertEqual(result, 0.0)

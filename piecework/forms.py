@@ -5,7 +5,6 @@ from django import forms
 
 from .models import (
     BoardingSprint,
-    BoardingSprintSheetCount,
     HeightCategory,
     Note,
     Project,
@@ -57,51 +56,30 @@ class UnitStatsFilterForm(forms.Form):
     )
 
 
-class BoardingSprintAreaForm(forms.ModelForm):
-    piece_count = forms.IntegerField(
-        label="Number of pieces",
-        required=False,
-        widget=forms.NumberInput(
+class BoardingSprintResultsForm(forms.ModelForm):
+    unit_area = forms.ModelChoiceField(
+        label="Unit area",
+        queryset=UnitArea.objects.order_by("name"),
+        empty_label="Select area",
+        widget=forms.Select(
             attrs={
-                "class": "form-control",
+                "class": "form-select",
+                "autofocus": True,
             }
         ),
     )
-    unit_area = forms.ModelChoiceField(
-        queryset=UnitArea.objects.order_by("name"),
-        required=False,
-        empty_label="Select area",
-        widget=forms.Select(attrs={"class": "form-select"}),
+    piece_count = forms.IntegerField(
+        label="Pieces installed",
+        min_value=1,
+        widget=forms.NumberInput(
+            attrs={
+                "class": "form-control",
+                "min": 1,
+            }
+        ),
     )
 
     class Meta:
         model = BoardingSprint
         fields = ("unit_area", "piece_count")
 
-
-class BoardingSprintSheetCountForm(forms.ModelForm):
-    class Meta:
-        model = BoardingSprintSheetCount
-        fields = ("drywall_material", "count")
-        widgets: ClassVar = {
-            "drywall_material": forms.Select(
-                attrs={"class": "form-select"},
-            ),
-            "count": forms.NumberInput(
-                attrs={
-                    "class": "form-control",
-                    "min": 1,
-                }
-            ),
-        }
-
-
-BoardingSprintSheetCountFormSet = forms.inlineformset_factory(
-    BoardingSprint,
-    BoardingSprintSheetCount,
-    form=BoardingSprintSheetCountForm,
-    extra=3,
-    can_delete=True,
-    min_num=1,
-    validate_min=True,
-)

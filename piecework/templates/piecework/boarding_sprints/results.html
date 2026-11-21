@@ -1,0 +1,68 @@
+{% extends "piecework/base.html" %}
+
+{% block body %}
+    <div class="container py-4">
+        <div class="card">
+            <div class="card-body">
+                <h1 class="h3">Sprint results</h1>
+                <p class="text-body-secondary">
+                    Enter the number of pieces installed for
+                    Unit {{ sprint.activity_log.unit }}.
+                </p>
+
+                <form method="post" up-submit up-disable>
+                    {% csrf_token %}
+
+                    {% for error in form.non_field_errors %}
+                        <div class="alert alert-danger" role="alert">
+                            {{ error }}
+                        </div>
+                    {% endfor %}
+
+                    <div class="mb-4">
+                        <label class="form-label"
+                               for="{{ form.unit_area.id_for_label }}">
+                            {{ form.unit_area.label }}
+                        </label>
+                        {{ form.unit_area }}
+
+                        {% for error in form.unit_area.errors %}
+                            <div class="text-danger mt-1">
+                                {{ error }}
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label"
+                               for="{{ form.piece_count.id_for_label }}">
+                            {{ form.piece_count.label }}
+                        </label>
+                        {{ form.piece_count }}
+
+                        {% for error in form.piece_count.errors %}
+                            <div class="text-danger mt-1">
+                                {{ error }}
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            Save and view stats
+                        </button>
+                    </div>
+                </form>
+                <form method="post"
+                      action="{% url 'piecework:discard_boarding_sprint' pk=sprint.pk %}"
+                      class="d-grid mt-2"
+                      onsubmit="return confirm('Discard this sprint? Its time logs and results will be permanently deleted.');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-danger btn-lg">
+                        Discard sprint
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock body %}

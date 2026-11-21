@@ -8,7 +8,6 @@ from .models import (
     Activity,
     ActivityLog,
     BoardingSprint,
-    BoardingSprintSheetCount,
     BoardingSprintTimeLog,
     DrywallRate,
     InsulationRate,
@@ -56,11 +55,6 @@ class UnitInsulationCountInline(admin.TabularInline):
         if obj is None or not obj.insulation_material_id or not obj.count:
             return "-"
         return ceil(obj.square_footage)
-
-
-class BoardingSprintSheetCountInline(admin.TabularInline):
-    model = BoardingSprintSheetCount
-    extra = 1
 
 
 @admin.register(Project)
@@ -120,14 +114,10 @@ class ActivityTimeAdmin(admin.ModelAdmin):
 class BoardingSprintAdmin(admin.ModelAdmin):
     list_per_page = 10
     raw_id_fields = ("activity_log",)
-    inlines: ClassVar = [BoardingSprintSheetCountInline]
     list_display = (
         "__str__",
         "duration",
         "time_per_piece",
-        "sheets_per_hour",
-        "square_feet_per_hour",
-        "dollars_per_hour",
     )
 
 

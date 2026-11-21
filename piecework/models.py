@@ -1062,7 +1062,6 @@ class BoardingSprint(models.Model):
     if TYPE_CHECKING:
         activity_log_id: int | None
         boardingsprinttimelog_set: models.Manager[BoardingSprintTimeLog]
-        boardingsprintsheetcount_set: models.Manager[BoardingSprintSheetCount]
 
     class Status(models.TextChoices):
         RUNNING = "running", "Running"
@@ -1096,60 +1095,6 @@ class BoardingSprint(models.Model):
             return dt.timedelta()
 
         return self.duration / self.piece_count
-
-    @property
-    def sheet_count(self) -> int:
-        """Return the total number of sheets installed during the sprint."""
-        sheet_count = sum(
-            sheet_count.count for sheet_count in self.boardingsprintsheetcount_set.all()
-        )
-
-        return sheet_count
-
-    @property
-    def square_footage(self) -> int:
-        """Return the total square footage installed during the sprint."""
-        footage = sum(
-            sheet_count.square_footage
-            for sheet_count in self.boardingsprintsheetcount_set.all()
-        )
-        return footage
-
-    @property
-    def sheets_per_hour(self) -> float:
-        """Return the average number of sheets installed per active sprint hour."""
-        seconds = self.duration.total_seconds()
-
-        if seconds <= 0:
-            return 0.0
-
-        sheets_per_hour = self.sheet_count / seconds * 3600
-        return round(sheets_per_hour, 2)
-
-    @property
-    def dollars_per_hour(self) -> float:
-        """Return the sprint's estimated drywall earnings per active hour."""
-        seconds = self.duration.total_seconds()
-        unit = self.activity_log.unit
-
-        if seconds <= 0 or unit is None:
-            return 0.0
-
-        dollars_per_hour = self.square_feet_per_hour * float(unit.drywall_rate)
-
-        return round(dollars_per_hour, 2)
-
-    @property
-    def square_feet_per_hour(self) -> float:
-        """Return the average square footage installed per active sprint hour."""
-        seconds = self.duration.total_seconds()
-
-        if seconds <= 0:
-            return 0.0
-
-        square_feet_per_hour = self.square_footage / seconds * 3600
-
-        return round(square_feet_per_hour, 2)
 
     @transaction.atomic
     def stop_sprint(self) -> None:
@@ -1269,27 +1214,6 @@ class BoardingSprintTimeLog(models.Model):
                 name="one_open_time_log_per_boarding_sprint",
             )
         ]
-
-
-class BoardingSprintSheetCount(models.Model):
-    boarding_sprint = models.ForeignKey(BoardingSprint, on_delete=models.CASCADE)
-    drywall_material = models.ForeignKey(UnitDrywallMaterial, on_delete=models.PROTECT)
-    count = models.PositiveSmallIntegerField()
-
-    class Meta:
-        constraints: ClassVar = [
-            models.UniqueConstraint(
-                fields=["boarding_sprint", "drywall_material"],
-                name="unique_material_per_boarding_sprint",
-            )
-        ]
-
-    @property
-    def square_footage(self) -> int:
-        return self.drywall_material.square_footage * self.count
-
-    def __str__(self) -> str:
-        return f"{self.drywall_material} {self.count}"
 
 
 ## WORKFLOW
