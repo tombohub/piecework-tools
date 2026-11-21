@@ -60,6 +60,7 @@ class BoardingSprintResultsForm(forms.ModelForm):
     unit_area = forms.ModelChoiceField(
         label="Unit area",
         queryset=UnitArea.objects.order_by("name"),
+        required=False,
         empty_label="Select area",
         widget=forms.Select(
             attrs={

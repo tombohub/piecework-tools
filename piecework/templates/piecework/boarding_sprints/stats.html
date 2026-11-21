@@ -24,7 +24,7 @@
                     <dt class="col-sm-6">Time per piece</dt>
                     <dd class="col-sm-6 text-sm-end">
                         {% if sprint.piece_count %}
-                            {{ sprint.time_per_piece|compact_duration }}
+                            {{ sprint.time_per_piece|compact_duration_with_seconds }}
                         {% else %}
                             Not available
                         {% endif %}
